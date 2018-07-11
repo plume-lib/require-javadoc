@@ -1,0 +1,47 @@
+plugins {
+  // To make build/libs/require-javadoc-all.jar, run: gradle shadowJar
+  id 'com.github.johnrengelman.shadow' version '2.0.4'
+  // Disabled due to poor handling of type annotations; wait until
+  // this issue is fixed: https://github.com/google/google-java-format/issues/5
+  // // Code formatting with Google Java Format; use targets "goJF" and "verJF".
+  // id "com.github.sherter.google-java-format" version "0.7.1"
+}
+
+apply plugin: 'java-library'
+
+// To upload to Maven Central:
+//  * update version number in README.md and in gradle/mavencentral.gradle
+//  * run:  ./gradlew uploadArchives
+//  * browse to https://oss.sonatype.org/#stagingRepositories
+apply from: 'gradle/mavencentral.gradle'
+
+dependencies {
+}
+
+repositories {
+  mavenCentral()
+}
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+// Turn Javadoc warnings into errors.
+javadoc {
+  options.addStringOption('Xwerror', '-Xdoclint:all')
+  options.addStringOption('private', '-quiet')
+}
+
+task javadocWeb(type: Javadoc) {
+  source = sourceSets.main.allJava
+  destinationDir = file("/cse/web/research/plumelib/require-javadoc/api")
+  classpath = project.sourceSets.main.compileClasspath
+}
+
+// Work around https://github.com/johnrengelman/shadow/issues/324
+configurations {
+  toolsJar  // tools.jar contains the Javadoc tool
+}
+dependencies {
+  toolsJar files(org.gradle.internal.jvm.Jvm.current().toolsJar)
+}
+configurations.compileClasspath.extendsFrom configurations.toolsJar

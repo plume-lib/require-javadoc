@@ -1,0 +1,33 @@
+///////////////////////////////////////////////////////////////////////////
+/// Code formatting
+///
+
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "gradle.plugin.com.github.sherter.google-java-format:google-java-format-gradle-plugin:0.7.1"
+  }
+}
+
+tasks.googleJavaFormat {
+  group 'Formatting'
+  description = "Reformat Java source code with Google-Java-format"
+  exclude 'src/testinput'
+}
+
+tasks.verifyGoogleJavaFormat {
+  group 'Formatting'
+  description = "Check Java source code formatting with Google-Java-format"
+  exclude 'src/testinput'
+}
+
+// Formatting for type annotations is poor.  Re-enable after this issue is fixed:
+// https://github.com/google/google-java-format/issues/5
+// // Run googleJavaFormat before compiling (would be better to just verify?)
+// tasks.withType(JavaCompile) {
+//   dependsOn 'googleJavaFormat' // task name conflicts with plugin name
+// }
