@@ -32,7 +32,7 @@ dependencies {
   compile group: 'org.plumelib', name: 'require-javadoc', version: '0.0.7'
 }
 task requireJavadoc(type: Javadoc) {
-  description = 'Ensures that all Java elementt have Javadoc documentation.'
+  description = 'Ensures that all Java elements have Javadoc documentation.'
   destinationDir.deleteDir()
   source = sourceSets.main.allJava
   classpath = project.sourceSets.main.compileClasspath
