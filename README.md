@@ -11,13 +11,13 @@ of any Javadoc tags such as `@param`, `@return`, etc.
 
 ## Use
 
-To run a doclet, invoke `javadoc` with the `-doclet` command-line argument:
+To run this doclet, invoke `javadoc` with the `-doclet` command-line argument:
 
 ```
 javadoc -doclet org.plumelib.javadoc.RequireJavadoc -docletpath require-javadoc-all.jar ...
 ```
 
-Add `-private` to check all Java elements, not just public ones.
+With the `-private` command-line argument, it checks all Java elements, not just public ones.
 
 
 ## Gradle
