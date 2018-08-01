@@ -3,8 +3,8 @@
 A simple Javadoc doclet that requires that a Javadoc comment be present on
 every Java element (class, method, and field).
 
-It is important that every Java element be documented, but the programmer can use judgment about how extensive the comment needs to be.  Therefore, 
-This makes no requirement
+It is important that every Java element be documented, but the programmer can use judgment about how extensive the comment needs to be.
+This tool makes no requirement
 about the Javadoc comment; for example, it does not require the existence
 of any Javadoc tags such as `@param`, `@return`, etc.
 
@@ -20,7 +20,20 @@ javadoc -doclet org.plumelib.javadoc.RequireJavadoc -docletpath require-javadoc-
 With the `-private` command-line argument, it checks all Java elements, not just public ones.
 
 
-## Gradle
+## Incremental use
+
+In a Travis job, you can require that some tool issues no errors on the changed lines in a pull request.  Here is example code:
+
+```
+(git diff "${TRAVIS_COMMIT_RANGE/.../..}" > /tmp/diff.txt 2>&1) || true
+(./gradlew requireJavadocPrivate > /tmp/warnings.txt 2>&1) || true
+[ -s /tmp/diff.txt ] || (echo "/tmp/diff.txt is empty" && false)
+wget https://raw.githubusercontent.com/plume-lib/plume-scripts/master/lint-diff.py
+python lint-diff.py --strip-diff=1 --strip-lint=2 /tmp/diff.txt /tmp/warnings.txt
+```
+
+
+## Gradle target
 
 To add a `requireJavadoc` target to your Gradle buildfile `build.gradle`, add the following to it:
 
