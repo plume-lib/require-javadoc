@@ -20,7 +20,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+import org.checkerframework.checker.formatter.qual.Format;
+import org.checkerframework.checker.lock.qual.GuardSatisfied;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.regex.RegexUtil;
+import org.checkerframework.common.value.qual.MinLen;
 
 /**
  * A Javadoc doclet that issues an error for any package, class, method, or field that lacks a
@@ -42,9 +48,10 @@ public class RequireJavadoc extends Standard {
   /** If true, print filenames relative to working directory. If false, print absolute paths. */
   static boolean relativePaths = false;
 
-  static Pattern skipped = null;
+  /** If non-null, matches classes where no problems should be reported. */
+  static @MonotonicNonNull Pattern skip = null;
 
-  private static final /*@Format({})*/ String USAGE =
+  private static final @Format({}) String USAGE =
       "Provided by RequireJavadoc doclet:%n"
           + "-skip <classname>      Don't report problems in the given class%n"
           + "-relative              Report relative rather than absolute filenames%n"
@@ -78,7 +85,7 @@ public class RequireJavadoc extends Standard {
         File file = position.file();
         Path path = (relativePaths ? currentPath.relativize(file.toPath()) : file.toPath());
         System.err.printf(
-            "%s:%d: missing documentation for %s%n", file, error.position.line(), error.name);
+            "%s:%d: missing documentation for %s%n", file, position.line(), error.name);
       }
     }
 
@@ -91,10 +98,11 @@ public class RequireJavadoc extends Standard {
    * @param cd the class to require documentation of
    */
   private void processClass(ClassDoc cd) {
-    if (skipped != null
-        && (skipped.matcher(cd.name()).find()
-            || skipped.matcher(cd.qualifiedName()).find()
-            || skipped.matcher(cd.position().file().toString()).find())) {
+    SourcePosition classPosition = cd.position();
+    if (skip != null
+        && (skip.matcher(cd.name()).find()
+            || skip.matcher(cd.qualifiedName()).find()
+            || (classPosition != null && skip.matcher(classPosition.file().toString()).find()))) {
       return;
     }
     requireCommentText(cd);
@@ -157,7 +165,13 @@ public class RequireJavadoc extends Standard {
    */
   private boolean isSyntheticForNestedConstructor(ConstructorDoc cd) {
     SourcePosition constructorPosition = cd.position();
-    SourcePosition classPosition = cd.containingClass().position();
+    if (constructorPosition == null) {
+      return false;
+    }
+    @SuppressWarnings("assignment.type.incompatible") // a constructor has a containing class
+    @NonNull ClassDoc containingClass = cd.containingClass();
+    SourcePosition classPosition = containingClass.position();
+    assert classPosition != null : "@AssumeAssertion(nullness): a class has a position";
     return classPosition.file().equals(constructorPosition.file())
         && classPosition.line() == constructorPosition.line();
   }
@@ -169,7 +183,7 @@ public class RequireJavadoc extends Standard {
    * @param d any Java element
    */
   private void requireCommentText(Doc d) {
-    if (skipped != null && skipped.matcher(d.name()).find()) {
+    if (skip != null && skip.matcher(d.name()).find()) {
       return;
     }
     String text = d.getRawCommentText();
@@ -183,19 +197,19 @@ public class RequireJavadoc extends Standard {
     /** The identifier that is not documented. */
     final String name;
     /** The position (file and line number) where it is defined. */
-    final SourcePosition position;
+    final @Nullable SourcePosition position;
     /**
      * Create a new Undocumented.
      *
      * @param name the identifier that is not documented
      * @param position where it is defined
      */
-    public Undocumented(String name, SourcePosition position) {
+    public Undocumented(String name, @Nullable SourcePosition position) {
       this.name = name;
       this.position = position;
     }
     /** Not consistent with equals. (It ignores the name.) */
-    public int compareTo(Undocumented other) {
+    public int compareTo(@GuardSatisfied Undocumented this, Undocumented other) {
       if (other.position == null) {
         return -1;
       }
@@ -203,7 +217,15 @@ public class RequireJavadoc extends Standard {
         return 1;
       }
       int cmp;
+      @SuppressWarnings({
+        "purity.not.deterministic.call", // pure with respect to .equals
+        "method.guarantee.violated" // pure with respect to .equals
+      })
       File thisFile = this.position.file();
+      @SuppressWarnings({
+        "purity.not.deterministic.call", // pure with respect to .equals
+        "method.guarantee.violated" // pure with respect to .equals
+      })
       File otherFile = other.position.file();
       if (thisFile == null) {
         return 1;
@@ -221,7 +243,7 @@ public class RequireJavadoc extends Standard {
     }
 
     @Override
-    public String toString() {
+    public String toString(@GuardSatisfied Undocumented this) {
       return String.format("Undocumented(%s, %s)", name, position);
     }
   }
@@ -263,7 +285,7 @@ public class RequireJavadoc extends Standard {
    *     overview</a>
    */
   @SuppressWarnings("index") // dependent: os[1] is legal when optionLength(os[0])==2
-  public static boolean validOptions(String[] /*@MinLen(1)*/[] options, DocErrorReporter reporter) {
+  public static boolean validOptions(String[] @MinLen(1) [] options, DocErrorReporter reporter) {
     List<String[]> remaining = new ArrayList<>();
     for (int oi = 0; oi < options.length; oi++) {
       String[] os = options[oi];
@@ -273,11 +295,11 @@ public class RequireJavadoc extends Standard {
           relativePaths = true;
           break;
         case "-skip":
-          try {
-            skipped = Pattern.compile(os[1]);
-          } catch (PatternSyntaxException e) {
-            System.err.printf("Bad regex \"%s\"%n", os[1]);
+          if (!RegexUtil.isRegex(os[1])) {
+            System.err.printf("Error parsing regex %s %s%n", os[1], RegexUtil.regexError(os[1]));
+            System.exit(2);
           }
+          skip = Pattern.compile(os[1]);
           break;
         case "-help":
           System.out.printf(USAGE);

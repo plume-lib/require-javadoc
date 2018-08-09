@@ -14,7 +14,12 @@ cache:
 jdk:
   - oraclejdk8
 
-script: ./gradlew build javadoc check
+# "install" by default does "./gradlew assemble", which would fail because it lacks javadoc.astub
+install: export CHECKERFRAMEWORK="/tmp/checker-framework" && echo "CHECKERFRAMEWORK=$CHECKERFRAMEWORK" && mkdir -p $CHECKERFRAMEWORK/checker/resources && (cd $CHECKERFRAMEWORK/checker/resources && wget -q https://raw.githubusercontent.com/typetools/checker-framework/master/checker/resources/javadoc.astub ) 
+
+# Add "verGJF" task when google-java-format handles type annotations better;
+# see https://github.com/google/google-java-format/issues/5
+script: export CHECKERFRAMEWORK="/tmp/checker-framework" && ./gradlew build javadoc check
 
 git:
   depth: 9

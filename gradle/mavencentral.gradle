@@ -1,18 +1,21 @@
-// To use this, your ~/.gradle/gradle.properties file must contain:
+// To make a release:
+//  * Update the version number in ../README.md and in this file.
+//  * Run in the top-level directory:  ./gradlew uploadArchives && ./gradlew javadocWeb
+//  * Browse to https://oss.sonatype.org/#stagingRepositories
+// Your ~/.gradle/gradle.properties file must contain:
 //   ossrhUsername=YOUR_USER_NAME_HERE
-//   ossrhPassword=YOUR_PASSWORD_HREE
-
+//   ossrhPassword=YOUR_PASSWORD_HERE
 
 ///////////////////////////////////////////////////////////////////////////
 /// Maven Central publishing
-///
+/// (From http://central.sonatype.org/pages/gradle.html )
 
 apply plugin: 'maven'
 apply plugin: 'signing'
 
 group = "org.plumelib"
 archivesBaseName = "require-javadoc"
-version = "0.0.7"
+version = "0.0.8"
 
 task javadocJar(type: Jar) {
     classifier = 'javadoc'
@@ -50,7 +53,7 @@ uploadArchives {
         pom.project {
           name 'Plume-lib Require-Javadoc'
           packaging 'jar'
-          description 'Command-line option processing for Java.'
+          description 'Require Javadoc comments to be present.'
           url 'https://github.com/plume-lib/require-javadoc'
 
           scm {

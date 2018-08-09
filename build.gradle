@@ -1,19 +1,21 @@
 plugins {
-  // To make build/libs/require-javadoc-all.jar, run: gradle shadowJar
-  id 'com.github.johnrengelman.shadow' version '2.0.4'
-  // Disabled due to poor handling of type annotations; wait until
+  // To create a fat jar build/libs/require-javadoc-all.jar, run: ./gradlew shadowJar
+  id "com.github.johnrengelman.shadow" version "2.0.4"
+  // Run the Error Prone linter.
+  id "net.ltgt.errorprone-base" version "0.0.16"
+  // Formating is disabled due to poor handling of type annotations; wait until
   // this issue is fixed: https://github.com/google/google-java-format/issues/5
-  // // Code formatting with Google Java Format; use targets "goJF" and "verJF".
+  // // Code formatting with Google Java Format; defines targets "goJF" and "verJF".
   // id "com.github.sherter.google-java-format" version "0.7.1"
 }
 
 apply plugin: 'java-library'
 
-// To upload to Maven Central:
-//  * update version number in README.md and in gradle/mavencentral.gradle
-//  * run:  ./gradlew uploadArchives
-//  * browse to https://oss.sonatype.org/#stagingRepositories
-apply from: 'gradle/mavencentral.gradle'
+// Checker Framework pluggable type-checking
+apply from: "${buildscript.sourceFile.parent}/gradle/checkerframework.gradle"
+
+// To upload to Maven Central, see instructions in the file.
+apply from: "${buildscript.sourceFile.parent}/gradle/mavencentral.gradle"
 
 dependencies {
 }
@@ -22,8 +24,8 @@ repositories {
   mavenCentral()
 }
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 // Turn Javadoc warnings into errors.
 javadoc {
