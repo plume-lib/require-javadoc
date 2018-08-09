@@ -35,14 +35,14 @@ python lint-diff.py --strip-diff=1 --strip-lint=2 /tmp/diff.txt /tmp/warnings.tx
 
 ## Gradle target
 
-To add a `requireJavadoc` target to your Gradle buildfile `build.gradle`, add the following to it:
+To create a `requireJavadoc` target, add the following to `build.gradle`:
 
 ```
 configurations {
   requireJavadoc
 }
 dependencies {
-  implementation group: 'org.plumelib', name: 'require-javadoc', version: '0.0.7'
+  implementation group: 'org.plumelib', name: 'require-javadoc', version: '0.0.8'
 }
 task requireJavadoc(type: Javadoc) {
   description = 'Ensures that Javadoc documentation exists.'
