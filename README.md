@@ -22,7 +22,8 @@ With the `-private` command-line argument, it checks all Java elements, not just
 
 ## Incremental use
 
-In a Travis job, you can require that some tool issues no errors on the changed lines in a pull request.  Here is example code:
+In a Travis job, you can require that some tool issues no errors on the changed lines
+(and ones adjacent to them) in a pull request.  Here is example code:
 
 ```
 (git diff "${TRAVIS_COMMIT_RANGE/.../..}" > /tmp/diff.txt 2>&1) || true
