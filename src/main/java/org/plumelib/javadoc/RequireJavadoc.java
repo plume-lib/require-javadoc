@@ -131,8 +131,8 @@ public class RequireJavadoc extends Standard {
       requireCommentText(icd);
     }
     for (MethodDoc md : cd.methods()) {
-      // Don't require documentation of overriding methods
-      if (!isOverride(md)) {
+      // Don't require documentation of overriding or synthetic methods
+      if (!isOverride(md) && !md.isSynthetic() && !isEnumValuesOrValueOf(md)) {
         requireCommentText(md);
       }
     }
@@ -174,6 +174,26 @@ public class RequireJavadoc extends Standard {
     assert classPosition != null : "@AssumeAssertion(nullness): a class has a position";
     return classPosition.file().equals(constructorPosition.file())
         && classPosition.line() == constructorPosition.line();
+  }
+
+  /**
+   * Return true if the method is {@code values} or {@code valueOf} for an enum.
+   *
+   * @param md the MethodDoc to test
+   * @return true if the method is {@code values} or {@code valueOf} for an enum
+   */
+  @SuppressWarnings({
+    "index", // MethodDoc.parameters() needs @Pure annotation
+    "nullness" // md.containingClass() is non-null for a MethodDoc (MethodDoc needs annotation)
+  })
+  private boolean isEnumValuesOrValueOf(MethodDoc md) {
+    return md.containingClass().isEnum()
+        && ((md.name().equals("values") && md.parameters().length == 0)
+            || md.name().equals("valueOf")
+                && md.parameters().length == 1
+                // String comparison is gross, but this is a Javadoc type rather than a
+                // reflection type.
+                && md.parameters()[0].type().qualifiedTypeName().equals("java.lang.String"));
   }
 
   /**
