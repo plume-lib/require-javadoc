@@ -66,7 +66,8 @@ This project makes fewer requirements than Javadoc's linting, which requires all
 Requiring all tags can be pedantic and tedious; this project produces fewer warnings, and
 therefore adopting it is easier for an existing project.
 
-Here is how to enable Javadoc's stricter checking, when you are ready to do so:
+Here is how to enable Javadoc's stricter checking, when you are ready to do so
+(then this project, require-javadoc, is no longer necessary):
 ```
 // Turn Javadoc warnings into errors.
 javadoc {
