@@ -60,14 +60,15 @@ task requireJavadoc(type: Javadoc) {
 
 ## Alternatives
 
-If you want to require all Javadoc tags to be present, use the Javadoc tool itself (possibly adjust the [`-Xdoclint` argument](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/javadoc.html#BEJEFABE)):
-```javadoc -Xwerror -Xdoclint:all```
-This project makes fewer requirements than Javadoc's linting, which requires all tags.
+This project requires that Javadoc comments be present, but not that they contain all tags.
 Requiring all tags can be pedantic and tedious; this project produces fewer warnings, and
 therefore adopting it is easier for an existing project.
 
-Here is how to enable Javadoc's stricter checking, when you are ready to do so
-(then this project, require-javadoc, is no longer necessary):
+If you want to require all Javadoc tags to be present, use the Javadoc tool itself.
+From the command line:
+```javadoc -private -Xwerror -Xdoclint:all```
+(You might want to omit `-private` or adjust the [`-Xdoclint` argument](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/javadoc.html#BEJEFABE).)
+In a Gradle buildfile:
 ```
 // Turn Javadoc warnings into errors.
 javadoc {
@@ -75,6 +76,11 @@ javadoc {
   options.addStringOption('private', '-quiet')
 }
 ```
+
+Neither this `require-javadoc`, nor `javadoc -private -Xwerror -Xdoclint:all` is stronger.
+ * require-javadoc only requires that documentation is present.
+ * Javadoc warns about problems in existing Javadoc, but does not warn if a method is completely undocumented.
+Therefore, you may want to use both.
 
 Another alternative is Checkstyle.  Unlike Javadoc, Checkstyle is configurable to produce
 the same warnings as this class.
