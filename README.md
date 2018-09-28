@@ -22,8 +22,9 @@ With the `-private` command-line argument, it checks all Java elements, not just
 
 ## Incremental use
 
-In a Travis job, you can require that some tool issues no errors on the changed lines
-(and ones adjacent to them) in a pull request.  Here is example code:
+In a Travis job, you can require that some tool issues no errors on the
+changed lines (and ones adjacent to them) in a pull request.  Here is
+example code:
 
 ```
 (git diff "${TRAVIS_COMMIT_RANGE/.../..}" > /tmp/diff.txt 2>&1) || true
@@ -36,12 +37,32 @@ python lint-diff.py --strip-diff=1 --strip-lint=2 /tmp/diff.txt /tmp/warnings.tx
 
 ## Gradle target
 
-To create a `requireJavadoc` target, add the following to `build.gradle`:
+There are two ways to use require-javadoc.
+1. You can run it every time you run Javadoc.
+2. You can create a separate target that runs it.
+
+### Running with every `javadoc` invocation
+
+Customize the `javadoc` task:
 
 ```
-configurations {
-  requireJavadoc
+dependencies {
+  implementation group: 'org.plumelib', name: 'require-javadoc', version: '0.1.0'
 }
+javadoc {
+  // options.memberLevel = JavadocMemberLevel.PRIVATE
+  options.docletpath = project.sourceSets.main.compileClasspath as List
+  options.doclet = "org.plumelib.javadoc.RequireJavadoc"
+  // options.addStringOption('skip', 'ClassNotToCheck|OtherClass')
+}
+```
+
+### Separate target `requireJavadoc`
+
+To create a `requireJavadoc` target that is unrelated to the existing
+`javadoc` target, add the following to `build.gradle`:
+
+```
 dependencies {
   implementation group: 'org.plumelib', name: 'require-javadoc', version: '0.1.0'
 }
