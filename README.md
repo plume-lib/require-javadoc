@@ -68,12 +68,12 @@ dependencies {
 }
 task requireJavadoc(type: Javadoc) {
   description = 'Ensures that Javadoc documentation exists.'
-  destinationDir.deleteDir()
+  destinationDir temporaryDir
   source = sourceSets.main.allJava
   classpath = project.sourceSets.main.compileClasspath
-  // options.memberLevel = JavadocMemberLevel.PRIVATE
   options.docletpath = project.sourceSets.main.compileClasspath as List
   options.doclet = "org.plumelib.javadoc.RequireJavadoc"
+  // options.memberLevel = JavadocMemberLevel.PRIVATE
   // options.addStringOption('skip', 'ClassNotToCheck|OtherClass')
 }
 ```
