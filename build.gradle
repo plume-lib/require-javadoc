@@ -47,3 +47,9 @@ dependencies {
   toolsJar files(org.gradle.internal.jvm.Jvm.current().toolsJar)
 }
 configurations.compileClasspath.extendsFrom configurations.toolsJar
+
+/* Make Emacs TAGS table */
+task tags(type: Exec) {
+  description "Run etags to create an Emacs TAGS table"
+  commandLine "bash", "-c", "find src/ -name '*.java' | sort | xargs etags"
+}
