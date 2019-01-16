@@ -1,7 +1,12 @@
 // To make a release:
 //  * Update the version number in ../README.md and in this file.
+//  * Update CHANGELOG.md.
 //  * Run in the top-level directory:  ./gradlew clean uploadArchives && ./gradlew javadocWeb
-//  * Browse to https://oss.sonatype.org/#stagingRepositories
+//  * Browse to https://oss.sonatype.org/#stagingRepositories, complete the Maven Central release.
+//  * Stage changes.
+//  * Add a git tag:
+//    VER=0.1.0 && git commit -m "Version $VER" && git tag -a v$VER -m "Version $VER" && git push --tags
+//  * Make a GitHub release. Go to the GitHub releases page, make a release, attach the .jar file from build/libs/
 // Your ~/.gradle/gradle.properties file must contain:
 //   ossrhUsername=YOUR_USER_NAME_HERE
 //   ossrhPassword=YOUR_PASSWORD_HERE
@@ -51,7 +56,7 @@ uploadArchives {
         }
 
         pom.project {
-          name 'Plume-lib Require-Javadoc'
+          name 'Require-Javadoc'
           packaging 'jar'
           description 'Require Javadoc comments to be present.'
           url 'https://github.com/plume-lib/require-javadoc'
