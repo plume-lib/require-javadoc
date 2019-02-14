@@ -79,11 +79,13 @@ task requireJavadoc(type: Javadoc) {
 ```
 
 
-## Alternatives
+## Comparison to `javadoc -Xwerror -Xdoclint:all`
 
-This project requires that Javadoc comments be present, but not that they contain all tags.
-Requiring all tags can be pedantic and tedious; this project produces fewer warnings, and
-therefore adopting it is easier for an existing project.
+Neither `require-javadoc`, nor `javadoc -private -Xwerror -Xdoclint:all`, is stronger.
+ * `require-javadoc` requires a Javadoc comment is present, but does not check the content of the comment.
+   For example, `require-javadoc` does not complain if an `@param` or `@return` tag is missing.
+ * Javadoc warns about problems in existing Javadoc, but does not warn if a method is completely undocumented.
+Therefore, you may want to use both.
 
 If you want to require all Javadoc tags to be present, use the Javadoc tool itself.
 From the command line:
@@ -98,14 +100,14 @@ javadoc {
 }
 ```
 
-Neither this `require-javadoc`, nor `javadoc -private -Xwerror -Xdoclint:all` is stronger.
- * require-javadoc only requires that documentation is present.
- * Javadoc warns about problems in existing Javadoc, but does not warn if a method is completely undocumented.
-Therefore, you may want to use both.
 
-Another alternative is Checkstyle.  Unlike Javadoc, Checkstyle is configurable to produce
-the same warnings as this class.
-Checkstyle is heavyweight to run and configure:  configuring it requires multiple files.
-As of July 2018, Checkstyle is nondeterministic:  it gives different results for file `A.java` depending on what other files are being checked, and it crashes on correct code (for example, see https://github.com/checkstyle/checkstyle/issues/5989).
-By contrast to Checkstyle, 
-this project is smaller and actually works.
+## Comparison to Checkstyle
+
+Checkstyle is configurable to produce the same warnings as `require-javadoc` does.
+
+It has some issues (as of July 2018):
+ * Checkstyle is heavyweight to run and configure:  configuring it requires multiple files.
+ * Checkstyle is nondeterministic:  it gives different results for file `A.java` depending on what other files are being checked.
+ * Checkstyle crashes on correct code (for example, see https://github.com/checkstyle/checkstyle/issues/5989, which the maintainers closed as "checkstyle does not support it by design").
+
+By contrast to Checkstyle, `require-javadoc` is smaller and actually works.
