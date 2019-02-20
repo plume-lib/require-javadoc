@@ -22,14 +22,14 @@ With the `-private` command-line argument, it checks all Java elements, not just
 
 ## Incremental use
 
-In a Travis job, you can require that some tool issues no errors on the
+In a Travis CI job, you can require that some tool issues no errors on the
 changed lines (and ones adjacent to them) in a pull request.  Here is
 example code:
 
 ```
 (git diff "${TRAVIS_COMMIT_RANGE/.../..}" > /tmp/diff.txt 2>&1) || true
-(./gradlew requireJavadocPrivate > /tmp/warnings.txt 2>&1) || true
 [ -s /tmp/diff.txt ] || (echo "/tmp/diff.txt is empty" && false)
+(./gradlew requireJavadocPrivate > /tmp/warnings.txt 2>&1) || true
 wget https://raw.githubusercontent.com/plume-lib/plume-scripts/master/lint-diff.py
 python lint-diff.py --strip-diff=1 --strip-lint=2 /tmp/diff.txt /tmp/warnings.txt
 ```
