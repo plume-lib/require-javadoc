@@ -18,6 +18,7 @@ apply from: "${buildscript.sourceFile.parent}/gradle/checkerframework.gradle"
 apply from: "${buildscript.sourceFile.parent}/gradle/mavencentral.gradle"
 
 dependencies {
+  errorprone 'com.google.errorprone:error_prone_core:2.3.3'
 }
 
 repositories {
