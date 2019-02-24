@@ -28,7 +28,7 @@ example code:
 
 ```
 (git diff "${TRAVIS_COMMIT_RANGE/.../..}" > /tmp/diff.txt 2>&1) || true
-[ -s /tmp/diff.txt ] || (echo "/tmp/diff.txt is empty" && false)
+[ -s /tmp/diff.txt ] || (echo "/tmp/diff.txt is empty; try pulling base branch into compare branch" && false)
 (./gradlew requireJavadocPrivate > /tmp/warnings.txt 2>&1) || true
 wget https://raw.githubusercontent.com/plume-lib/plume-scripts/master/lint-diff.py
 python lint-diff.py --strip-diff=1 --strip-lint=2 /tmp/diff.txt /tmp/warnings.txt
