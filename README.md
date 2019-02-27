@@ -27,7 +27,7 @@ changed lines (and ones adjacent to them) in a pull request.  Here is
 example code:
 
 ```
-(git diff "${TRAVIS_COMMIT_RANGE/.../..}" > /tmp/diff.txt 2>&1) || true
+(git diff "$TRAVIS_COMMIT_RANGE" > /tmp/diff.txt 2>&1) || true
 [ -s /tmp/diff.txt ] || (echo "/tmp/diff.txt is empty; try pulling base branch into compare branch" && false)
 (./gradlew requireJavadocPrivate > /tmp/warnings.txt 2>&1) || true
 wget https://raw.githubusercontent.com/plume-lib/plume-scripts/master/lint-diff.py
