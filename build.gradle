@@ -1,3 +1,14 @@
+// Checker Framework pluggable type-checking
+buildscript {
+  repositories {
+    mavenLocal()
+  }
+
+  dependencies {
+    classpath 'com.jaredsburrows:gradle-checker-framework-plugin:0.2.3-SNAPSHOT'
+  }
+}
+
 plugins {
   // To create a fat jar build/libs/require-javadoc-all.jar, run: ./gradlew shadowJar
   id "com.github.johnrengelman.shadow" version "2.0.4"
@@ -10,9 +21,6 @@ plugins {
 }
 
 apply plugin: 'java-library'
-
-// Checker Framework pluggable type-checking
-apply from: "${buildscript.sourceFile.parent}/gradle/checkerframework.gradle"
 
 // To upload to Maven Central, see instructions in the file.
 apply from: "${buildscript.sourceFile.parent}/gradle/mavencentral.gradle"
@@ -27,6 +35,26 @@ repositories {
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+
+// Checker Framework pluggable type-checking
+apply plugin: 'com.jaredsburrows.checkerframework'
+checkerFramework {
+  checkers = [
+    'org.checkerframework.checker.formatter.FormatterChecker',
+    'org.checkerframework.checker.index.IndexChecker',
+    'org.checkerframework.checker.interning.InterningChecker',
+    'org.checkerframework.checker.lock.LockChecker',
+    'org.checkerframework.checker.nullness.NullnessChecker',
+    'org.checkerframework.checker.nullness.NullnessRawnessChecker',
+    'org.checkerframework.checker.regex.RegexChecker',
+    'org.checkerframework.checker.signature.SignatureChecker'
+  ]
+  extraJavacArgs = [
+    '-AcheckPurityAnnotations',
+    // TODO: does not work when downloading from Maven Central
+    "-Astubs=$System.env.CHECKERFRAMEWORK/checker/resources/javadoc.astub"
+  ]
+}
 
 // Turn Javadoc warnings into errors.
 javadoc {
