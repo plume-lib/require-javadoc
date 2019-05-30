@@ -47,7 +47,7 @@ Customize the `javadoc` task:
 
 ```
 dependencies {
-  implementation group: 'org.plumelib', name: 'require-javadoc', version: '0.1.0'
+  compileOnly group: 'org.plumelib', name: 'require-javadoc', version: '0.1.0'
 }
 javadoc {
   // options.memberLevel = JavadocMemberLevel.PRIVATE
@@ -64,7 +64,7 @@ To create a `requireJavadoc` target that is unrelated to the existing
 
 ```
 dependencies {
-  implementation group: 'org.plumelib', name: 'require-javadoc', version: '0.1.0'
+  compileOnly group: 'org.plumelib', name: 'require-javadoc', version: '0.1.0'
 }
 task requireJavadoc(type: Javadoc) {
   description = 'Ensures that Javadoc documentation exists.'
