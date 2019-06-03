@@ -3,7 +3,7 @@ plugins {
   id "com.github.johnrengelman.shadow" version "2.0.4"
 
   // Run the Error Prone linter.
-  id "net.ltgt.errorprone-base" version "0.0.16"
+  // id "net.ltgt.errorprone-base" version "0.0.16"
   // Checker Framework pluggable type-checking
   id 'org.checkerframework' version '0.3.0'
 
@@ -19,7 +19,7 @@ apply plugin: 'java-library'
 apply from: "${buildscript.sourceFile.parent}/gradle/mavencentral.gradle"
 
 dependencies {
-  errorprone 'com.google.errorprone:error_prone_core:2.3.3'
+  // errorprone 'com.google.errorprone:error_prone_core:2.3.3'
 }
 
 repositories {
