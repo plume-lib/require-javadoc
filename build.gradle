@@ -5,9 +5,9 @@ plugins {
   // Run the Error Prone linter.
   // id "net.ltgt.errorprone-base" version "0.0.16"
   // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.3.1'
+  id 'org.checkerframework' version '0.3.4'
 
-  // Formating is disabled due to poor handling of type annotations; wait until
+  // Formatting is disabled due to poor handling of type annotations; wait until
   // this issue is fixed: https://github.com/google/google-java-format/issues/5
   // // Code formatting with Google Java Format; defines targets "goJF" and "verJF".
   // id "com.github.sherter.google-java-format" version "0.7.1"
@@ -33,6 +33,7 @@ targetCompatibility = 1.8
 apply plugin: 'org.checkerframework'
 dependencies {
   compileOnly 'org.checkerframework:checker-qual:2.8.2'
+  testCompileOnly 'org.checkerframework:checker-qual:2.8.2'
   checkerFramework 'org.checkerframework:checker:2.8.2'
   checkerFrameworkAnnotatedJDK 'org.checkerframework:jdk8:2.8.2'
 }
