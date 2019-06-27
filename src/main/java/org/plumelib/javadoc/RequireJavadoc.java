@@ -168,7 +168,7 @@ public class RequireJavadoc extends Standard {
     if (constructorPosition == null) {
       return false;
     }
-    @SuppressWarnings("assignment.type.incompatible") // a constructor has a containing class
+    @SuppressWarnings("nullness:assignment.type.incompatible") // constructor has a containing class
     @NonNull ClassDoc containingClass = cd.containingClass();
     SourcePosition classPosition = containingClass.position();
     assert classPosition != null : "@AssumeAssertion(nullness): a class has a position";
@@ -183,8 +183,9 @@ public class RequireJavadoc extends Standard {
    * @return true if the method is {@code values} or {@code valueOf} for an enum
    */
   @SuppressWarnings({
-    "index", // MethodDoc.parameters() needs @Pure annotation
-    "nullness" // md.containingClass() is non-null for a MethodDoc (MethodDoc needs annotation)
+    "index:array.access.unsafe.high.constant", // MethodDoc.parameters() needs @Pure annotation
+    "nullness:dereference.of.nullable" // md.containingClass() is non-null for a MethodDoc
+    // (MethodDoc needs annotation)
   })
   private boolean isEnumValuesOrValueOf(MethodDoc md) {
     return md.containingClass().isEnum()
@@ -238,13 +239,13 @@ public class RequireJavadoc extends Standard {
       }
       int cmp;
       @SuppressWarnings({
-        "purity.not.deterministic.call", // pure with respect to .equals
-        "method.guarantee.violated" // pure with respect to .equals
+        "all:purity.not.deterministic.call", // pure with respect to .equals
+        "all:method.guarantee.violated" // pure with respect to .equals
       })
       File thisFile = this.position.file();
       @SuppressWarnings({
-        "purity.not.deterministic.call", // pure with respect to .equals
-        "method.guarantee.violated" // pure with respect to .equals
+        "all:purity.not.deterministic.call", // pure with respect to .equals
+        "all:method.guarantee.violated" // pure with respect to .equals
       })
       File otherFile = other.position.file();
       if (thisFile == null) {
@@ -304,7 +305,6 @@ public class RequireJavadoc extends Standard {
    *     href="https://docs.oracle.com/javase/8/docs/technotes/guides/javadoc/doclet/overview.html">Doclet
    *     overview</a>
    */
-  @SuppressWarnings("index") // dependent: os[1] is legal when optionLength(os[0])==2
   public static boolean validOptions(String[] @MinLen(1) [] options, DocErrorReporter reporter) {
     List<String[]> remaining = new ArrayList<>();
     for (int oi = 0; oi < options.length; oi++) {
@@ -315,6 +315,7 @@ public class RequireJavadoc extends Standard {
           relativePaths = true;
           break;
         case "-skip":
+          assert os.length == 2 : "@AssumeAssertion(value): dependent: optionLength(\"-skip\")==2";
           if (!RegexUtil.isRegex(os[1])) {
             System.err.printf("Error parsing regex %s %s%n", os[1], RegexUtil.regexError(os[1]));
             System.exit(2);
