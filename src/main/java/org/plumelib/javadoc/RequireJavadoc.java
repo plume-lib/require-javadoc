@@ -185,7 +185,7 @@ public class RequireJavadoc extends Standard {
   @SuppressWarnings({
     "index:array.access.unsafe.high.constant", // MethodDoc.parameters() needs @Pure annotation
     "nullness:dereference.of.nullable" // md.containingClass() is non-null for a MethodDoc
-                                       // (MethodDoc needs annotation)
+    // (MethodDoc needs annotation)
   })
   private boolean isEnumValuesOrValueOf(MethodDoc md) {
     return md.containingClass().isEnum()
@@ -305,7 +305,6 @@ public class RequireJavadoc extends Standard {
    *     href="https://docs.oracle.com/javase/8/docs/technotes/guides/javadoc/doclet/overview.html">Doclet
    *     overview</a>
    */
-  // @SuppressWarnings("index") // dependent: os[1] is legal when optionLength(os[0])==2
   public static boolean validOptions(String[] @MinLen(1) [] options, DocErrorReporter reporter) {
     List<String[]> remaining = new ArrayList<>();
     for (int oi = 0; oi < options.length; oi++) {
@@ -316,7 +315,7 @@ public class RequireJavadoc extends Standard {
           relativePaths = true;
           break;
         case "-skip":
-          assert os.length == 2 : "@AssumeAssertion(value): optionLength(\"-skip\")==2";
+          assert os.length == 2 : "@AssumeAssertion(value): dependent: optionLength(\"-skip\")==2";
           if (!RegexUtil.isRegex(os[1])) {
             System.err.printf("Error parsing regex %s %s%n", os[1], RegexUtil.regexError(os[1]));
             System.exit(2);
