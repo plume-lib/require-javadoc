@@ -184,7 +184,8 @@ public class RequireJavadoc extends Standard {
    */
   @SuppressWarnings({
     "index:array.access.unsafe.high.constant", // MethodDoc.parameters() needs @Pure annotation
-    // "nullness" // md.containingClass() is non-null for a MethodDoc (MethodDoc needs annotation)
+    "nullness:dereference.of.nullable" // md.containingClass() is non-null for a MethodDoc
+                                       // (MethodDoc needs annotation)
   })
   private boolean isEnumValuesOrValueOf(MethodDoc md) {
     return md.containingClass().isEnum()
@@ -239,12 +240,12 @@ public class RequireJavadoc extends Standard {
       int cmp;
       @SuppressWarnings({
         "all:purity.not.deterministic.call", // pure with respect to .equals
-        "method.guarantee.violated" // pure with respect to .equals
+        "all:method.guarantee.violated" // pure with respect to .equals
       })
       File thisFile = this.position.file();
       @SuppressWarnings({
         "all:purity.not.deterministic.call", // pure with respect to .equals
-        "method.guarantee.violated" // pure with respect to .equals
+        "all:method.guarantee.violated" // pure with respect to .equals
       })
       File otherFile = other.position.file();
       if (thisFile == null) {
@@ -315,7 +316,7 @@ public class RequireJavadoc extends Standard {
           relativePaths = true;
           break;
         case "-skip":
-          assert os.length == 2 : "@AssumeAssertion(index): optionLength(\"-skip\")==2";
+          assert os.length == 2 : "@AssumeAssertion(value): optionLength(\"-skip\")==2";
           if (!RegexUtil.isRegex(os[1])) {
             System.err.printf("Error parsing regex %s %s%n", os[1], RegexUtil.regexError(os[1]));
             System.exit(2);
