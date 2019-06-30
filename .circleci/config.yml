@@ -26,7 +26,6 @@ jobs:
             - gradle-v1-
 
       - run: ./gradlew build javadoc
-      - run: ./gradlew requireJavadoc
 
       - save_cache:
           paths:
