@@ -22,16 +22,20 @@ With the `-private` command-line argument, it checks all Java elements, not just
 
 ## Incremental use
 
-In a Travis CI job, you can require that some tool issues no errors on the
-changed lines (and ones adjacent to them) in a pull request.  Here is
-example code:
+In a continuous integration job (Azure Pipelines, CircleCI, or Travis CI)
+for a pull request, you can require Javadoc on all changed lines and ones
+adjacent to them.  Here is example code:
 
 ```
-(git diff "$TRAVIS_COMMIT_RANGE" > /tmp/diff.txt 2>&1) || true
-[ -s /tmp/diff.txt ] || (echo "/tmp/diff.txt is empty; try pulling base branch (often master) into compare branch (often feature branch)" && false)
-(./gradlew requireJavadocPrivate > /tmp/warnings.txt 2>&1) || true
-wget https://raw.githubusercontent.com/plume-lib/plume-scripts/master/lint-diff.py
-python lint-diff.py --strip-diff=1 --strip-lint=2 /tmp/diff.txt /tmp/warnings.txt
+git -C /tmp/plume-scripts pull > /dev/null 2>&1 \
+  || git -C /tmp clone --depth 1 -q https://github.com/plume-lib/plume-scripts.git
+source /tmp/plume-scripts/git-set-commit-range
+if [ -n "$COMMIT_RANGE" ] ; then
+  (git diff $COMMIT_RANGE > /tmp/diff.txt 2>&1) || true
+  (./gradlew requireJavadocPrivate > /tmp/warnings.txt 2>&1) || true
+  [ -s /tmp/diff.txt ] || ([[ "${BRANCH}" != "master" && "${TRAVIS_EVENT_TYPE}" == "push" ]] || (echo "/tmp/diff.txt is empty for COMMIT_RANGE=$COMMIT_RANGE; try pulling base branch (often master) into compare branch (often your feature branch)" && false))
+  python /tmp/plume-scripts/lint-diff.py --guess-strip /tmp/diff.txt /tmp/warnings.txt
+fi
 ```
 
 
