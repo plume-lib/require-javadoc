@@ -15,16 +15,14 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.formatter.qual.Format;
-import org.checkerframework.checker.lock.qual.GuardSatisfied;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.regex.RegexUtil;
 import org.checkerframework.common.value.qual.MinLen;
 
@@ -37,7 +35,7 @@ import org.checkerframework.common.value.qual.MinLen;
 public class RequireJavadoc extends Standard {
 
   /** All the errors this doclet will report. */
-  List<Undocumented> errors = new ArrayList<>();
+  TreeSet<String> errors = new TreeSet<>();
 
   /**
    * All packages that have been seen and checked so far. This helps prevent issuing multiple
@@ -50,6 +48,9 @@ public class RequireJavadoc extends Standard {
 
   /** If non-null, matches classes where no problems should be reported. */
   static @MonotonicNonNull Pattern skip = null;
+
+  /** The current working directory, for making relative pathnames. */
+  static Path currentPath = Paths.get("").toAbsolutePath();
 
   private static final @Format({}) String USAGE =
       "Provided by RequireJavadoc doclet:%n"
@@ -72,21 +73,8 @@ public class RequireJavadoc extends Standard {
       doclet.processClass(cd);
     }
 
-    Path currentPath = Paths.get("").toAbsolutePath();
-    // Report errors in lexicographic order by file, and (more importantly) within a file in the
-    // same order as they appear in the file.
-    Collections.sort(doclet.errors);
-    for (Undocumented error : doclet.errors) {
-      // Making the pathname relative shortens it, but can confuse tools.
-      SourcePosition position = error.position;
-      if (position == null) {
-        System.err.printf("missing documentation for %s%n", error.name);
-      } else {
-        File file = position.file();
-        Path path = (relativePaths ? currentPath.relativize(file.toPath()) : file.toPath());
-        System.err.printf(
-            "%s:%d: missing documentation for %s%n", file, position.line(), error.name);
-      }
+    for (String error : doclet.errors) {
+      System.err.println(error);
     }
 
     return doclet.errors.isEmpty();
@@ -209,64 +197,27 @@ public class RequireJavadoc extends Standard {
     }
     String text = d.getRawCommentText();
     if (text.isEmpty()) {
-      errors.add(new Undocumented(d.name(), d.position()));
+      if (!d.name().equals("")) { // don't warn about the unnamed package
+        errors.add(errorString(d));
+      }
     }
   }
 
-  /** An undocumented identifier and the file and line number where it appears. */
-  private class Undocumented implements Comparable<Undocumented> {
-    /** The identifier that is not documented. */
-    final String name;
-    /** The position (file and line number) where it is defined. */
-    final @Nullable SourcePosition position;
-    /**
-     * Create a new Undocumented.
-     *
-     * @param name the identifier that is not documented
-     * @param position where it is defined
-     */
-    public Undocumented(String name, @Nullable SourcePosition position) {
-      this.name = name;
-      this.position = position;
+  /**
+   * Return a string stating that documentation is missing on the given construct.
+   *
+   * @param d a Java language construct (package, class, constructor, method, field)
+   * @return an error message for the given construct
+   */
+  private String errorString(Doc d) {
+    SourcePosition position = d.position();
+    if (position == null) {
+      return "missing documentation for " + d.name();
     }
-    /** Not consistent with equals. (It ignores the name.) */
-    public int compareTo(@GuardSatisfied Undocumented this, Undocumented other) {
-      if (other.position == null) {
-        return -1;
-      }
-      if (this.position == null) {
-        return 1;
-      }
-      int cmp;
-      @SuppressWarnings({
-        "all:purity.not.deterministic.call", // pure with respect to .equals
-        "all:method.guarantee.violated" // pure with respect to .equals
-      })
-      File thisFile = this.position.file();
-      @SuppressWarnings({
-        "all:purity.not.deterministic.call", // pure with respect to .equals
-        "all:method.guarantee.violated" // pure with respect to .equals
-      })
-      File otherFile = other.position.file();
-      if (thisFile == null) {
-        return 1;
-      }
-      cmp = thisFile.compareTo(otherFile);
-      if (cmp != 0) {
-        return cmp;
-      }
-      cmp = this.position.line() - other.position.line();
-      if (cmp != 0) {
-        return cmp;
-      }
-      cmp = this.position.column() - other.position.column();
-      return cmp;
-    }
-
-    @Override
-    public String toString(@GuardSatisfied Undocumented this) {
-      return String.format("Undocumented(%s, %s)", name, position);
-    }
+    File file = position.file();
+    // Making the pathname relative shortens it, but can confuse tools.
+    Path path = (relativePaths ? currentPath.relativize(file.toPath()) : file.toPath());
+    return String.format("%s:%d: missing documentation for %s", path, position.line(), d.name());
   }
 
   /**
