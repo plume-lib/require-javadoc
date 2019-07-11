@@ -18,6 +18,7 @@ javadoc -doclet org.plumelib.javadoc.RequireJavadoc -docletpath require-javadoc-
 ```
 
 With the `-private` command-line argument, it checks all Java elements, not just public ones.
+(It never checks local classes (such as within a method body), however.
 
 
 ## Incremental use
