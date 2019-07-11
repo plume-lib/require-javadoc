@@ -14,9 +14,9 @@ This also makes it easier for users to run RequireJavadoc locally before pushing
 
 Implementation:
 This will operate by:
- * read in --diff-file and construct the same data structure that
- https://raw.githubusercontent.com/plume-lib/plume-scripts/master/lint-diff.py
- currently does
+ * Read in --diff-file and construct the same data structure that
+   https://raw.githubusercontent.com/plume-lib/plume-scripts/master/lint-diff.py
+   currently does.
  * Check the data structure before outputting a warning.
 
 Further possible feature:
