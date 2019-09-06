@@ -1,27 +1,2 @@
 There is a bug in Javadoc: it sometimes does not visit all private nested classes.
 Using JDK 8, it did not visit BaseTypeChecker.CheckerMessageComparator in the Checker Framework.
-
-
-Diffing:
-
-Build diffing into RequireJavadoc
-
-Add command-line argument
---diff-file FILENAME
-
-Benefits:  This saves 3 lines at https://github.com/plume-lib/require-javadoc#incremental-use
-This also makes it easier for users to run RequireJavadoc locally before pushing to Travis (as opposed to the user writing it all in a git commit hook).
-
-Implementation:
-This will operate by:
- * Read in --diff-file and construct the same data structure that
-   https://raw.githubusercontent.com/plume-lib/plume-scripts/master/lint-diff.py
-   currently does.
- * Check the data structure before outputting a warning.
-
-Further possible feature:
-We could save one more line (plus a rm command for the diff file, I guess) by also supporting, for convenience:
-  --git-diff BRANCHNAME
-eg
-  --git-diff master
-This requires integrating git support into require-javadoc
