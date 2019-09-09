@@ -1,12 +1,13 @@
 # require-javadoc
 
-A simple Javadoc doclet that requires that a Javadoc comment be present on
+This Javadoc doclet requires that a Javadoc comment be present on
 every Java element (class, method, and field).
 
-It is important that every Java element be documented, but the programmer can use judgment about how extensive the comment needs to be.
-This tool makes no requirement
-about the Javadoc comment; for example, it does not require the existence
-of any Javadoc tags such as `@param`, `@return`, etc.
+This tool makes no requirement about the Javadoc comment, beyond its existence.
+For example, this tool does not require the existence
+of Javadoc tags such as `@param`, `@return`, etc.
+You can use Javadoc itself to enforce such a requirement
+(but Javadoc does not warn about completely missing comments).
 
 
 ## Use
