@@ -1,36 +1,36 @@
 plugins {
-  // To create a fat jar build/libs/require-javadoc-all.jar, run: ./gradlew shadowJar
-  id "com.github.johnrengelman.shadow" version "5.1.0"
+  id 'java-library'
 
-  // Run the Error Prone linter.
-  // id "net.ltgt.errorprone-base" version "0.0.16"
-  // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.4.8'
+  // To create a fat jar build/libs/require-javadoc-all.jar, run: ./gradlew shadowJar
+  id 'com.github.johnrengelman.shadow' version '5.1.0'
 
   // Formatting is disabled due to poor handling of type annotations; wait until
   // this issue is fixed: https://github.com/google/google-java-format/issues/5
   // // Code formatting with Google Java Format; defines targets "goJF" and "verJF".
-  // id "com.github.sherter.google-java-format" version "0.7.1"
-}
+  // id 'com.github.sherter.google-java-format' version '0.7.1'
 
-apply plugin: 'java-library'
+  // Run the Error Prone linter.
+  // id 'net.ltgt.errorprone-base' version '0.0.16'
 
-// To upload to Maven Central, see instructions in the file.
-apply from: "${buildscript.sourceFile.parent}/gradle/mavencentral.gradle"
-
-dependencies {
-  // errorprone 'com.google.errorprone:error_prone_core:2.3.3'
+  // Checker Framework pluggable type-checking
+  id 'org.checkerframework' version '0.4.8'
 }
 
 repositories {
   mavenCentral()
 }
 
+dependencies {
+  // errorprone 'com.google.errorprone:error_prone_core:2.3.3'
+}
+
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-// Checker Framework pluggable type-checking
+/// Checker Framework pluggable type-checking
+
 apply plugin: 'org.checkerframework'
+
 checkerFramework {
   checkers = [
     'org.checkerframework.checker.formatter.FormatterChecker',
@@ -49,6 +49,19 @@ checkerFramework {
     '-AwarnUnneededSuppressions'
   ]
 }
+
+// To use a local-built Checker Framework, run gradle with "-PcfLocal".
+if (project.hasProperty("cfLocal")) {
+  def cfHome = String.valueOf(System.getenv("CHECKERFRAMEWORK"))
+  dependencies {
+    compileOnly files(cfHome + "/checker/dist/checker-qual.jar")
+    testCompileOnly files(cfHome + "/checker/dist/checker-qual.jar")
+    checkerFramework files(cfHome + "/checker/dist/checker.jar")
+    checkerFrameworkAnnotatedJDK files(cfHome + "/checker/dist/jdk8.jar")
+  }
+}
+
+/// Javadoc
 
 // Turn Javadoc warnings into errors.
 javadoc {
@@ -70,6 +83,8 @@ dependencies {
   toolsJar files(org.gradle.internal.jvm.Jvm.current().toolsJar)
 }
 configurations.compileClasspath.extendsFrom configurations.toolsJar
+
+/// Emacs support
 
 /* Make Emacs TAGS table */
 task tags(type: Exec) {
