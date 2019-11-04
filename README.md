@@ -78,6 +78,7 @@ task requireJavadoc(type: Javadoc) {
   // options.memberLevel = JavadocMemberLevel.PRIVATE
   // options.addStringOption('skip', 'ClassNotToCheck|OtherClass')
 }
+check.dependsOn requireJavadoc
 ```
 
 
