@@ -30,9 +30,13 @@ import org.checkerframework.common.value.qual.MinLen;
  * A Javadoc doclet that issues an error for any package, class, method, or field that lacks a
  * Javadoc comment.
  */
-// This extends the standard doclet so that it takes the standard command-line arguments, which
-// makes it easier to use in an existing build or with a build system.
+// This doclet extends the standard doclet so that this doclet accepts the standard command-line
+// arguments (even though it ignores them), which makes this doclet easier to use in an existing
+// build or with a build system.
 public class RequireJavadoc extends Standard {
+
+  /** If true, output debug information. */
+  private static final boolean DEBUG = false;
 
   /** All the errors this doclet will report. */
   TreeSet<String> errors = new TreeSet<>();
@@ -54,8 +58,8 @@ public class RequireJavadoc extends Standard {
 
   private static final @Format({}) String USAGE =
       "Provided by RequireJavadoc doclet:%n"
-          + "-skip <classname>      Don't report problems in the given class%n"
-          + "-relative              Report relative rather than absolute filenames%n"
+          + "-skip <regex>      Don't report problems in classes that match the given regex%n"
+          + "-relative          Report relative rather than absolute filenames%n"
           + "See the documentation for more details.%n";
 
   /** Creates a new RequireJavadoc instance. */
@@ -86,11 +90,17 @@ public class RequireJavadoc extends Standard {
    * @param cd the class to require documentation of
    */
   private void processClass(ClassDoc cd) {
+    if (DEBUG) {
+      System.err.printf("processClass(%s)%n", cd);
+    }
     SourcePosition classPosition = cd.position();
     if (skip != null
         && (skip.matcher(cd.name()).find()
             || skip.matcher(cd.qualifiedName()).find()
             || (classPosition != null && skip.matcher(classPosition.file().toString()).find()))) {
+      if (DEBUG) {
+        System.err.printf("processClass: skipped %s%n", cd);
+      }
       return;
     }
     requireCommentText(cd);
@@ -118,10 +128,19 @@ public class RequireJavadoc extends Standard {
     for (ClassDoc icd : cd.innerClasses()) {
       requireCommentText(icd);
     }
+    if (DEBUG) {
+      System.err.printf("Class %s has %s methods%n", cd, cd.methods().length);
+    }
     for (MethodDoc md : cd.methods()) {
       // Don't require documentation of overriding or synthetic methods
       if (!isOverride(md) && !md.isSynthetic() && !isEnumValuesOrValueOf(md)) {
         requireCommentText(md);
+      } else {
+        if (DEBUG) {
+          System.err.printf(
+              "Method %s not checked: override=%s synthetic=%s enum=%s%n",
+              md, isOverride(md), md.isSynthetic(), isEnumValuesOrValueOf(md));
+        }
       }
     }
   }
@@ -192,6 +211,9 @@ public class RequireJavadoc extends Standard {
    * @param d any Java element
    */
   private void requireCommentText(Doc d) {
+    if (DEBUG) {
+      System.err.printf("requireCommentText(%s)%n", d);
+    }
     if (skip != null && skip.matcher(d.name()).find()) {
       return;
     }
