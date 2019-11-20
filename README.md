@@ -85,7 +85,7 @@ check.dependsOn requireJavadoc
 ## Comparison to `javadoc -Xwerror -Xdoclint:all`
 
 Neither `require-javadoc`, nor `javadoc -private -Xwerror -Xdoclint:all`, is stronger.
- * `require-javadoc` requires a Javadoc comment is present, but does not check the content of the comment.
+ * `require-javadoc` requires that a Javadoc comment is present, but does not check the content of the comment.
    For example, `require-javadoc` does not complain if an `@param` or `@return` tag is missing.
  * Javadoc warns about problems in existing Javadoc, but does not warn if a method is completely undocumented.
 Therefore, you may want to use both.
@@ -97,14 +97,14 @@ From the command line:
 
 In a Gradle buildfile, use one of the following:
 ```
-// Turn Javadoc warnings into errors.
+// Turn Javadoc warnings into errors, use strict checking, and process private members.
 javadoc {
   options.addStringOption('Xwerror', '-Xdoclint:all')
   options.addStringOption('private', '-quiet')
 }
 
-task javadocPrivate(type: Javadoc) {
-  description = 'Run Javadoc in strict mode.'
+task javadocStrict(type: Javadoc) {
+  description = 'Run Javadoc in strict mode: with -Xdoclint:all and -Xwerror, on all members.'
   source = sourceSets.main.allJava
   classpath = sourceSets.main.runtimeClasspath
   options.addStringOption('Xwerror', '-Xdoclint:all')
