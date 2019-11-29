@@ -2,6 +2,7 @@
 
 This Javadoc doclet requires that a Javadoc comment be present on
 every Java element (class, method, and field).
+It does not require a Javadoc comment on methods with an `@Override` annotation.
 
 This tool makes no requirement about the Javadoc comment, beyond its existence.
 For example, this tool does not require the existence
@@ -88,6 +89,7 @@ Neither `require-javadoc`, nor `javadoc -private -Xwerror -Xdoclint:all`, is str
  * `require-javadoc` requires that a Javadoc comment is present, but does not check the content of the comment.
    For example, `require-javadoc` does not complain if an `@param` or `@return` tag is missing.
  * Javadoc warns about problems in existing Javadoc, but does not warn if a method is completely undocumented.
+   Javadoc will complain about missing `@param` and `@return` tags, but *not* if `@Override` is present.
 Therefore, you may want to use both.
 
 If you want to require all Javadoc tags to be present, use the Javadoc tool itself.
