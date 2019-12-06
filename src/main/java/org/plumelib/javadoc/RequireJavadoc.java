@@ -121,7 +121,7 @@ public class RequireJavadoc extends Standard {
     }
     for (FieldDoc fd : cd.fields()) {
       // Don't require documentation for `long serialVersionUID`.
-      if (!(fd.name().equals("serialVersionUID") && (fd.type().toString().equals("long")))) {
+      if (!(fd.name().equals("serialVersionUID") && fd.type().toString().equals("long"))) {
         requireCommentText(fd);
       }
     }
@@ -197,11 +197,11 @@ public class RequireJavadoc extends Standard {
   private boolean isEnumValuesOrValueOf(MethodDoc md) {
     return md.containingClass().isEnum()
         && ((md.name().equals("values") && md.parameters().length == 0)
-            || md.name().equals("valueOf")
+            || (md.name().equals("valueOf")
                 && md.parameters().length == 1
                 // String comparison is gross, but this is a Javadoc type rather than a
                 // reflection type.
-                && md.parameters()[0].type().qualifiedTypeName().equals("java.lang.String"));
+                && md.parameters()[0].type().qualifiedTypeName().equals("java.lang.String")));
   }
 
   /**
@@ -303,6 +303,6 @@ public class RequireJavadoc extends Standard {
           break;
       }
     }
-    return Standard.validOptions((String[][]) remaining.toArray(new String[0][]), reporter);
+    return Standard.validOptions(remaining.toArray(new String[0][]), reporter);
   }
 }

@@ -9,8 +9,8 @@ plugins {
   // // Code formatting with Google Java Format; defines targets "goJF" and "verJF".
   // id 'com.github.sherter.google-java-format' version '0.7.1'
 
-  // Run the Error Prone linter.
-  // id 'net.ltgt.errorprone-base' version '0.0.16'
+  // Error Prone linter
+  id("net.ltgt.errorprone") version "1.1.1"
 
   // Checker Framework pluggable type-checking
   id 'org.checkerframework' version '0.4.9'
@@ -26,6 +26,23 @@ dependencies {
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+
+/// Error Prone linter
+
+dependencies {
+  errorprone("com.google.errorprone:error_prone_core:2.3.4")
+  // JDK 8 support for Error Prone:
+  errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
+}
+tasks.withType(JavaCompile).configureEach {
+  options.compilerArgs << "-Xlint:all,-processing" << "-Werror"
+  options.errorprone {
+    // disable("ReferenceEquality") // Use Interning Checker instead.
+    // disable("StringSplitter") // obscure case isn't likely
+    // disable("AnnotateFormatMethod") // Error Prone doesn't know about Checker Framework @FormatMethod
+    // disable("UseCorrectAssertInTests") // Java's `assert` statument is so much more readable
+  }
+}
 
 /// Checker Framework pluggable type-checking
 
