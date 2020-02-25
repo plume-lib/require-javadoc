@@ -11,6 +11,8 @@ You can use Javadoc itself to enforce such a requirement,
 but Javadoc [does not warn](#comparison-to-javadoc--xwerror--xdoclintall)
 about completely missing comments.
 
+Note: this works on Java 8, but needs a rewrite to work on Java 11.
+
 
 ## Use
 
@@ -89,11 +91,12 @@ check.dependsOn requireJavadoc
 ## Comparison to `javadoc -Xwerror -Xdoclint:all`
 
 Neither `require-javadoc`, nor `javadoc -private -Xwerror -Xdoclint:all`, is stronger.
+Therefore, you may want to use both.
+
  * `require-javadoc` requires that a Javadoc comment is present, but does not check the content of the comment.
    For example, `require-javadoc` does not complain if an `@param` or `@return` tag is missing.
  * Javadoc warns about problems in existing Javadoc, but does not warn if a method is completely undocumented.
    Javadoc will complain about missing `@param` and `@return` tags, but *not* if `@Override` is present.
-Therefore, you may want to use both.
 
 If you want to require all Javadoc tags to be present, use the Javadoc tool itself.
 From the command line:
@@ -107,7 +110,9 @@ javadoc {
   options.addStringOption('Xwerror', '-Xdoclint:all')
   options.addStringOption('private', '-quiet')
 }
-
+```
+or
+```
 task javadocStrict(type: Javadoc) {
   description = 'Run Javadoc in strict mode: with -Xdoclint:all and -Xwerror, on all members.'
   source = sourceSets.main.allJava
