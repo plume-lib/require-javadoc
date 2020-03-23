@@ -36,7 +36,7 @@ import org.checkerframework.common.value.qual.MinLen;
 public class RequireJavadoc extends Standard {
 
   /** If true, output debug information. */
-  private static final boolean DEBUG = false;
+  private static boolean verbose = false;
 
   /** All the errors this doclet will report. */
   TreeSet<String> errors = new TreeSet<>();
@@ -60,6 +60,7 @@ public class RequireJavadoc extends Standard {
       "Provided by RequireJavadoc doclet:%n"
           + "-skip <regex>      Don't report problems in classes that match the given regex%n"
           + "-relative          Report relative rather than absolute filenames%n"
+          + "verbose            Print diagnostic information%n"
           + "See the documentation for more details.%n";
 
   /** Creates a new RequireJavadoc instance. */
@@ -73,6 +74,12 @@ public class RequireJavadoc extends Standard {
    */
   public static boolean start(RootDoc root) {
     RequireJavadoc doclet = new RequireJavadoc();
+    if (verbose) {
+      System.err.printf("start(): root=%s%n", root);
+      for (ClassDoc cd : root.classes()) {
+        System.err.printf("  %s%n", cd);
+      }
+    }
     for (ClassDoc cd : root.classes()) {
       doclet.processClass(cd);
     }
@@ -90,7 +97,7 @@ public class RequireJavadoc extends Standard {
    * @param cd the class to require documentation of
    */
   private void processClass(ClassDoc cd) {
-    if (DEBUG) {
+    if (verbose) {
       System.err.printf("processClass(%s)%n", cd);
     }
     SourcePosition classPosition = cd.position();
@@ -98,7 +105,7 @@ public class RequireJavadoc extends Standard {
         && (skip.matcher(cd.name()).find()
             || skip.matcher(cd.qualifiedName()).find()
             || (classPosition != null && skip.matcher(classPosition.file().toString()).find()))) {
-      if (DEBUG) {
+      if (verbose) {
         System.err.printf("processClass: skipped %s%n", cd);
       }
       return;
@@ -116,8 +123,11 @@ public class RequireJavadoc extends Standard {
         requireCommentText(constructorDoc);
       }
     }
-    for (FieldDoc fd : cd.enumConstants()) {
-      requireCommentText(fd);
+    for (FieldDoc ed : cd.enumConstants()) {
+      requireCommentText(ed);
+    }
+    if (verbose) {
+      System.err.printf("Class %s has %s fields%n", cd, cd.fields().length);
     }
     for (FieldDoc fd : cd.fields()) {
       // Don't require documentation for `long serialVersionUID`.
@@ -128,7 +138,7 @@ public class RequireJavadoc extends Standard {
     for (ClassDoc icd : cd.innerClasses()) {
       requireCommentText(icd);
     }
-    if (DEBUG) {
+    if (verbose) {
       System.err.printf("Class %s has %s methods%n", cd, cd.methods().length);
     }
     for (MethodDoc md : cd.methods()) {
@@ -136,7 +146,7 @@ public class RequireJavadoc extends Standard {
       if (!isOverride(md) && !md.isSynthetic() && !isEnumValuesOrValueOf(md)) {
         requireCommentText(md);
       } else {
-        if (DEBUG) {
+        if (verbose) {
           System.err.printf(
               "Method %s not checked: override=%s synthetic=%s enum=%s%n",
               md, isOverride(md), md.isSynthetic(), isEnumValuesOrValueOf(md));
@@ -211,11 +221,14 @@ public class RequireJavadoc extends Standard {
    * @param d any Java element
    */
   private void requireCommentText(Doc d) {
-    if (DEBUG) {
-      System.err.printf("requireCommentText(%s)%n", d);
-    }
     if (skip != null && skip.matcher(d.name()).find()) {
+      if (verbose) {
+        System.err.printf("requireCommentText(%s) SKIPPED%n", d);
+      }
       return;
+    }
+    if (verbose) {
+      System.err.printf("requireCommentText(%s)%n", d);
     }
     String text = d.getRawCommentText();
     if (text.isEmpty()) {
@@ -259,6 +272,8 @@ public class RequireJavadoc extends Standard {
         return 1;
       case "-skip":
         return 2;
+      case "-verbose":
+        return 1;
       default:
         return Standard.optionLength(option);
     }
@@ -294,6 +309,9 @@ public class RequireJavadoc extends Standard {
             System.exit(2);
           }
           skip = Pattern.compile(os[1]);
+          break;
+        case "-verbose":
+          verbose = true;
           break;
         case "-help":
           System.out.printf(USAGE);
