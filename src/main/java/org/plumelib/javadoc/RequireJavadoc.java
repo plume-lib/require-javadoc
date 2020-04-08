@@ -171,6 +171,7 @@ public class RequireJavadoc {
      * Return a string stating that documentation is missing on the given construct.
      *
      * @param node a Java language construct (class, constructor, method, field)
+     * @param simpleName the construct's simple name, used in diagnostic messages
      * @return an error message for the given construct
      */
     private String errorString(Node node, String simpleName) {
