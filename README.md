@@ -11,6 +11,10 @@ You can use Javadoc itself to enforce such a requirement,
 but Javadoc [does not warn](#comparison-to-javadoc--xwerror--xdoclintall)
 about completely missing comments.
 
+Note: this only warns about methods that Javadoc outputs.  So, it cannot
+warn about methods within enum constants.  Maybe it should be rewritten to
+use a Java parser such as JavaParser, rathern than depending on Javadoc.
+
 Note: this works on Java 8, but needs a rewrite to work on Java 11.
 
 
