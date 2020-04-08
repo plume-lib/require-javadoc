@@ -67,8 +67,10 @@ public class RequireJavadoc {
   Path workingDirAbsolute = Paths.get("").toAbsolutePath();
 
   /**
-   * The main entry point. The command-line arguments are files or directories (each .java file
-   * anywhere within a directory will be processed).
+   * The main entry point for require-javadoc.
+   *
+   * @param args the command-line arguments: files or directories. For a directory, each .java file
+   *     in it or its subdirectories will be processed.
    */
   public static void main(String[] args) {
     RequireJavadoc rj = new RequireJavadoc();

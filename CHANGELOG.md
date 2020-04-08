@@ -2,8 +2,8 @@
 
 ## 0.2.0
 
-- Is now a regular Java application, not a Javadoc doclet.
-  Usage instructions have changed.
+- require-javadoc is now a regular Java application, not a Javadoc doclet.
+  Usage instructions have changed, and several limitations are removed.
 
 ## 0.1.3
 
