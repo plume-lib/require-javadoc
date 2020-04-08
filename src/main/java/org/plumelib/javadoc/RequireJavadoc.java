@@ -1,326 +1,265 @@
 package org.plumelib.javadoc;
 
-import com.sun.javadoc.AnnotationDesc;
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.ConstructorDoc;
-import com.sun.javadoc.Doc;
-import com.sun.javadoc.DocErrorReporter;
-import com.sun.javadoc.FieldDoc;
-import com.sun.javadoc.MethodDoc;
-import com.sun.javadoc.PackageDoc;
-import com.sun.javadoc.RootDoc;
-import com.sun.javadoc.SourcePosition;
-import com.sun.tools.doclets.standard.Standard;
+import com.github.javaparser.Position;
+import com.github.javaparser.Range;
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.Optional;
 import java.util.regex.Pattern;
-import org.checkerframework.checker.formatter.qual.Format;
+import java.util.stream.Stream;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.regex.RegexUtil;
-import org.checkerframework.common.value.qual.MinLen;
+import org.plumelib.options.Option;
+import org.plumelib.options.Options;
 
 /**
- * A Javadoc doclet that issues an error for any package, class, method, or field that lacks a
- * Javadoc comment.
+ * A program that issues an error for any class, constructor, method, or field that lacks a Javadoc
+ * comment. Does not issue a warning for methods annotated with {@code @Override}.
  */
-// This doclet extends the standard doclet so that this doclet accepts the standard command-line
-// arguments (even though it ignores them), which makes this doclet easier to use in an existing
-// build or with a build system.
-public class RequireJavadoc extends Standard {
-
-  /** If true, output debug information. */
-  private static boolean verbose = false;
+public class RequireJavadoc {
 
   /** All the errors this doclet will report. */
-  TreeSet<String> errors = new TreeSet<>();
+  List<String> errors = new ArrayList<>();
+
+  // /**
+  //  * All packages that have been seen and checked so far. This helps prevent issuing multiple
+  //  * warnings about a given package.
+  //  */
+  // Set<PackageDoc> packages = new HashSet<>();
 
   /**
-   * All packages that have been seen and checked so far. This helps prevent issuing multiple
-   * warnings about a given package.
+   * If true, print filenames relative to working directory. Setting this only has an effect if the
+   * command-line arguments were absolute pathnames, or no command-line arguments were supplied.
    */
-  Set<PackageDoc> packages = new HashSet<>();
+  @Option("Report relative rather than absolute filenames")
+  public boolean relative = false;
 
-  /** If true, print filenames relative to working directory. If false, print absolute paths. */
-  static boolean relativePaths = false;
+  /** Matches simple name of class/constructor/method/field where no problems should be reported. */
+  @Option("Don't report problems in classes that match the given regex")
+  public @MonotonicNonNull Pattern skip = null;
 
-  /** If non-null, matches classes where no problems should be reported. */
-  static @MonotonicNonNull Pattern skip = null;
+  /** If true, output debug information. */
+  @Option("Print diagnostic information")
+  public boolean verbose = false;
+
+  /** The Java files to be checked. */
+  List<Path> javaFiles = new ArrayList<Path>();
 
   /** The current working directory, for making relative pathnames. */
-  static Path currentPath = Paths.get("").toAbsolutePath();
+  Path workingDirRelative = Paths.get("");
 
-  private static final @Format({}) String USAGE =
-      "Provided by RequireJavadoc doclet:%n"
-          + "-skip <regex>      Don't report problems in classes that match the given regex%n"
-          + "-relative          Report relative rather than absolute filenames%n"
-          + "verbose            Print diagnostic information%n"
-          + "See the documentation for more details.%n";
-
-  /** Creates a new RequireJavadoc instance. */
-  RequireJavadoc() {}
+  /** The current working directory, for making relative pathnames. */
+  Path workingDirAbsolute = Paths.get("").toAbsolutePath();
 
   /**
-   * The entry point to this doclet. Requires documentation of all Java packages, classes, methods,
-   * and fields.
-   *
-   * <p>{@inheritDoc}
+   * The main entry point. The command-line arguments are files or directories (each .java file
+   * anywhere within a directory will be processed).
    */
-  public static boolean start(RootDoc root) {
-    RequireJavadoc doclet = new RequireJavadoc();
-    if (verbose) {
-      System.err.printf("start(): root=%s%n", root);
-      for (ClassDoc cd : root.classes()) {
-        System.err.printf("  %s%n", cd);
+  public static void main(String[] args) {
+    RequireJavadoc rj = new RequireJavadoc();
+    Options options = new Options("java RequireJavadoc [directory-or-file ...]", rj);
+    String[] remainingArgs = options.parse(true, args);
+
+    rj.setJavaFiles(remainingArgs);
+
+    for (Path javaFile : rj.javaFiles) {
+      try {
+        CompilationUnit cu = StaticJavaParser.parse(javaFile);
+        RequireJavadocVisitor visitor = rj.new RequireJavadocVisitor(javaFile);
+        visitor.visit(cu, null);
+      } catch (IOException e) {
+        System.out.println("Problem while reading " + javaFile + ": " + e.getMessage());
       }
     }
-    for (ClassDoc cd : root.classes()) {
-      doclet.processClass(cd);
+    for (String error : rj.errors) {
+      System.out.println(error);
     }
-
-    for (String error : doclet.errors) {
-      System.err.println(error);
-    }
-
-    return doclet.errors.isEmpty();
+    System.exit(rj.errors.isEmpty() ? 0 : 1);
   }
 
+  /** Creates a new RequireJavadoc instance. */
+  private RequireJavadoc() {}
+
   /**
-   * Require documentation of the given class and its package.
+   * Set the Java files to be processed from the command-line arguments.
    *
-   * @param cd the class to require documentation of
+   * @param args the directories and files listed on the command line
    */
-  private void processClass(ClassDoc cd) {
-    if (verbose) {
-      System.err.printf("processClass(%s)%n", cd);
+  @SuppressWarnings("lock:methodref.receiver.invalid") // no locking here
+  private void setJavaFiles(String[] args) {
+    if (args.length == 0) {
+      args = new String[] {workingDirAbsolute.toString()};
     }
-    SourcePosition classPosition = cd.position();
-    if (skip != null
-        && (skip.matcher(cd.name()).find()
-            || skip.matcher(cd.qualifiedName()).find()
-            || (classPosition != null && skip.matcher(classPosition.file().toString()).find()))) {
-      if (verbose) {
-        System.err.printf("processClass: skipped %s%n", cd);
+
+    for (String arg : args) {
+      File f = new File(arg);
+      if (!f.exists()) {
+        System.out.println("File not found: " + f);
+        System.exit(1);
       }
-      return;
-    }
-    requireCommentText(cd);
-    PackageDoc pd = cd.containingPackage();
-    // TODO: This does not work: it does not require documentation for packages.
-    if (packages.add(pd)) {
-      requireCommentText(pd);
-    }
-    for (ConstructorDoc constructorDoc : cd.constructors()) {
-      // Don't require documentation of synthetic constructors, which don't appear in the source
-      // code.
-      if (!constructorDoc.isSynthetic() && !isSyntheticForNestedConstructor(constructorDoc)) {
-        requireCommentText(constructorDoc);
-      }
-    }
-    for (FieldDoc ed : cd.enumConstants()) {
-      requireCommentText(ed);
-    }
-    if (verbose) {
-      System.err.printf("Class %s has %s fields%n", cd, cd.fields().length);
-    }
-    for (FieldDoc fd : cd.fields()) {
-      // Don't require documentation for `long serialVersionUID`.
-      if (!(fd.name().equals("serialVersionUID") && fd.type().toString().equals("long"))) {
-        requireCommentText(fd);
-      }
-    }
-    for (ClassDoc icd : cd.innerClasses()) {
-      requireCommentText(icd);
-    }
-    if (verbose) {
-      System.err.printf("Class %s has %s methods%n", cd, cd.methods().length);
-    }
-    for (MethodDoc md : cd.methods()) {
-      // Don't require documentation of overriding or synthetic methods
-      if (!isOverride(md) && !md.isSynthetic() && !isEnumValuesOrValueOf(md)) {
-        requireCommentText(md);
+      if (f.isDirectory()) {
+        try (Stream<Path> stream =
+            Files.find(
+                Paths.get(arg),
+                999,
+                (p, bfa) -> {
+                  // System.out.printf("Considering %s %s%n", p, bfa);
+                  // System.out.printf(
+                  //     "  %s %s%n", bfa.isRegularFile(), p.toString().endsWith(".java"));
+                  return bfa.isRegularFile() && p.toString().endsWith(".java");
+                })) {
+          stream.forEach(p -> javaFiles.add(p));
+        } catch (IOException e) {
+          System.out.println("Problem while processing " + arg + ": " + e.toString());
+          System.exit(1);
+        }
       } else {
-        if (verbose) {
-          System.err.printf(
-              "Method %s not checked: override=%s synthetic=%s enum=%s%n",
-              md, isOverride(md), md.isSynthetic(), isEnumValuesOrValueOf(md));
+        javaFiles.add(Paths.get(arg));
+      }
+    }
+
+    javaFiles.sort(Comparator.comparing(Object::toString));
+  }
+
+  /** Visits an AST and collects warnings about missing Javadoc. */
+  private class RequireJavadocVisitor extends VoidVisitorAdapter<Void> {
+
+    /** The file being visited. Used for constructing error messages. */
+    Path filename;
+
+    /**
+     * Create a new RequireJavadocVisitor.
+     *
+     * @param filename the file being visited; used for diagnostic messages
+     */
+    RequireJavadocVisitor(Path filename) {
+      this.filename = filename;
+    }
+
+    /**
+     * Return true if the given element should be skipped.
+     *
+     * @param simpleName the simple name of a Java element
+     * @return true if no warnings should be issued about the element
+     */
+    boolean shouldSkip(String simpleName) {
+      boolean result = skip != null && skip.matcher(simpleName).find();
+      if (verbose) {
+        System.out.printf("shouldSkip(%s) => %s%n", simpleName, result);
+      }
+      return result;
+    }
+
+    /**
+     * Return a string stating that documentation is missing on the given construct.
+     *
+     * @param node a Java language construct (class, constructor, method, field)
+     * @return an error message for the given construct
+     */
+    private String errorString(Node node, String simpleName) {
+      Optional<Range> range = node.getRange();
+      if (range.isPresent()) {
+        Position begin = range.get().begin;
+        Path path =
+            (relative
+                ? (filename.isAbsolute() ? workingDirAbsolute : workingDirRelative)
+                    .relativize(filename)
+                : filename);
+        return String.format(
+            "%s:%d:%d: missing documentation for %s", path, begin.line, begin.column, simpleName);
+      } else {
+        return "missing documentation for " + simpleName;
+      }
+    }
+
+    @Override
+    public void visit(ClassOrInterfaceDeclaration cd, Void ignore) {
+      super.visit(cd, ignore);
+      if (verbose) {
+        System.out.printf("Visiting %s%n", cd.getName());
+      }
+      if (!cd.getJavadocComment().isPresent()) {
+        String name = cd.getNameAsString();
+        if (!shouldSkip(name)) {
+          errors.add(errorString(cd, name));
         }
       }
     }
-  }
 
-  /**
-   * Return true if this method is annotated with {@code @Override}.
-   *
-   * @param md the method to check for an {@code @Override} annotation
-   * @return true if this method is annotated with {@code @Override}
-   */
-  private boolean isOverride(MethodDoc md) {
-    for (AnnotationDesc anno : md.annotations()) {
-      // TODO: A String comparison is a bit gross.
-      if (anno.toString().equals("@java.lang.Override")) {
-        return true;
+    @Override
+    public void visit(ConstructorDeclaration cd, Void ignore) {
+      super.visit(cd, ignore);
+      if (verbose) {
+        System.out.printf("Visiting %s%n", cd.getName());
+      }
+      if (!cd.getJavadocComment().isPresent()) {
+        String name = cd.getNameAsString();
+        if (!shouldSkip(name)) {
+          errors.add(errorString(cd, name));
+        }
       }
     }
-    return false;
-  }
 
-  /**
-   * Return true if this method is a synthetic default constructor. The <a
-   * href="https://docs.oracle.com/javase/8/docs/jdk/api/javadoc/doclet/com/sun/javadoc/MemberDoc.html">isSynthetic</a>
-   * documentation says "Returns true if this member was synthesized by the compiler.", but it
-   * returns false for a synthesized default constructor for a nested class. This handles that case.
-   *
-   * @param cd the constructor to check
-   * @return true if {@code cd} is a synthetic constructor
-   */
-  private boolean isSyntheticForNestedConstructor(ConstructorDoc cd) {
-    SourcePosition constructorPosition = cd.position();
-    if (constructorPosition == null) {
+    @Override
+    public void visit(MethodDeclaration md, Void ignore) {
+      super.visit(md, ignore);
+      if (verbose) {
+        System.out.printf("Visiting %s%n", md.getName());
+      }
+      if (!md.getJavadocComment().isPresent()) {
+        if (!isOverride(md)) {
+          String name = md.getNameAsString();
+          if (!shouldSkip(name)) {
+            errors.add(errorString(md, name));
+          }
+        }
+      }
+    }
+
+    @Override
+    public void visit(FieldDeclaration fd, Void ignore) {
+      super.visit(fd, ignore);
+      if (verbose) {
+        System.out.printf("Visiting %s%n", fd.getVariables().get(0).getName());
+      }
+      if (!fd.getJavadocComment().isPresent()) {
+        for (VariableDeclarator vd : fd.getVariables()) {
+          String name = vd.getNameAsString();
+          if (!shouldSkip(name)) {
+            errors.add(errorString(vd, name));
+          }
+        }
+      }
+    }
+
+    /**
+     * Return true if this method is annotated with {@code @Override}.
+     *
+     * @param md the method to check for an {@code @Override} annotation
+     * @return true if this method is annotated with {@code @Override}
+     */
+    private boolean isOverride(MethodDeclaration md) {
+      for (AnnotationExpr anno : md.getAnnotations()) {
+        if (anno.toString().equals("@Override") || anno.toString().equals("@java.lang.Override")) {
+          return true;
+        }
+      }
       return false;
     }
-    @SuppressWarnings("nullness:assignment.type.incompatible") // constructor has a containing class
-    @NonNull ClassDoc containingClass = cd.containingClass();
-    SourcePosition classPosition = containingClass.position();
-    assert classPosition != null : "@AssumeAssertion(nullness): a class has a position";
-    return classPosition.file().equals(constructorPosition.file())
-        && classPosition.line() == constructorPosition.line();
-  }
-
-  /**
-   * Return true if the method is {@code values} or {@code valueOf} for an enum.
-   *
-   * @param md the MethodDoc to test
-   * @return true if the method is {@code values} or {@code valueOf} for an enum
-   */
-  @SuppressWarnings({
-    "index:array.access.unsafe.high.constant", // MethodDoc.parameters() needs @Pure annotation
-    "nullness:dereference.of.nullable" // md.containingClass() is non-null for a MethodDoc
-    // (MethodDoc needs annotation)
-  })
-  private boolean isEnumValuesOrValueOf(MethodDoc md) {
-    return md.containingClass().isEnum()
-        && ((md.name().equals("values") && md.parameters().length == 0)
-            || (md.name().equals("valueOf")
-                && md.parameters().length == 1
-                // String comparison is gross, but this is a Javadoc type rather than a
-                // reflection type.
-                && md.parameters()[0].type().qualifiedTypeName().equals("java.lang.String")));
-  }
-
-  /**
-   * Require a documentation string for the given Java element. If there is no documentation, this
-   * doclet will print a warning message and will return an error status.
-   *
-   * @param d any Java element
-   */
-  private void requireCommentText(Doc d) {
-    if (skip != null && skip.matcher(d.name()).find()) {
-      if (verbose) {
-        System.err.printf("requireCommentText(%s) SKIPPED%n", d);
-      }
-      return;
-    }
-    if (verbose) {
-      System.err.printf("requireCommentText(%s)%n", d);
-    }
-    String text = d.getRawCommentText();
-    if (text.isEmpty()) {
-      if (!d.name().equals("")) { // don't warn about the unnamed package
-        errors.add(errorString(d));
-      }
-    }
-  }
-
-  /**
-   * Return a string stating that documentation is missing on the given construct.
-   *
-   * @param d a Java language construct (package, class, constructor, method, field)
-   * @return an error message for the given construct
-   */
-  private String errorString(Doc d) {
-    SourcePosition position = d.position();
-    if (position == null) {
-      return "missing documentation for " + d.name();
-    }
-    File file = position.file();
-    // Making the pathname relative shortens it, but can confuse tools.
-    Path path = (relativePaths ? currentPath.relativize(file.toPath()) : file.toPath());
-    return String.format("%s:%d: missing documentation for %s", path, position.line(), d.name());
-  }
-
-  /**
-   * Given a command-line option of this doclet, returns the number of arguments you must specify on
-   * the command line for the given option. Returns 0 if the argument is not recognized. This method
-   * is automatically invoked by Javadoc.
-   *
-   * @param option the command-line option
-   * @return the number of command-line arguments needed when using the option
-   * @see <a
-   *     href="https://docs.oracle.com/javase/8/docs/technotes/guides/javadoc/doclet/overview.html">Doclet
-   *     overview</a>
-   */
-  public static int optionLength(String option) {
-    switch (option) {
-      case "-relative":
-        return 1;
-      case "-skip":
-        return 2;
-      case "-verbose":
-        return 1;
-      default:
-        return Standard.optionLength(option);
-    }
-  }
-
-  /**
-   * Tests the validity of command-line arguments passed to this doclet. Returns true if the option
-   * usage is valid, and false otherwise. This method is automatically invoked by Javadoc.
-   *
-   * <p>Also sets fields from the command-line arguments.
-   *
-   * @param options the command-line options to be checked: an array of 1- or 2-element arrays,
-   *     where the length depends on {@link #optionLength} applied to the first element
-   * @param reporter where to report errors
-   * @return true iff the command-line options are valid
-   * @see <a
-   *     href="https://docs.oracle.com/javase/8/docs/technotes/guides/javadoc/doclet/overview.html">Doclet
-   *     overview</a>
-   */
-  public static boolean validOptions(String[] @MinLen(1) [] options, DocErrorReporter reporter) {
-    List<String[]> remaining = new ArrayList<>();
-    for (int oi = 0; oi < options.length; oi++) {
-      String[] os = options[oi];
-      String opt = os[0].toLowerCase();
-      switch (opt) {
-        case "-relative":
-          relativePaths = true;
-          break;
-        case "-skip":
-          assert os.length == 2 : "@AssumeAssertion(value): dependent: optionLength(\"-skip\")==2";
-          if (!RegexUtil.isRegex(os[1])) {
-            System.err.printf("Error parsing regex %s %s%n", os[1], RegexUtil.regexError(os[1]));
-            System.exit(2);
-          }
-          skip = Pattern.compile(os[1]);
-          break;
-        case "-verbose":
-          verbose = true;
-          break;
-        case "-help":
-          System.out.printf(USAGE);
-          return false;
-        default:
-          remaining.add(os);
-          break;
-      }
-    }
-    return Standard.validOptions(remaining.toArray(new String[0][]), reporter);
   }
 }

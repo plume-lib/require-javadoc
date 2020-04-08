@@ -1,5 +1,10 @@
 # Require-Javadoc change log
 
+## 0.2.0
+
+- Is now a regular Java application, not a Javadoc doclet.
+  Usage instructions have changed.
+
 ## 0.1.3
 
 - Add `-verbose` command-line argument, for debugging.
