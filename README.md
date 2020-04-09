@@ -2,7 +2,8 @@
 
 This program requires that a Javadoc comment be present on
 every Java class, constructor, method, and field.
-It does not require a Javadoc comment on methods with an `@Override` annotation.
+It does not require a Javadoc comment on methods with an `@Override` annotation,
+nor on fields named `serialVersionUID`.
 
 This tool makes no requirement about the Javadoc comment, beyond its existence.
 For example, this tool does not require the existence
@@ -30,7 +31,10 @@ Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...
   --verbose=<boolean>    - Print diagnostic information [default false]
 ```
 
-With no arguments, it processes all the `.java` files in the current directory or any subdirectory.
+If an argument is a directory, each .java file in it or its subdirectories will be processed.
+
+With no arguments, `require-javadoc` processes all the `.java` files in the current directory
+or any subdirectory.
 
 The `--dont-require` regex is matched against full package names and against simple
 (unqualified) names of classes, constructors, methods, and fields.
@@ -76,7 +80,7 @@ check.dependsOn requireJavadoc
 You can supply other command-line arguments as well; for example:
 ```
   ...
-  args "src/main/java", "--skip=WeakHasherMap|WeakIdentityHashMap"
+  args "src/main/java", "--dont-require=WeakHasherMap|WeakIdentityHashMap"
 ```
 
 

@@ -83,10 +83,9 @@ public class RequireJavadoc {
   Path workingDirAbsolute = Paths.get("").toAbsolutePath();
 
   /**
-   * The main entry point for require-javadoc.
+   * The main entry point for the require-javadoc program.
    *
-   * @param args the command-line arguments: files or directories. For a directory, each .java file
-   *     in it or its subdirectories will be processed.
+   * @param args the command-line arguments; see the README file.
    */
   public static void main(String[] args) {
     RequireJavadoc rj = new RequireJavadoc();
@@ -207,13 +206,14 @@ public class RequireJavadoc {
   /**
    * Return true if the given Java element should not be checked.
    *
-   * @param simpleName the name of a Java element
+   * @param name the name of a Java element
    * @return true if no warnings should be issued about the element
    */
-  boolean shouldNotRequire(String simpleName) {
-    boolean result = dont_require != null && dont_require.matcher(simpleName).find();
+  // `name` is a simple name for elements other than packages.
+  boolean shouldNotRequire(String name) {
+    boolean result = dont_require != null && dont_require.matcher(name).find();
     if (verbose) {
-      System.out.printf("shouldNotRequire(%s) => %s%n", simpleName, result);
+      System.out.printf("shouldNotRequire(%s) => %s%n", name, result);
     }
     return result;
   }
@@ -330,7 +330,7 @@ public class RequireJavadoc {
 
     @Override
     public void visit(FieldDeclaration fd, Void ignore) {
-      boolean shouldVisitSuper = false;
+      boolean shouldSuperVisit = false;
       if (verbose) {
         System.out.printf("Visiting %s%n", fd.getVariables().get(0).getName());
       }
@@ -340,8 +340,8 @@ public class RequireJavadoc {
         if (shouldNotRequire(name)) {
           continue;
         }
-        shouldVisitSuper = true;
-        // TODO: Alse check the type of the serialVersionUID variable.
+        shouldSuperVisit = true;
+        // TODO: Also check the type of the serialVersionUID variable.
         if (name.equals("serialVersionUID")) {
           continue;
         }
@@ -349,7 +349,7 @@ public class RequireJavadoc {
           errors.add(errorString(vd, name));
         }
       }
-      if (shouldVisitSuper) {
+      if (shouldSuperVisit) {
         super.visit(fd, ignore);
       }
     }
