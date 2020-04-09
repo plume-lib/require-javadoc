@@ -42,8 +42,8 @@ The `--dont-require` regex is matched against full package names and against sim
 
 ## Incremental use
 
-In a continuous integration job (Azure Pipelines, CircleCI, or Travis CI)
-for a pull request, you can require Javadoc on all changed lines and ones
+In continuous integration job (Azure Pipelines, CircleCI, or Travis CI),
+you can require Javadoc on all changed lines and ones
 adjacent to them.  Here is example code:
 
 ```
@@ -66,7 +66,7 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc "org.plumelib:require-javadoc:0.2.2"
+  requireJavadoc "org.plumelib:require-javadoc:0.3.0"
 }
 task requireJavadoc(type: JavaExec) {
   description = 'Ensures that Javadoc documentation exists.'
@@ -107,6 +107,7 @@ javadoc {
   options.addStringOption('Xwerror', '-Xdoclint:all')
   options.addStringOption('private', '-quiet')
 }
+check.dependsOn javadoc
 ```
 or
 ```
@@ -117,6 +118,7 @@ task javadocStrict(type: Javadoc) {
   options.addStringOption('Xwerror', '-Xdoclint:all')
   options.memberLevel = JavadocMemberLevel.PRIVATE
 }
+check.dependsOn javadocStrict
 ```
 
 
