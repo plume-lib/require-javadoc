@@ -14,13 +14,26 @@ about completely missing comments.
 
 ## Use
 
-To run:
+Example usage:
 
 ```
-java -cp require-javadoc-all.jar org.plumelib.javadoc.RequireJavadoc [directory-or-file ...]
+java -cp require-javadoc-all.jar org.plumelib.javadoc.RequireJavadoc
+```
+
+Details about invoking the program:
+
+```
+Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...]
+  --exclude=<regex>      - Don't check files or directories whose pathname matches the regex
+  --dont-require=<regex> - Don't report problems in Java elements whose name matches the regex
+  --relative=<boolean>   - Report relative rather than absolute filenames [default false]
+  --verbose=<boolean>    - Print diagnostic information [default false]
 ```
 
 With no arguments, it processes all the `.java` files in the current directory or any subdirectory.
+
+The `--dont-require` regex is matched against full package names and against simple
+(unqualified) names of classes, constructors, methods, and fields.
 
 
 ## Incremental use
@@ -45,15 +58,25 @@ fi
 To create a `requireJavadoc` target, add the following to `build.gradle`:
 
 ```
+configurations {
+  requireJavadoc
+}
 dependencies {
-  compileOnly group: 'org.plumelib', name: 'require-javadoc', version: '0.2.1'
+  requireJavadoc "org.plumelib:require-javadoc:0.2.2"
 }
 task requireJavadoc(type: JavaExec) {
   description = 'Ensures that Javadoc documentation exists.'
   main = "org.plumelib.javadoc.RequireJavadoc"
-  classpath = project.sourceSets.main.compileClasspath
+  classpath = configurations.requireJavadoc
+  args "src/main/java"
 }
 check.dependsOn requireJavadoc
+```
+
+You can supply other command-line arguments as well; for example:
+```
+  ...
+  args "src/main/java", "--skip=WeakHasherMap|WeakIdentityHashMap"
 ```
 
 

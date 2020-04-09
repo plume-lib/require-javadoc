@@ -34,6 +34,25 @@ dependencies {
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+application {
+  mainClassName = 'org.plumelib.javadoc.RequireJavadoc'
+}
+
+// Run require-javadoc on itself.
+configurations {
+  requireJavadoc
+}
+dependencies {
+  requireJavadoc "org.plumelib:require-javadoc:0.2.2"
+}
+task requireJavadoc(type: JavaExec) {
+  description = 'Ensures that Javadoc documentation exists.'
+  main = "org.plumelib.javadoc.RequireJavadoc"
+  classpath = configurations.requireJavadoc
+  args "src/main/java"
+}
+check.dependsOn requireJavadoc
+
 /// Error Prone linter
 
 dependencies {
