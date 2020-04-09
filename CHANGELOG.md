@@ -1,6 +1,6 @@
 # Require-Javadoc change log
 
-## 0.2.0
+## 0.3.0
 
 - require-javadoc is now a regular Java application, not a Javadoc doclet.
   Usage instructions have changed, and several limitations are removed.

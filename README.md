@@ -46,7 +46,7 @@ To create a `requireJavadoc` target, add the following to `build.gradle`:
 
 ```
 dependencies {
-  compileOnly group: 'org.plumelib', name: 'require-javadoc', version: '0.2.0'
+  compileOnly group: 'org.plumelib', name: 'require-javadoc', version: '0.2.1'
 }
 task requireJavadoc(type: JavaExec) {
   description = 'Ensures that Javadoc documentation exists.'
