@@ -1,5 +1,6 @@
 plugins {
-  id 'java-library'
+  id 'java'
+  id 'application'
 
   // To create a fat jar build/libs/require-javadoc-all.jar, run: ./gradlew shadowJar
   id 'com.github.johnrengelman.shadow' version '5.2.0'
