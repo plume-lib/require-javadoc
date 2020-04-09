@@ -115,6 +115,7 @@ javadoc {
   options.addStringOption('Xwerror', '-Xdoclint:all')
   options.addStringOption('private', '-quiet')
 }
+check.dependsOn javadoc
 ```
 or
 ```
@@ -125,6 +126,7 @@ task javadocStrict(type: Javadoc) {
   options.addStringOption('Xwerror', '-Xdoclint:all')
   options.memberLevel = JavadocMemberLevel.PRIVATE
 }
+check.dependsOn javadocStrict
 ```
 
 
