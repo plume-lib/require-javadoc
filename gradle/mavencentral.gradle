@@ -8,12 +8,12 @@
 //  * git pull
 //  * Update the version number in ../README.md and in this file (thrice).
 //  * Update ../CHANGELOG.md .
-//  * Run in the top-level directory:  ./gradlew clean uploadArchives && ./gradlew javadocWeb
+//  * Run in the top-level directory:  ./gradlew javadocWeb && ./gradlew clean uploadArchives
 //  * Browse to https://oss.sonatype.org/#stagingRepositories, complete the Maven Central release.
 //  * Stage changes.
 //  * Add a git tag:
-//    VER=0.1.2 && git commit -m "Version $VER" && git push && git tag -a v$VER -m "Version $VER" && git push && git push --tags
-//  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 0.1.2", attach the .jar file from ../build/libs/
+//    VER=0.3.0 && git commit -m "Version $VER" && git push && git tag -a v$VER -m "Version $VER" && git push && git push --tags
+//  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 0.3.0", attach the .jar file from ../build/libs/
 
 ///////////////////////////////////////////////////////////////////////////
 /// Maven Central publishing
@@ -24,7 +24,7 @@ apply plugin: 'signing'
 
 group = "org.plumelib"
 archivesBaseName = "require-javadoc"
-version = "0.1.2"
+version = "0.3.0"
 
 task javadocJar(type: Jar) {
     classifier = 'javadoc'

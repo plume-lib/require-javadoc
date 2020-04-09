@@ -1,5 +1,6 @@
 plugins {
-  id 'java-library'
+  id 'java'
+  id 'application'
 
   // To create a fat jar build/libs/require-javadoc-all.jar, run: ./gradlew shadowJar
   id 'com.github.johnrengelman.shadow' version '5.2.0'
@@ -20,12 +21,37 @@ repositories {
   mavenCentral()
 }
 
+// To upload to Maven Central, see instructions in the file.
+apply from: "${buildscript.sourceFile.parent}/gradle/mavencentral.gradle"
+
 dependencies {
-  // errorprone 'com.google.errorprone:error_prone_core:2.3.3'
+  implementation 'org.plumelib:options:1.0.4'
+  implementation group: 'com.github.javaparser', name: 'javaparser-symbol-solver-core', version: '3.13.3'
+
+  // errorprone 'com.google.errorprone:error_prone_core:2.3.4'
 }
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+
+application {
+  mainClassName = 'org.plumelib.javadoc.RequireJavadoc'
+}
+
+// Run require-javadoc on itself.
+configurations {
+  requireJavadoc
+}
+dependencies {
+  requireJavadoc "org.plumelib:require-javadoc:0.2.2"
+}
+task requireJavadoc(type: JavaExec) {
+  description = 'Ensures that Javadoc documentation exists.'
+  main = "org.plumelib.javadoc.RequireJavadoc"
+  classpath = configurations.requireJavadoc
+  args "src/main/java"
+}
+check.dependsOn requireJavadoc
 
 /// Error Prone linter
 
@@ -60,7 +86,6 @@ checkerFramework {
   ]
   extraJavacArgs = [
     '-Werror',
-    "-Astubs=checker.jar/javadoc.astub",
     '-AcheckPurityAnnotations',
     '-ArequirePrefixInWarningSuppressions',
     '-AwarnUnneededSuppressions'
