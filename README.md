@@ -67,6 +67,7 @@ javadoc {
   options.doclet = "org.plumelib.javadoc.RequireJavadoc"
   // options.addStringOption('skip', 'ClassNotToCheck|OtherClass')
 }
+check.dependsOn javadoc
 ```
 
 ### Separate target `requireJavadoc`
