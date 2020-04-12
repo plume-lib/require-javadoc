@@ -13,7 +13,7 @@
 //  * Stage changes.
 //  * Add a git tag:
 //    VER=0.3.0 && git commit -m "Version $VER" && git push && git tag -a v$VER -m "Version $VER" && git push && git push --tags
-//  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 0.3.0", attach the .jar file from ../build/libs/
+//  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 0.3.0", attach the .jar and -all.jar files from ../build/libs/
 
 ///////////////////////////////////////////////////////////////////////////
 /// Maven Central publishing
