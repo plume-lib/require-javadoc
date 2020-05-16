@@ -86,11 +86,16 @@ You can supply other command-line arguments as well; for example:
 
 ## Comparison to `javadoc -Xwerror -Xdoclint:all`
 
-Neither `require-javadoc`, nor `javadoc -private -Xwerror -Xdoclint:all`, is stronger.
-Therefore, you may want to use both.
+Neither `require-javadoc`,
+nor `javadoc -Xwerror -Xdoclint:all`,
+nor `javadoc -private -Xwerror -Xdoclint:all`,
+is stronger.
+Therefore, you may want to use all three.
 
  * `require-javadoc` requires that a Javadoc comment is present, but does not check the content of the comment.
    For example, `require-javadoc` does not complain if an `@param` or `@return` tag is missing.
+   With `-private`, it checks private members too.
+   Without `-private`, it ensures that public members don't reference private members.
  * Javadoc warns about problems in existing Javadoc, but does not warn if a method is completely undocumented.
    Javadoc will complain about missing `@param` and `@return` tags, but *not* if `@Override` is present.
    Javadoc does not warn about all Java constructs; for example, it does not process methods within enum constants, nor some private nested classes (even when `-private` is supplied).
@@ -98,9 +103,9 @@ Therefore, you may want to use both.
 If you want to require all Javadoc tags to be present, use the Javadoc tool itself.
 From the command line:
 ```javadoc -private -Xwerror -Xdoclint:all```
-(You might want to omit `-private` or adjust the [`-Xdoclint` argument](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/javadoc.html#BEJEFABE).)
+(You should run with and without `-private`, and you may wish to adjust the [`-Xdoclint` argument](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/javadoc.html#BEJEFABE).)
 
-In a Gradle buildfile, use one of the following:
+In a Gradle buildfile, use one of the following (and a similar version to check only public members):
 ```
 // Turn Javadoc warnings into errors, use strict checking, and process private members.
 javadoc {
