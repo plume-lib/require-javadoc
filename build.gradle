@@ -56,7 +56,7 @@ check.dependsOn requireJavadoc
 /// Error Prone linter
 
 dependencies {
-  errorprone("com.google.errorprone:error_prone_core:2.3.4")
+  errorprone("com.google.errorprone:error_prone_core:2.4.0")
   // JDK 8 support for Error Prone:
   errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
 }
