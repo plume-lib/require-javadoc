@@ -11,7 +11,7 @@ plugins {
   // id 'com.github.sherter.google-java-format' version '0.7.1'
 
   // Error Prone linter
-  id("net.ltgt.errorprone") version "1.1.1"
+  id("net.ltgt.errorprone") version "1.2.1"
 
   // Checker Framework pluggable type-checking
   id 'org.checkerframework' version '0.5.8'
@@ -21,9 +21,6 @@ repositories {
   mavenCentral()
 }
 
-// To upload to Maven Central, see instructions in the file.
-apply from: "${buildscript.sourceFile.parent}/gradle/mavencentral.gradle"
-
 dependencies {
   implementation 'org.plumelib:options:1.0.4'
   implementation group: 'com.github.javaparser', name: 'javaparser-symbol-solver-core', version: '3.13.3'
@@ -31,27 +28,15 @@ dependencies {
   // errorprone 'com.google.errorprone:error_prone_core:2.3.4'
 }
 
+// To upload to Maven Central, see instructions in the file.
+apply from: "${buildscript.sourceFile.parent}/gradle/mavencentral.gradle"
+
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 application {
   mainClassName = 'org.plumelib.javadoc.RequireJavadoc'
 }
-
-// Run require-javadoc on itself.
-configurations {
-  requireJavadoc
-}
-dependencies {
-  requireJavadoc "org.plumelib:require-javadoc:0.3.0"
-}
-task requireJavadoc(type: JavaExec) {
-  description = 'Ensures that Javadoc documentation exists.'
-  main = "org.plumelib.javadoc.RequireJavadoc"
-  classpath = configurations.requireJavadoc
-  args "src/main/java"
-}
-check.dependsOn requireJavadoc
 
 /// Error Prone linter
 
@@ -109,13 +94,47 @@ if (project.hasProperty("cfLocal")) {
 javadoc {
   options.addStringOption('Xwerror', '-Xdoclint:all')
   options.addStringOption('private', '-quiet')
+  doLast {
+    if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
+      ant.replaceregexp(match:"@import url\\('resources/fonts/dejavu.css'\\);\\s*", replace:'',
+	flags:'g', byline:true) {
+	fileset(dir: destinationDir)
+      }
+    }
+  }
 }
+check.dependsOn javadoc
 
 task javadocWeb(type: Javadoc) {
   source = sourceSets.main.allJava
-  destinationDir = file("/cse/web/research/plumelib/require-javadoc/api")
+  destinationDir = file("/cse/web/research/plumelib/${project.name}/api")
   classpath = project.sourceSets.main.compileClasspath
+  doLast {
+    if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
+      ant.replaceregexp(match:"@import url\\('resources/fonts/dejavu.css'\\);\\s*", replace:'',
+	flags:'g', byline:true) {
+	fileset(dir: destinationDir)
+      }
+    }
+  }
 }
+
+// Run require-javadoc on itself.
+configurations {
+  requireJavadoc
+}
+dependencies {
+  requireJavadoc "org.plumelib:require-javadoc:0.3.0"
+}
+task requireJavadoc(type: JavaExec) {
+  description = 'Ensures that Javadoc documentation exists.'
+  main = "org.plumelib.javadoc.RequireJavadoc"
+  classpath = configurations.requireJavadoc
+  args "src/main/java"
+}
+check.dependsOn requireJavadoc
+
+/// tools.jar
 
 // Work around https://github.com/johnrengelman/shadow/issues/324
 configurations {
