@@ -361,10 +361,23 @@ public class RequireJavadoc {
      * @return true if this method is annotated with {@code @Override}
      */
     private boolean isOverride(MethodDeclaration md) {
+      // JavaParser bug: md.getAnnotations() may lack annotations that are after a // comment.
+      // Example:  In this code:
+      //   @SuppressWarnings(...) // benevolent side effects
+      //   @Override
+      //   public boolean hasNext() { ... }
+      // md.getAnnotations() contains "@SuppressWarnings(...)" but not "@Override".
       for (AnnotationExpr anno : md.getAnnotations()) {
-        if (anno.toString().equals("@Override") || anno.toString().equals("@java.lang.Override")) {
+        String annoString = anno.toString();
+        if (annoString.equals("@Override") || annoString.equals("@java.lang.Override")) {
+          if (verbose) {
+            System.out.printf("isOverride(%s) => true%n", annoString);
+          }
           return true;
         }
+      }
+      if (verbose) {
+        System.out.printf("isOverride(%s) => false   %s%n", md.getName(), md.getAnnotations());
       }
       return false;
     }
