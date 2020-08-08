@@ -15,7 +15,7 @@ about completely missing comments.
 
 ## Use
 
-Example usage:
+Example usage, to check every `.java` file in or under the current directory:
 
 ```
 java -cp require-javadoc-all.jar org.plumelib.javadoc.RequireJavadoc
@@ -31,7 +31,7 @@ Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...
   --verbose=<boolean>    - Print diagnostic information [default false]
 ```
 
-If an argument is a directory, each .java file in it or its subdirectories will be processed.
+If an argument is a directory, each `.java` file in it or its subdirectories will be processed.
 
 With no arguments, `require-javadoc` processes all the `.java` files in the current directory
 or any subdirectory.
