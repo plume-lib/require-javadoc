@@ -168,8 +168,8 @@ public class RequireJavadoc {
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
-      if (!shouldExclude(file)) {
-        if (attr.isRegularFile() && file.toString().endsWith(".java")) {
+      if (attr.isRegularFile() && file.toString().endsWith(".java")) {
+        if (!shouldExclude(file)) {
           javaFiles.add(file);
         }
       }
@@ -211,7 +211,10 @@ public class RequireJavadoc {
    */
   // `name` is a simple name for elements other than packages.
   boolean shouldNotRequire(String name) {
-    boolean result = dont_require != null && dont_require.matcher(name).find();
+    if (dont_require == null) {
+      return false;
+    }
+    boolean result = dont_require.matcher(name).find();
     if (verbose) {
       System.out.printf("shouldNotRequire(%s) => %s%n", name, result);
     }
@@ -225,7 +228,10 @@ public class RequireJavadoc {
    * @return true if the file or directory should be skipped
    */
   boolean shouldExclude(String fileName) {
-    boolean result = exclude != null && exclude.matcher(fileName).find();
+    if (exclude == null) {
+      return false;
+    }
+    boolean result = exclude.matcher(fileName).find();
     if (verbose) {
       System.out.printf("shouldExclude(%s) => %s%n", fileName, result);
     }
