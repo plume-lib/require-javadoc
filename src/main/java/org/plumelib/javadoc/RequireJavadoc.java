@@ -9,8 +9,12 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.PackageDeclaration;
+import com.github.javaparser.ast.body.AnnotationDeclaration;
+import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.EnumConstantDeclaration;
+import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
@@ -355,6 +359,66 @@ public class RequireJavadoc {
       if (shouldSuperVisit) {
         super.visit(fd, ignore);
       }
+    }
+
+    @Override
+    public void visit(EnumDeclaration ed, Void ignore) {
+      String name = ed.getNameAsString();
+      if (shouldNotRequire(name)) {
+        return;
+      }
+      if (verbose) {
+        System.out.printf("Visiting enum %s%n", name);
+      }
+      if (!hasJavadocComment(ed)) {
+        errors.add(errorString(ed, name));
+      }
+      super.visit(ed, ignore);
+    }
+
+    @Override
+    public void visit(EnumConstantDeclaration ecd, Void ignore) {
+      String name = ecd.getNameAsString();
+      if (shouldNotRequire(name)) {
+        return;
+      }
+      if (verbose) {
+        System.out.printf("Visiting enum constant %s%n", name);
+      }
+      if (!hasJavadocComment(ecd)) {
+        errors.add(errorString(ecd, name));
+      }
+      super.visit(ecd, ignore);
+    }
+
+    @Override
+    public void visit(AnnotationDeclaration ad, Void ignore) {
+      String name = ad.getNameAsString();
+      if (shouldNotRequire(name)) {
+        return;
+      }
+      if (verbose) {
+        System.out.printf("Visiting annotation %s%n", name);
+      }
+      if (!hasJavadocComment(ad)) {
+        errors.add(errorString(ad, name));
+      }
+      super.visit(ad, ignore);
+    }
+
+    @Override
+    public void visit(AnnotationMemberDeclaration amd, Void ignore) {
+      String name = amd.getNameAsString();
+      if (shouldNotRequire(name)) {
+        return;
+      }
+      if (verbose) {
+        System.out.printf("Visiting annotation member %s%n", name);
+      }
+      if (!hasJavadocComment(amd)) {
+        errors.add(errorString(amd, name));
+      }
+      super.visit(amd, ignore);
     }
 
     /**
