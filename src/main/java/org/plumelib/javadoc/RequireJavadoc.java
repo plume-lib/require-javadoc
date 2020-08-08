@@ -101,15 +101,11 @@ public class RequireJavadoc {
     rj.setJavaFiles(remainingArgs);
 
     for (Path javaFile : rj.javaFiles) {
+      if (rj.verbose) {
+        System.out.println("Checking " + javaFile);
+      }
       try {
         CompilationUnit cu = StaticJavaParser.parse(javaFile);
-        Optional<PackageDeclaration> opd = cu.getPackageDeclaration();
-        if (opd.isPresent()) {
-          String packageName = opd.get().getName().asString();
-          if (rj.shouldNotRequire(packageName)) {
-            continue;
-          }
-        }
         RequireJavadocVisitor visitor = rj.new RequireJavadocVisitor(javaFile);
         visitor.visit(cu, null);
       } catch (IOException e) {
@@ -288,6 +284,21 @@ public class RequireJavadoc {
       } else {
         return "missing documentation for " + simpleName;
       }
+    }
+
+    @Override
+    public void visit(CompilationUnit cu, Void ignore) {
+      Optional<PackageDeclaration> opd = cu.getPackageDeclaration();
+      if (opd.isPresent()) {
+        String packageName = opd.get().getName().asString();
+        if (shouldNotRequire(packageName)) {
+          return;
+        }
+      }
+      if (verbose) {
+        System.out.printf("Visiting compilation unit%n");
+      }
+      super.visit(cu, ignore);
     }
 
     @Override
