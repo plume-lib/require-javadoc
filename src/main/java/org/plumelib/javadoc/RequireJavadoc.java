@@ -292,13 +292,13 @@ public class RequireJavadoc {
       if (shouldNotRequire(name)) {
         return;
       }
-      super.visit(cd, ignore);
       if (verbose) {
-        System.out.printf("Visiting %s%n", cd.getName());
+        System.out.printf("Visiting type %s%n", name);
       }
       if (!hasJavadocComment(cd)) {
         errors.add(errorString(cd, name));
       }
+      super.visit(cd, ignore);
     }
 
     @Override
@@ -307,13 +307,13 @@ public class RequireJavadoc {
       if (shouldNotRequire(name)) {
         return;
       }
-      super.visit(cd, ignore);
       if (verbose) {
-        System.out.printf("Visiting %s%n", cd.getName());
+        System.out.printf("Visiting constructor %s%n", name);
       }
       if (!hasJavadocComment(cd)) {
         errors.add(errorString(cd, name));
       }
+      super.visit(cd, ignore);
     }
 
     @Override
@@ -322,23 +322,20 @@ public class RequireJavadoc {
       if (shouldNotRequire(name)) {
         return;
       }
-      super.visit(md, ignore);
       if (verbose) {
-        System.out.printf("Visiting %s%n", md.getName());
+        System.out.printf("Visiting method %s%n", md.getName());
       }
-      if (isOverride(md)) {
-        return;
-      }
-      if (!hasJavadocComment(md)) {
+      if (!isOverride(md) && !hasJavadocComment(md)) {
         errors.add(errorString(md, name));
       }
+      super.visit(md, ignore);
     }
 
     @Override
     public void visit(FieldDeclaration fd, Void ignore) {
       boolean shouldSuperVisit = false;
       if (verbose) {
-        System.out.printf("Visiting %s%n", fd.getVariables().get(0).getName());
+        System.out.printf("Visiting field %s%n", fd.getVariables().get(0).getName());
       }
       boolean hasJavadocComment = hasJavadocComment(fd);
       for (VariableDeclarator vd : fd.getVariables()) {
