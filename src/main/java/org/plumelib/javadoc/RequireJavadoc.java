@@ -43,17 +43,13 @@ import org.plumelib.options.Options;
 
 /**
  * A program that issues an error for any class, constructor, method, or field that lacks a Javadoc
- * comment. Does not issue a warning for methods annotated with {@code @Override}.
+ * comment. Does not issue a warning for methods annotated with {@code @Override}. See documentation
+ * at <a
+ * href="https://github.com/plume-lib/require-javadoc#readme">https://github.com/plume-lib/require-javadoc#readme</a>.
  */
 public class RequireJavadoc {
 
-  /** All the errors this program will report. */
-  List<String> errors = new ArrayList<>();
-
-  /**
-   * Matches name of file or directory class/constructor/method/field, or full package name, where
-   * no problems should be reported.
-   */
+  /** Matches name of file or directory where no problems should be reported. */
   @Option("Don't check files or directories whose pathname matches the regex")
   public @MonotonicNonNull Pattern exclude = null;
 
@@ -77,6 +73,9 @@ public class RequireJavadoc {
   @Option("Print diagnostic information")
   public boolean verbose = false;
 
+  /** All the errors this program will report. */
+  List<String> errors = new ArrayList<>();
+
   /** The Java files to be checked. */
   List<Path> javaFiles = new ArrayList<Path>();
 
@@ -87,7 +86,8 @@ public class RequireJavadoc {
   Path workingDirAbsolute = Paths.get("").toAbsolutePath();
 
   /**
-   * The main entry point for the require-javadoc program.
+   * The main entry point for the require-javadoc program. See documentation at <a
+   * href="https://github.com/plume-lib/require-javadoc#readme">https://github.com/plume-lib/require-javadoc#readme</a>.
    *
    * @param args the command-line arguments; see the README file.
    */
@@ -206,10 +206,9 @@ public class RequireJavadoc {
   /**
    * Return true if the given Java element should not be checked.
    *
-   * @param name the name of a Java element
+   * @param name the name of a Java element. It is a simple name, except for packages.
    * @return true if no warnings should be issued about the element
    */
-  // `name` is a simple name for elements other than packages.
   boolean shouldNotRequire(String name) {
     if (dont_require == null) {
       return false;
@@ -266,7 +265,7 @@ public class RequireJavadoc {
     /**
      * Return a string stating that documentation is missing on the given construct.
      *
-     * @param node a Java language construct (class, constructor, method, field)
+     * @param node a Java language construct (class, constructor, method, field, etc.)
      * @param simpleName the construct's simple name, used in diagnostic messages
      * @return an error message for the given construct
      */
@@ -348,26 +347,27 @@ public class RequireJavadoc {
 
     @Override
     public void visit(FieldDeclaration fd, Void ignore) {
-      boolean shouldSuperVisit = false;
+      // True if shouldNotRequire is false for at least one of the fields
+      boolean shouldRequire = false;
       if (verbose) {
         System.out.printf("Visiting field %s%n", fd.getVariables().get(0).getName());
       }
       boolean hasJavadocComment = hasJavadocComment(fd);
       for (VariableDeclarator vd : fd.getVariables()) {
         String name = vd.getNameAsString();
-        if (shouldNotRequire(name)) {
-          continue;
-        }
-        shouldSuperVisit = true;
         // TODO: Also check the type of the serialVersionUID variable.
         if (name.equals("serialVersionUID")) {
           continue;
         }
+        if (shouldNotRequire(name)) {
+          continue;
+        }
+        shouldRequire = true;
         if (!hasJavadocComment) {
           errors.add(errorString(vd, name));
         }
       }
-      if (shouldSuperVisit) {
+      if (shouldRequire) {
         super.visit(fd, ignore);
       }
     }
@@ -448,14 +448,8 @@ public class RequireJavadoc {
       for (AnnotationExpr anno : md.getAnnotations()) {
         String annoString = anno.toString();
         if (annoString.equals("@Override") || annoString.equals("@java.lang.Override")) {
-          if (verbose) {
-            System.out.printf("isOverride(%s) => true%n", annoString);
-          }
           return true;
         }
-      }
-      if (verbose) {
-        System.out.printf("isOverride(%s) => false   %s%n", md.getName(), md.getAnnotations());
       }
       return false;
     }
@@ -481,10 +475,18 @@ public class RequireJavadoc {
     return false;
   }
 
-  // This method comes from Randoop's `Minimize.java` file.  Randoop had adapted it from JavaParser.
   /**
-   * This is stolen from JavaParser's PrettyPrintVisitor.printOrphanCommentsBeforeThisChildNode,
-   * with light modifications.
+   * Get "orphan comments": comments before the comment before this node. For example, in
+   *
+   * <pre>{@code
+   * /** ... *}{@code /
+   * // text 1
+   * // text 2
+   * void m() { ... }
+   * }</pre>
+   *
+   * the Javadoc comment and {@code // text 1} are an orphan comment, and only {@code // text2} is
+   * associated with the method.
    *
    * @param node the node whose orphan comments to collect
    * @param result the list to add orphan comments to. Is side-effected by this method. The
@@ -495,6 +497,9 @@ public class RequireJavadoc {
     "interning:not.interned", // element of a list
     "ReferenceEquality",
   })
+  // This implementation is from Randoop's `Minimize.java` file, and before that from JavaParser's
+  // PrettyPrintVisitor.printOrphanCommentsBeforeThisChildNode.  The JavaParser maintainers refuse
+  // to provide such functionality in JavaParser proper.
   private static void getOrphanCommentsBeforeThisChildNode(final Node node, List<Comment> result) {
     if (node instanceof Comment) {
       return;
