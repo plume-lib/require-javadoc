@@ -24,8 +24,6 @@ repositories {
 dependencies {
   implementation 'org.plumelib:options:1.0.4'
   implementation group: 'com.github.javaparser', name: 'javaparser-symbol-solver-core', version: '3.13.3'
-
-  // errorprone 'com.google.errorprone:error_prone_core:2.3.4'
 }
 
 // To upload to Maven Central, see instructions in the file.

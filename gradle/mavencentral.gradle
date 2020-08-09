@@ -12,8 +12,8 @@
 //  * Browse to https://oss.sonatype.org/#stagingRepositories, complete the Maven Central release.
 //  * Stage changes.
 //  * Add a git tag:
-//    VER=0.3.0 && git commit -m "Version $VER" && git push && git tag -a v$VER -m "Version $VER" && git push && git push --tags
-//  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 0.3.0", attach the .jar and -all.jar files from ../build/libs/
+//    VER=0.3.1 && git commit -m "Version $VER" && git push && git tag -a v$VER -m "Version $VER" && git push && git push --tags
+//  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 0.3.1", attach the .jar and -all.jar files from ../build/libs/
 
 ///////////////////////////////////////////////////////////////////////////
 /// Maven Central publishing
@@ -24,7 +24,7 @@ apply plugin: 'signing'
 
 group = "org.plumelib"
 archivesBaseName = "require-javadoc"
-version = "0.3.0"
+version = "0.3.1"
 
 task javadocJar(type: Jar) {
     classifier = 'javadoc'

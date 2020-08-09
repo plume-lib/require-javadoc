@@ -1,5 +1,9 @@
 # Require-Javadoc change log
 
+## 0.3.1
+
+- Checks enums and annotations, which were ignored before.
+
 ## 0.3.0
 
 - require-javadoc is now a regular Java application, not a Javadoc doclet.
