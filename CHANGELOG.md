@@ -1,5 +1,9 @@
 # Require-Javadoc change log
 
+## 1.0.0
+
+- Release 1.0.0.
+
 ## 0.3.1
 
 - Checks enums and annotations, which were ignored before.
