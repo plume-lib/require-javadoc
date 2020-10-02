@@ -1,5 +1,13 @@
 # Require-Javadoc change log
 
+## 1.0.1 (forthcoming)
+
+Support new command-line options:
+ * --dont-require-private
+ * --dont-require-type
+ * --dont-require-field
+ * --dont-require-method
+
 ## 1.0.0
 
 - Release 1.0.0.

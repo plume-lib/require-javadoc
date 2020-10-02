@@ -62,6 +62,22 @@ public class RequireJavadoc {
   @Option("Don't report problems in Java elements whose name matches the regex")
   public @MonotonicNonNull Pattern dont_require = null;
 
+  /** If true, don't check elements with private access. */
+  @Option("Don't report problems in elements with private access")
+  public boolean dont_require_private;
+
+  /** If true, don't check type declarations: classes, interfaces, enums, annotations. */
+  @Option("Don't report problems in type declarations")
+  public boolean dont_require_type;
+
+  /** If true, don't check fields. */
+  @Option("Don't report problems in fields")
+  public boolean dont_require_field;
+
+  /** If true, don't check methods, constructors, and annotation members. */
+  @Option("Don't report problems in methods and constructors")
+  public boolean dont_require_method;
+
   /**
    * If true, print filenames relative to working directory. Setting this only has an effect if the
    * command-line arguments were absolute pathnames, or no command-line arguments were supplied.
@@ -302,6 +318,12 @@ public class RequireJavadoc {
 
     @Override
     public void visit(ClassOrInterfaceDeclaration cd, Void ignore) {
+      if (dont_require_type) {
+        return;
+      }
+      if (dont_require_private && cd.isPrivate()) {
+        return;
+      }
       String name = cd.getNameAsString();
       if (shouldNotRequire(name)) {
         return;
@@ -317,6 +339,12 @@ public class RequireJavadoc {
 
     @Override
     public void visit(ConstructorDeclaration cd, Void ignore) {
+      if (dont_require_method) {
+        return;
+      }
+      if (dont_require_private && cd.isPrivate()) {
+        return;
+      }
       String name = cd.getNameAsString();
       if (shouldNotRequire(name)) {
         return;
@@ -332,6 +360,12 @@ public class RequireJavadoc {
 
     @Override
     public void visit(MethodDeclaration md, Void ignore) {
+      if (dont_require_method) {
+        return;
+      }
+      if (dont_require_private && md.isPrivate()) {
+        return;
+      }
       String name = md.getNameAsString();
       if (shouldNotRequire(name)) {
         return;
@@ -347,6 +381,12 @@ public class RequireJavadoc {
 
     @Override
     public void visit(FieldDeclaration fd, Void ignore) {
+      if (dont_require_field) {
+        return;
+      }
+      if (dont_require_private && fd.isPrivate()) {
+        return;
+      }
       // True if shouldNotRequire is false for at least one of the fields
       boolean shouldRequire = false;
       if (verbose) {
@@ -374,6 +414,12 @@ public class RequireJavadoc {
 
     @Override
     public void visit(EnumDeclaration ed, Void ignore) {
+      if (dont_require_type) {
+        return;
+      }
+      if (dont_require_private && ed.isPrivate()) {
+        return;
+      }
       String name = ed.getNameAsString();
       if (shouldNotRequire(name)) {
         return;
@@ -389,6 +435,9 @@ public class RequireJavadoc {
 
     @Override
     public void visit(EnumConstantDeclaration ecd, Void ignore) {
+      if (dont_require_field) {
+        return;
+      }
       String name = ecd.getNameAsString();
       if (shouldNotRequire(name)) {
         return;
@@ -404,6 +453,12 @@ public class RequireJavadoc {
 
     @Override
     public void visit(AnnotationDeclaration ad, Void ignore) {
+      if (dont_require_type) {
+        return;
+      }
+      if (dont_require_private && ad.isPrivate()) {
+        return;
+      }
       String name = ad.getNameAsString();
       if (shouldNotRequire(name)) {
         return;
@@ -419,6 +474,9 @@ public class RequireJavadoc {
 
     @Override
     public void visit(AnnotationMemberDeclaration amd, Void ignore) {
+      if (dont_require_method) {
+        return;
+      }
       String name = amd.getNameAsString();
       if (shouldNotRequire(name)) {
         return;

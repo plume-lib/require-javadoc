@@ -27,8 +27,12 @@ Details about invoking the program:
 Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...]
   --exclude=<regex>      - Don't check files or directories whose pathname matches the regex
   --dont-require=<regex> - Don't report problems in Java elements whose name matches the regex
-  --relative=<boolean>   - Report relative rather than absolute filenames [default false]
-  --verbose=<boolean>    - Print diagnostic information [default false]
+  --dont-require-private=<boolean> - Don't report problems about elements with private access
+  --dont-require-type=<boolean>    - Don't report problems about type declarations
+  --dont-require-field=<boolean>   - Don't report problems about fields
+  --dont-require-method=<boolean>  - Don't report problems about methods and constructors
+  --relative=<boolean>   - Report relative rather than absolute filenames
+  --verbose=<boolean>    - Print diagnostic information
 ```
 
 If an argument is a directory, each `.java` file in it or its subdirectories will be processed.
@@ -38,6 +42,9 @@ or any subdirectory.
 
 The `--dont-require` regex is matched against full package names and against simple
 (unqualified) names of classes, constructors, methods, and fields.
+
+All boolean options default to false, and you can omit the `=<boolean>` to set them to true, for
+example just `--verbose`.
 
 
 ## Incremental use
