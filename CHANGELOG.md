@@ -2,6 +2,8 @@
 
 ## 1.0.1 (forthcoming)
 
+Warn about missing package documentation in file package-info.java.
+
 Support new command-line options:
  * --dont-require-private
  * --dont-require-type

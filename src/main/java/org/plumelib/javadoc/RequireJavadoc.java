@@ -309,6 +309,13 @@ public class RequireJavadoc {
         if (shouldNotRequire(packageName)) {
           return;
         }
+        Optional<String> oTypeName = cu.getPrimaryTypeName();
+        if (oTypeName.isPresent()
+            && oTypeName.get().equals("package-info")
+            && !hasJavadocComment(pd)
+            && !hasJavadocComment(cu)) {
+          errors.add(errorString(opd.get(), packageName));
+        }
       }
       if (verbose) {
         System.out.printf("Visiting compilation unit%n");
@@ -505,6 +512,11 @@ public class RequireJavadoc {
       if (orphan.isJavadocComment()) {
         return true;
       }
+    }
+    Optional<Comment> oc = n.getComment();
+    if (oc.isPresent()
+        && (oc.get().isJavadocComment() || oc.get().getContent().startsWith("/**"))) {
+      return true;
     }
     return false;
   }
