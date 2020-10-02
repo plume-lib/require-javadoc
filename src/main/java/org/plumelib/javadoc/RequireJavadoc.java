@@ -312,7 +312,7 @@ public class RequireJavadoc {
         Optional<String> oTypeName = cu.getPrimaryTypeName();
         if (oTypeName.isPresent()
             && oTypeName.get().equals("package-info")
-            && !hasJavadocComment(pd)
+            && !hasJavadocComment(opd.get())
             && !hasJavadocComment(cu)) {
           errors.add(errorString(opd.get(), packageName));
         }
