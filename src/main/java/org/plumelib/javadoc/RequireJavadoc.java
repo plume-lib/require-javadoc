@@ -318,9 +318,6 @@ public class RequireJavadoc {
 
     @Override
     public void visit(ClassOrInterfaceDeclaration cd, Void ignore) {
-      if (dont_require_type) {
-        return;
-      }
       if (dont_require_private && cd.isPrivate()) {
         return;
       }
@@ -331,7 +328,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting type %s%n", name);
       }
-      if (!hasJavadocComment(cd)) {
+      if (!dont_require_type && !hasJavadocComment(cd)) {
         errors.add(errorString(cd, name));
       }
       super.visit(cd, ignore);
@@ -339,9 +336,6 @@ public class RequireJavadoc {
 
     @Override
     public void visit(ConstructorDeclaration cd, Void ignore) {
-      if (dont_require_method) {
-        return;
-      }
       if (dont_require_private && cd.isPrivate()) {
         return;
       }
@@ -352,7 +346,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting constructor %s%n", name);
       }
-      if (!hasJavadocComment(cd)) {
+      if (!dont_require_method && !hasJavadocComment(cd)) {
         errors.add(errorString(cd, name));
       }
       super.visit(cd, ignore);
@@ -360,9 +354,6 @@ public class RequireJavadoc {
 
     @Override
     public void visit(MethodDeclaration md, Void ignore) {
-      if (dont_require_method) {
-        return;
-      }
       if (dont_require_private && md.isPrivate()) {
         return;
       }
@@ -373,7 +364,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting method %s%n", md.getName());
       }
-      if (!isOverride(md) && !hasJavadocComment(md)) {
+      if (!dont_require_method && !isOverride(md) && !hasJavadocComment(md)) {
         errors.add(errorString(md, name));
       }
       super.visit(md, ignore);
@@ -381,9 +372,6 @@ public class RequireJavadoc {
 
     @Override
     public void visit(FieldDeclaration fd, Void ignore) {
-      if (dont_require_field) {
-        return;
-      }
       if (dont_require_private && fd.isPrivate()) {
         return;
       }
@@ -403,7 +391,7 @@ public class RequireJavadoc {
           continue;
         }
         shouldRequire = true;
-        if (!hasJavadocComment) {
+        if (!dont_require_field && !hasJavadocComment) {
           errors.add(errorString(vd, name));
         }
       }
@@ -414,9 +402,6 @@ public class RequireJavadoc {
 
     @Override
     public void visit(EnumDeclaration ed, Void ignore) {
-      if (dont_require_type) {
-        return;
-      }
       if (dont_require_private && ed.isPrivate()) {
         return;
       }
@@ -427,7 +412,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting enum %s%n", name);
       }
-      if (!hasJavadocComment(ed)) {
+      if (!dont_require_type && !hasJavadocComment(ed)) {
         errors.add(errorString(ed, name));
       }
       super.visit(ed, ignore);
@@ -435,9 +420,6 @@ public class RequireJavadoc {
 
     @Override
     public void visit(EnumConstantDeclaration ecd, Void ignore) {
-      if (dont_require_field) {
-        return;
-      }
       String name = ecd.getNameAsString();
       if (shouldNotRequire(name)) {
         return;
@@ -445,7 +427,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting enum constant %s%n", name);
       }
-      if (!hasJavadocComment(ecd)) {
+      if (!dont_require_field && !hasJavadocComment(ecd)) {
         errors.add(errorString(ecd, name));
       }
       super.visit(ecd, ignore);
@@ -453,9 +435,6 @@ public class RequireJavadoc {
 
     @Override
     public void visit(AnnotationDeclaration ad, Void ignore) {
-      if (dont_require_type) {
-        return;
-      }
       if (dont_require_private && ad.isPrivate()) {
         return;
       }
@@ -466,7 +445,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting annotation %s%n", name);
       }
-      if (!hasJavadocComment(ad)) {
+      if (!dont_require_type && !hasJavadocComment(ad)) {
         errors.add(errorString(ad, name));
       }
       super.visit(ad, ignore);
@@ -474,9 +453,6 @@ public class RequireJavadoc {
 
     @Override
     public void visit(AnnotationMemberDeclaration amd, Void ignore) {
-      if (dont_require_method) {
-        return;
-      }
       String name = amd.getNameAsString();
       if (shouldNotRequire(name)) {
         return;
@@ -484,7 +460,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting annotation member %s%n", name);
       }
-      if (!hasJavadocComment(amd)) {
+      if (!dont_require_method && !hasJavadocComment(amd)) {
         errors.add(errorString(amd, name));
       }
       super.visit(amd, ignore);
