@@ -31,6 +31,7 @@ Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...
   --dont-require-type=<boolean>    - Don't report problems about type declarations
   --dont-require-field=<boolean>   - Don't report problems about fields
   --dont-require-method=<boolean>  - Don't report problems about methods and constructors
+  --require-package-info=<boolean> - Require package-info.java file to exist
   --relative=<boolean>   - Report relative rather than absolute filenames
   --verbose=<boolean>    - Print diagnostic information
 ```

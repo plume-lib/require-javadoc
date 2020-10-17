@@ -33,9 +33,11 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.plumelib.options.Option;
@@ -77,6 +79,10 @@ public class RequireJavadoc {
   /** If true, don't check methods, constructors, and annotation members. */
   @Option("Don't report problems in methods and constructors")
   public boolean dont_require_method;
+
+  /** If true, warn if any package lacks a package-info.java file. */
+  @Option("Require package-info.java file to exist")
+  public boolean require_package_info;
 
   /**
    * If true, print filenames relative to working directory. Setting this only has an effect if the
@@ -177,6 +183,20 @@ public class RequireJavadoc {
     }
 
     javaFiles.sort(Comparator.comparing(Object::toString));
+
+    Set<Path> missingPackageInfoFiles = new LinkedHashSet<>();
+    if (require_package_info) {
+      for (Path javaFile : javaFiles) {
+        // Java 11 has Path.of() instead of creating a new File.
+        Path packageInfo = javaFile.getParent().resolve(new File("package-info.java").toPath());
+        if (!javaFiles.contains(packageInfo)) {
+          missingPackageInfoFiles.add(packageInfo);
+        }
+      }
+      for (Path packageInfo : missingPackageInfoFiles) {
+        errors.add("missing package documentation: no file " + packageInfo);
+      }
+    }
   }
 
   /** Collects files into the {@link #javaFiles} variable. */

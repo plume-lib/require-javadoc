@@ -9,6 +9,7 @@ Support new command-line options:
  * --dont-require-type
  * --dont-require-field
  * --dont-require-method
+ * --require-package-info
 
 ## 1.0.0
 
