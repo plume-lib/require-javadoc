@@ -33,9 +33,11 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.plumelib.options.Option;
@@ -61,6 +63,26 @@ public class RequireJavadoc {
    */
   @Option("Don't report problems in Java elements whose name matches the regex")
   public @MonotonicNonNull Pattern dont_require = null;
+
+  /** If true, don't check elements with private access. */
+  @Option("Don't report problems in elements with private access")
+  public boolean dont_require_private;
+
+  /** If true, don't check type declarations: classes, interfaces, enums, annotations. */
+  @Option("Don't report problems in type declarations")
+  public boolean dont_require_type;
+
+  /** If true, don't check fields. */
+  @Option("Don't report problems in fields")
+  public boolean dont_require_field;
+
+  /** If true, don't check methods, constructors, and annotation members. */
+  @Option("Don't report problems in methods and constructors")
+  public boolean dont_require_method;
+
+  /** If true, warn if any package lacks a package-info.java file. */
+  @Option("Require package-info.java file to exist")
+  public boolean require_package_info;
 
   /**
    * If true, print filenames relative to working directory. Setting this only has an effect if the
@@ -161,6 +183,20 @@ public class RequireJavadoc {
     }
 
     javaFiles.sort(Comparator.comparing(Object::toString));
+
+    Set<Path> missingPackageInfoFiles = new LinkedHashSet<>();
+    if (require_package_info) {
+      for (Path javaFile : javaFiles) {
+        // Java 11 has Path.of() instead of creating a new File.
+        Path packageInfo = javaFile.getParent().resolve(new File("package-info.java").toPath());
+        if (!javaFiles.contains(packageInfo)) {
+          missingPackageInfoFiles.add(packageInfo);
+        }
+      }
+      for (Path packageInfo : missingPackageInfoFiles) {
+        errors.add("missing package documentation: no file " + packageInfo);
+      }
+    }
   }
 
   /** Collects files into the {@link #javaFiles} variable. */
@@ -293,6 +329,13 @@ public class RequireJavadoc {
         if (shouldNotRequire(packageName)) {
           return;
         }
+        Optional<String> oTypeName = cu.getPrimaryTypeName();
+        if (oTypeName.isPresent()
+            && oTypeName.get().equals("package-info")
+            && !hasJavadocComment(opd.get())
+            && !hasJavadocComment(cu)) {
+          errors.add(errorString(opd.get(), packageName));
+        }
       }
       if (verbose) {
         System.out.printf("Visiting compilation unit%n");
@@ -302,6 +345,9 @@ public class RequireJavadoc {
 
     @Override
     public void visit(ClassOrInterfaceDeclaration cd, Void ignore) {
+      if (dont_require_private && cd.isPrivate()) {
+        return;
+      }
       String name = cd.getNameAsString();
       if (shouldNotRequire(name)) {
         return;
@@ -309,7 +355,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting type %s%n", name);
       }
-      if (!hasJavadocComment(cd)) {
+      if (!dont_require_type && !hasJavadocComment(cd)) {
         errors.add(errorString(cd, name));
       }
       super.visit(cd, ignore);
@@ -317,6 +363,9 @@ public class RequireJavadoc {
 
     @Override
     public void visit(ConstructorDeclaration cd, Void ignore) {
+      if (dont_require_private && cd.isPrivate()) {
+        return;
+      }
       String name = cd.getNameAsString();
       if (shouldNotRequire(name)) {
         return;
@@ -324,7 +373,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting constructor %s%n", name);
       }
-      if (!hasJavadocComment(cd)) {
+      if (!dont_require_method && !hasJavadocComment(cd)) {
         errors.add(errorString(cd, name));
       }
       super.visit(cd, ignore);
@@ -332,6 +381,9 @@ public class RequireJavadoc {
 
     @Override
     public void visit(MethodDeclaration md, Void ignore) {
+      if (dont_require_private && md.isPrivate()) {
+        return;
+      }
       String name = md.getNameAsString();
       if (shouldNotRequire(name)) {
         return;
@@ -339,7 +391,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting method %s%n", md.getName());
       }
-      if (!isOverride(md) && !hasJavadocComment(md)) {
+      if (!dont_require_method && !isOverride(md) && !hasJavadocComment(md)) {
         errors.add(errorString(md, name));
       }
       super.visit(md, ignore);
@@ -347,6 +399,9 @@ public class RequireJavadoc {
 
     @Override
     public void visit(FieldDeclaration fd, Void ignore) {
+      if (dont_require_private && fd.isPrivate()) {
+        return;
+      }
       // True if shouldNotRequire is false for at least one of the fields
       boolean shouldRequire = false;
       if (verbose) {
@@ -363,7 +418,7 @@ public class RequireJavadoc {
           continue;
         }
         shouldRequire = true;
-        if (!hasJavadocComment) {
+        if (!dont_require_field && !hasJavadocComment) {
           errors.add(errorString(vd, name));
         }
       }
@@ -374,6 +429,9 @@ public class RequireJavadoc {
 
     @Override
     public void visit(EnumDeclaration ed, Void ignore) {
+      if (dont_require_private && ed.isPrivate()) {
+        return;
+      }
       String name = ed.getNameAsString();
       if (shouldNotRequire(name)) {
         return;
@@ -381,7 +439,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting enum %s%n", name);
       }
-      if (!hasJavadocComment(ed)) {
+      if (!dont_require_type && !hasJavadocComment(ed)) {
         errors.add(errorString(ed, name));
       }
       super.visit(ed, ignore);
@@ -396,7 +454,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting enum constant %s%n", name);
       }
-      if (!hasJavadocComment(ecd)) {
+      if (!dont_require_field && !hasJavadocComment(ecd)) {
         errors.add(errorString(ecd, name));
       }
       super.visit(ecd, ignore);
@@ -404,6 +462,9 @@ public class RequireJavadoc {
 
     @Override
     public void visit(AnnotationDeclaration ad, Void ignore) {
+      if (dont_require_private && ad.isPrivate()) {
+        return;
+      }
       String name = ad.getNameAsString();
       if (shouldNotRequire(name)) {
         return;
@@ -411,7 +472,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting annotation %s%n", name);
       }
-      if (!hasJavadocComment(ad)) {
+      if (!dont_require_type && !hasJavadocComment(ad)) {
         errors.add(errorString(ad, name));
       }
       super.visit(ad, ignore);
@@ -426,7 +487,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting annotation member %s%n", name);
       }
-      if (!hasJavadocComment(amd)) {
+      if (!dont_require_method && !hasJavadocComment(amd)) {
         errors.add(errorString(amd, name));
       }
       super.visit(amd, ignore);
@@ -471,6 +532,11 @@ public class RequireJavadoc {
       if (orphan.isJavadocComment()) {
         return true;
       }
+    }
+    Optional<Comment> oc = n.getComment();
+    if (oc.isPresent()
+        && (oc.get().isJavadocComment() || oc.get().getContent().startsWith("/**"))) {
+      return true;
     }
     return false;
   }
