@@ -1,5 +1,16 @@
 # Require-Javadoc change log
 
+## 1.0.1 (forthcoming)
+
+Warn about missing package documentation in file package-info.java.
+
+Support new command-line options:
+ * --dont-require-private
+ * --dont-require-type
+ * --dont-require-field
+ * --dont-require-method
+ * --require-package-info
+
 ## 1.0.0
 
 - Release 1.0.0.
