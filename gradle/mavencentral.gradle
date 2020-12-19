@@ -5,6 +5,7 @@
 //     ossrhPassword=YOUR_PASSWORD_HERE
 
 // To make a release:
+//  * Use Java 8.
 //  * git pull
 //  * Update the version number in ../README.md and in this file (multiple times in each).
 //  * Update ../CHANGELOG.md .
@@ -12,8 +13,8 @@
 //  * Browse to https://oss.sonatype.org/#stagingRepositories, complete the Maven Central release.
 //  * Stage changes.
 //  * Add a git tag:
-//    VER=1.0.0 && git commit -m "Version $VER" && git push && git tag -a v$VER -m "Version $VER" && git push && git push --tags
-//  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 1.0.0", attach the .jar and -all.jar files from ../build/libs/
+//    VER=1.0.1 && git commit -m "Version $VER" && git push && git tag -a v$VER -m "Version $VER" && git push && git push --tags
+//  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 1.0.1", attach the .jar and -all.jar files from ../build/libs/
 
 ///////////////////////////////////////////////////////////////////////////
 /// Maven Central publishing
@@ -24,7 +25,7 @@ apply plugin: 'signing'
 
 group = "org.plumelib"
 archivesBaseName = "require-javadoc"
-version = "1.0.0"
+version = "1.0.1"
 
 task javadocJar(type: Jar) {
     classifier = 'javadoc'
