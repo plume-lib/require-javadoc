@@ -1,6 +1,6 @@
 # Require-Javadoc change log
 
-## 1.0.1 (forthcoming)
+## 1.0.1
 
 Warn about missing package documentation in file package-info.java.
 
@@ -10,6 +10,8 @@ Support new command-line options:
  * --dont-require-field
  * --dont-require-method
  * --require-package-info
+
+Fix bug related to `//` comments before `@Override` annotation
 
 ## 1.0.0
 

@@ -240,7 +240,8 @@ public class RequireJavadoc {
   }
 
   /**
-   * Return true if the given Java element should not be checked.
+   * Return true if the given Java element should not be checked, based on the {@code
+   * --dont-require} command-line argument.
    *
    * @param name the name of a Java element. It is a simple name, except for packages.
    * @return true if no warnings should be issued about the element
@@ -257,7 +258,8 @@ public class RequireJavadoc {
   }
 
   /**
-   * Return true if the given file or directory should be skipped.
+   * Return true if the given file or directory should be skipped, based on the {@code --exclude}
+   * command-line argument.
    *
    * @param fileName the name of a Java file or directory
    * @return true if the file or directory should be skipped
@@ -500,15 +502,9 @@ public class RequireJavadoc {
      * @return true if this method is annotated with {@code @Override}
      */
     private boolean isOverride(MethodDeclaration md) {
-      // JavaParser bug: md.getAnnotations() may lack annotations that are after a // comment.
-      // Example:  In this code:
-      //   @SuppressWarnings(...) // benevolent side effects
-      //   @Override
-      //   public boolean hasNext() { ... }
-      // md.getAnnotations() contains "@SuppressWarnings(...)" but not "@Override".
       for (AnnotationExpr anno : md.getAnnotations()) {
-        String annoString = anno.toString();
-        if (annoString.equals("@Override") || annoString.equals("@java.lang.Override")) {
+        String annoName = anno.getName().toString();
+        if (annoName.equals("Override") || annoName.equals("java.lang.Override")) {
           return true;
         }
       }
