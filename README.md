@@ -139,7 +139,9 @@ check.dependsOn javadocStrict
 
 Checkstyle is configurable to produce the same warnings as `require-javadoc` does.
 
-It has some issues (as of July 2018):
+[//]: # (Comparison is as of July 2018, but I don't think anything has changed since then.)
+
+It has some issues:
  * Checkstyle is heavyweight to run and configure:  configuring it requires multiple files.
  * Checkstyle is nondeterministic:  it gives different results for file `A.java` depending on what other files are being checked.
  * Checkstyle crashes on correct code (for example, see https://github.com/checkstyle/checkstyle/issues/5989, which the maintainers closed as "checkstyle does not support it by design").
