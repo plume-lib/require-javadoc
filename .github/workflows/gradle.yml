@@ -9,7 +9,9 @@ jobs:
 
     strategy:
       matrix:
-        java: [ '8', '11' ]
+## require-javadoc only builds with JDK 8
+#        java: [ '8', '11' ]
+        java: [ '8' ]
 
     steps:
     - uses: actions/checkout@v2
