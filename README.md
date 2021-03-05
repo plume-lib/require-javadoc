@@ -77,6 +77,7 @@ dependencies {
   requireJavadoc "org.plumelib:require-javadoc:1.0.1"
 }
 task requireJavadoc(type: JavaExec) {
+  group = 'Documentation'
   description = 'Ensures that Javadoc documentation exists.'
   main = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
@@ -125,6 +126,7 @@ check.dependsOn javadoc
 or
 ```
 task javadocStrict(type: Javadoc) {
+  group = 'Documentation'
   description = 'Run Javadoc in strict mode: with -Xdoclint:all and -Xwerror, on all members.'
   source = sourceSets.main.allJava
   classpath = sourceSets.main.runtimeClasspath
