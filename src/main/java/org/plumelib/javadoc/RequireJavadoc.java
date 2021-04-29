@@ -40,6 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.plumelib.options.Option;
 import org.plumelib.options.Options;
 
@@ -187,8 +188,13 @@ public class RequireJavadoc {
     Set<Path> missingPackageInfoFiles = new LinkedHashSet<>();
     if (require_package_info) {
       for (Path javaFile : javaFiles) {
+        @SuppressWarnings(
+            "nullness:assignment.type.incompatible" // the file is not "/", so getParent() is
+        // non-null
+        )
+        @NonNull Path javaFileParent = javaFile.getParent();
         // Java 11 has Path.of() instead of creating a new File.
-        Path packageInfo = javaFile.getParent().resolve(new File("package-info.java").toPath());
+        Path packageInfo = javaFileParent.resolve(new File("package-info.java").toPath());
         if (!javaFiles.contains(packageInfo)) {
           missingPackageInfoFiles.add(packageInfo);
         }
