@@ -32,10 +32,6 @@ apply from: "${buildscript.sourceFile.parent}/gradle/mavencentral.gradle"
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
-    throw new GradleException("You must build require-javadoc using JDK 8, not JDK 11 or later.")
-}
-
 application {
   mainClassName = 'org.plumelib.javadoc.RequireJavadoc'
 }
@@ -141,17 +137,6 @@ task requireJavadoc(type: JavaExec) {
   args "src/main/java"
 }
 check.dependsOn requireJavadoc
-
-/// tools.jar
-
-// Work around https://github.com/johnrengelman/shadow/issues/324
-configurations {
-  toolsJar  // tools.jar contains the Javadoc tool
-}
-dependencies {
-  toolsJar files(org.gradle.internal.jvm.Jvm.current().toolsJar)
-}
-configurations.compileClasspath.extendsFrom configurations.toolsJar
 
 /// Emacs support
 
