@@ -188,10 +188,6 @@ public class RequireJavadoc {
     Set<Path> missingPackageInfoFiles = new LinkedHashSet<>();
     if (require_package_info) {
       for (Path javaFile : javaFiles) {
-        @SuppressWarnings(
-            "nullness:assignment.type.incompatible" // the file is not "/", so getParent() is
-        // non-null
-        )
         @NonNull Path javaFileParent = javaFile.getParent();
         // Java 11 has Path.of() instead of creating a new File.
         Path packageInfo = javaFileParent.resolve(new File("package-info.java").toPath());
