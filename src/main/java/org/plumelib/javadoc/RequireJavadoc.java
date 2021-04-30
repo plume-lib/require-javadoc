@@ -153,7 +153,7 @@ public class RequireJavadoc {
    *
    * @param args the directories and files listed on the command line
    */
-  @SuppressWarnings("lock:methodref.receiver.invalid") // no locking here
+  @SuppressWarnings("lock:methodref.receiver") // no locking here
   private void setJavaFiles(String[] args) {
     if (args.length == 0) {
       args = new String[] {workingDirAbsolute.toString()};
@@ -188,10 +188,7 @@ public class RequireJavadoc {
     Set<Path> missingPackageInfoFiles = new LinkedHashSet<>();
     if (require_package_info) {
       for (Path javaFile : javaFiles) {
-        @SuppressWarnings(
-            "nullness:assignment.type.incompatible" // the file is not "/", so getParent() is
-        // non-null
-        )
+        @SuppressWarnings("nullness:assignment") // the file is not "/", so getParent() is non-null
         @NonNull Path javaFileParent = javaFile.getParent();
         // Java 11 has Path.of() instead of creating a new File.
         Path packageInfo = javaFileParent.resolve(new File("package-info.java").toPath());
