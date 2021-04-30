@@ -1,6 +1,10 @@
 # Require-Javadoc change log
 
-## 1.0.1
+## 1.0.2 (2021-04-30)
+
+Reduced jar size.  No user-visible behavior changes.
+
+## 1.0.1 (2020-12-18)
 
 Warn about missing package documentation in file package-info.java.
 
@@ -13,15 +17,15 @@ Support new command-line options:
 
 Fix bug related to `//` comments before `@Override` annotation
 
-## 1.0.0
+## 1.0.0 (2020-09-01)
 
 - Release 1.0.0.
 
-## 0.3.1
+## 0.3.1 (2020-08-08)
 
 - Checks enums and annotations, which were ignored before.
 
-## 0.3.0
+## 0.3.0 (2020-04-09)
 
 - require-javadoc is now a regular Java application, not a Javadoc doclet.
   Usage instructions have changed, and several limitations are removed.
@@ -30,7 +34,7 @@ Fix bug related to `//` comments before `@Override` annotation
 
 - Add `-verbose` command-line argument, for debugging.
 
-## 0.1.2
+## 0.1.2 (2019-06-04)
 
 - Reduce dependencies.
 
