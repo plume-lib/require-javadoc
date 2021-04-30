@@ -1,2 +1,0 @@
-There is a bug in Javadoc: it sometimes does not visit all private nested classes.
-Using JDK 8, it did not visit BaseTypeChecker.CheckerMessageComparator in the Checker Framework.
