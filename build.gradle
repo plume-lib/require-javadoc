@@ -23,7 +23,7 @@ repositories {
 
 dependencies {
   implementation 'org.plumelib:options:1.0.5'
-  implementation group: 'com.github.javaparser', name: 'javaparser-symbol-solver-core', version: '3.20.2'
+  implementation group: 'com.github.javaparser', name: 'javaparser-core', version: '3.22.0'
 }
 
 // To upload to Maven Central, see instructions in the file.
