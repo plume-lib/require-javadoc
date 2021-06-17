@@ -10,85 +10,85 @@
 //  * Update the version number in ../README.md and in this file (multiple times in each).
 //  * Update ../CHANGELOG.md .
 //  * Save changes.
-//  * Run in the top-level directory:  ./gradlew javadocWeb && ./gradlew clean uploadArchives shadowJar
+//  * Run in the top-level directory:  ./gradlew javadocWeb && ./gradlew clean publish shadowJar
 //  * Browse to https://oss.sonatype.org/#stagingRepositories, complete the Maven Central release.
 //  * Stage changes.
 //  * Add a git tag:
 //    VER=1.0.2 && git commit -m "Version $VER" && git push && git tag -a v$VER -m "Version $VER" && git push && git push --tags
 //  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 1.0.2", attach the .jar and -all.jar files from ../build/libs/
 
-///////////////////////////////////////////////////////////////////////////
-/// Maven Central publishing
-/// (From http://central.sonatype.org/pages/gradle.html )
 
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
-group = "org.plumelib"
-archivesBaseName = "require-javadoc"
-version = "1.0.2"
+group "org.plumelib"
+version "1.0.2"
 
-task javadocJar(type: Jar) {
-    classifier = 'javadoc'
-    from javadoc
-}
+final isSnapshot = version.contains('SNAPSHOT')
 
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 artifacts {
     archives javadocJar, sourcesJar
 }
 
-signing {
-    required { project.gradle.taskGraph.hasTask("uploadArchives") }
-    sign configurations.archives
-}
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
 
-uploadArchives {
-  doFirst {
-    repositories {
-      mavenDeployer {
-        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-        repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-          authentication(userName: ossrhUsername, password: ossrhPassword)
-        }
-
-        snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-          authentication(userName: ossrhUsername, password: ossrhPassword)
-        }
-
-        pom.project {
-          name 'Require-Javadoc'
-          packaging 'jar'
-          description 'Require Javadoc comments to be present.'
-          url 'https://github.com/plume-lib/require-javadoc'
+            pom {
+          name = 'Require-Javadoc'
+          description = 'Require Javadoc comments to be present.'
+          url = 'https://github.com/plume-lib/require-javadoc'
 
           scm {
-            connection 'scm:git:git@github.com:plume-lib/require-javadoc.git'
-            developerConnection 'scm:git:git@github.com:plume-lib/require-javadoc.git'
-            url 'git@github.com:plume-lib/require-javadoc.git'
+            connection = 'scm:git:git@github.com:plume-lib/require-javadoc.git'
+            developerConnection = 'scm:git:git@github.com:plume-lib/require-javadoc.git'
+            url = 'git@github.com:plume-lib/require-javadoc.git'
           }
 
-          licenses {
-            license {
-              name 'MIT License'
-              url 'https://opensource.org/licenses/MIT'
-            }
-          }
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
 
-          developers {
-            developer {
-              id 'mernst'
-              name 'Michael Ernst'
-              email 'mernst@alum.mit.edu'
+                developers {
+                    developer {
+                        id = 'mernst'
+                        name = 'Michael Ernst'
+                        email = 'mernst@alum.mit.edu'
+                    }
+                }
             }
-          }
         }
-      }
     }
-  }
+    repositories {
+        repositories {
+            maven {
+                url = (isSnapshot
+                        ? project.properties.getOrDefault('SNAPSHOT_REPOSITORY_URL', 'https://oss.sonatype.org/content/repositories/snapshots/')
+                        : project.properties.getOrDefault('RELEASE_REPOSITORY_URL', 'https://oss.sonatype.org/service/local/staging/deploy/maven2/')
+                )
+                credentials {
+                    username = project.properties.get('ossrhUsername')
+                    password = project.properties.get('ossrhPassword')
+                }
+            }
+        }
+    }
 }
+
+signing {
+    // If anything about signing is misconfigured, fail loudly rather than quietly continuing with
+    // unsigned artifacts.
+    required = true
+    sign publishing.publications.maven
+}
+
+tasks.withType(Sign).configureEach { onlyIf { !isSnapshot } }
