@@ -27,68 +27,68 @@ version "1.0.2"
 final isSnapshot = version.contains('SNAPSHOT')
 
 java {
-    withJavadocJar()
-    withSourcesJar()
+  withJavadocJar()
+  withSourcesJar()
 }
 
 artifacts {
-    archives javadocJar, sourcesJar
+  archives javadocJar, sourcesJar
 }
 
 publishing {
-    publications {
-        maven(MavenPublication) {
-            from components.java
+  publications {
+    maven(MavenPublication) {
+      from components.java
 
-            pom {
-          name = 'Require-Javadoc'
-          description = 'Require Javadoc comments to be present.'
-          url = 'https://github.com/plume-lib/require-javadoc'
+      pom {
+        name = 'Require-Javadoc'
+        description = 'Require Javadoc comments to be present.'
+        url = 'https://github.com/plume-lib/require-javadoc'
 
-          scm {
-            connection = 'scm:git:git@github.com:plume-lib/require-javadoc.git'
-            developerConnection = 'scm:git:git@github.com:plume-lib/require-javadoc.git'
-            url = 'git@github.com:plume-lib/require-javadoc.git'
+        scm {
+          connection = 'scm:git:git@github.com:plume-lib/require-javadoc.git'
+          developerConnection = 'scm:git:git@github.com:plume-lib/require-javadoc.git'
+          url = 'git@github.com:plume-lib/require-javadoc.git'
+        }
+
+        licenses {
+          license {
+            name = 'MIT License'
+            url = 'https://opensource.org/licenses/MIT'
           }
-
-                licenses {
-                    license {
-                        name = 'MIT License'
-                        url = 'https://opensource.org/licenses/MIT'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id = 'mernst'
-                        name = 'Michael Ernst'
-                        email = 'mernst@alum.mit.edu'
-                    }
-                }
-            }
         }
+
+        developers {
+          developer {
+            id = 'mernst'
+            name = 'Michael Ernst'
+            email = 'mernst@alum.mit.edu'
+          }
+        }
+      }
     }
+  }
+  repositories {
     repositories {
-        repositories {
-            maven {
-                url = (isSnapshot
-                        ? project.properties.getOrDefault('SNAPSHOT_REPOSITORY_URL', 'https://oss.sonatype.org/content/repositories/snapshots/')
-                        : project.properties.getOrDefault('RELEASE_REPOSITORY_URL', 'https://oss.sonatype.org/service/local/staging/deploy/maven2/')
-                )
-                credentials {
-                    username = project.properties.get('ossrhUsername')
-                    password = project.properties.get('ossrhPassword')
-                }
-            }
+      maven {
+        url = (isSnapshot
+            ? project.properties.getOrDefault('SNAPSHOT_REPOSITORY_URL', 'https://oss.sonatype.org/content/repositories/snapshots/')
+            : project.properties.getOrDefault('RELEASE_REPOSITORY_URL', 'https://oss.sonatype.org/service/local/staging/deploy/maven2/')
+        )
+        credentials {
+          username = project.properties.get('ossrhUsername')
+          password = project.properties.get('ossrhPassword')
         }
+      }
     }
+  }
 }
 
 signing {
-    // If anything about signing is misconfigured, fail loudly rather than quietly continuing with
-    // unsigned artifacts.
-    required = true
-    sign publishing.publications.maven
+  // If anything about signing is misconfigured, fail loudly rather than quietly continuing with
+  // unsigned artifacts.
+  required = true
+  sign publishing.publications.maven
 }
 
 tasks.withType(Sign).configureEach { onlyIf { !isSnapshot } }
