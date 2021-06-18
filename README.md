@@ -50,9 +50,9 @@ example just `--verbose`.
 
 ## Incremental use
 
-In continuous integration job (Azure Pipelines, CircleCI, or Travis CI),
-you can require Javadoc on all changed lines and ones
-adjacent to them.  Here is example code:
+In continuous integration job (Azure Pipelines, CircleCI, GitHub Actions, or Travis CI),
+you can require Javadoc on all changed lines and lines
+adjacent to changed lines.  Here is example code:
 
 ```
 if [ -d "/tmp/$USER/plume-scripts" ] ; then
