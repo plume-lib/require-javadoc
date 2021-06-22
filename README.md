@@ -79,7 +79,7 @@ dependencies {
 task requireJavadoc(type: JavaExec) {
   group = 'Documentation'
   description = 'Ensures that Javadoc documentation exists.'
-  main = "org.plumelib.javadoc.RequireJavadoc"
+  mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
   args "src/main/java"
 }
