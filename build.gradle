@@ -3,7 +3,7 @@ plugins {
   id 'application'
 
   // To create a fat jar build/libs/require-javadoc-all.jar, run: ./gradlew shadowJar
-  id 'com.github.johnrengelman.shadow' version '6.1.0'
+  id 'com.github.johnrengelman.shadow' version '7.0.0'
 
   // Formatting is disabled due to poor handling of type annotations; wait until
   // this issue is fixed: https://github.com/google/google-java-format/issues/5
@@ -33,7 +33,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 application {
-  mainClassName = 'org.plumelib.javadoc.RequireJavadoc'
+  mainClass = 'org.plumelib.javadoc.RequireJavadoc'
 }
 
 /// Error Prone linter
@@ -132,7 +132,7 @@ dependencies {
 }
 task requireJavadoc(type: JavaExec) {
   description = 'Ensures that Javadoc documentation exists.'
-  main = "org.plumelib.javadoc.RequireJavadoc"
+  mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
   args "src/main/java"
 }
