@@ -25,15 +25,15 @@ Details about invoking the program:
 
 ```
 Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...]
-  --exclude=<regex>      - Don't check files or directories whose pathname matches the regex
-  --dont-require=<regex> - Don't report problems in Java elements whose name matches the regex
-  --dont-require-private=<boolean> - Don't report problems about elements with private access
-  --dont-require-type=<boolean>    - Don't report problems about type declarations
-  --dont-require-field=<boolean>   - Don't report problems about fields
-  --dont-require-method=<boolean>  - Don't report problems about methods and constructors
-  --require-package-info=<boolean> - Require package-info.java file to exist
-  --relative=<boolean>   - Report relative rather than absolute filenames
-  --verbose=<boolean>    - Print diagnostic information
+  --exclude=<regex>                - Don't check files or directories whose pathname matches the regex
+  --dont-require=<regex>           - Don't report problems in Java elements whose name matches the regex
+  --dont-require-private=<boolean> - Don't report problems in elements with private access [default: false]
+  --dont-require-type=<boolean>    - Don't report problems in type declarations [default: false]
+  --dont-require-field=<boolean>   - Don't report problems in fields [default: false]
+  --dont-require-method=<boolean>  - Don't report problems in methods and constructors [default: false]
+  --require-package-info=<boolean> - Require package-info.java file to exist [default: false]
+  --relative=<boolean>             - Report relative rather than absolute filenames [default: false]
+  --verbose=<boolean>              - Print diagnostic information [default: false]
 ```
 
 If an argument is a directory, each `.java` file in it or its subdirectories will be processed.
