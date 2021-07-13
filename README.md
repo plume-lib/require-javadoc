@@ -109,7 +109,8 @@ Therefore, you may want to use all three.
    Javadoc will complain about missing `@param` and `@return` tags, but *not* if `@Override` is present.
    Javadoc does not warn about all Java constructs; for example, it does not process methods within enum constants, nor some private nested classes (even when `-private` is supplied).
 
-If you want to require all Javadoc tags to be present, use the Javadoc tool itself.
+If you want to require all Javadoc tags to be present (a stronger requirement
+than `require-javadoc` enforces), use the Javadoc tool itself.
 From the command line:
 ```javadoc -private -Xwerror -Xdoclint:all```
 (You should run with and without `-private`, and you may wish to adjust the [`-Xdoclint` argument](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/javadoc.html#BEJEFABE).)
