@@ -27,7 +27,7 @@ dependencies {
   } else {
     implementation 'org.plumelib:options:2.0.0'
   }
-  implementation group: 'com.github.javaparser', name: 'javaparser-core', version: '3.22.1'
+  implementation group: 'com.github.javaparser', name: 'javaparser-core', version: '3.23.0'
 }
 
 // To upload to Maven Central, see instructions in the file.
