@@ -25,15 +25,15 @@ Details about invoking the program:
 
 ```
 Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...]
-  --exclude=<regex>      - Don't check files or directories whose pathname matches the regex
-  --dont-require=<regex> - Don't report problems in Java elements whose name matches the regex
-  --dont-require-private=<boolean> - Don't report problems about elements with private access
-  --dont-require-type=<boolean>    - Don't report problems about type declarations
-  --dont-require-field=<boolean>   - Don't report problems about fields
-  --dont-require-method=<boolean>  - Don't report problems about methods and constructors
-  --require-package-info=<boolean> - Require package-info.java file to exist
-  --relative=<boolean>   - Report relative rather than absolute filenames
-  --verbose=<boolean>    - Print diagnostic information
+  --exclude=<regex>                - Don't check files or directories whose pathname matches the regex
+  --dont-require=<regex>           - Don't report problems in Java elements whose name matches the regex
+  --dont-require-private=<boolean> - Don't report problems in elements with private access [default: false]
+  --dont-require-type=<boolean>    - Don't report problems in type declarations [default: false]
+  --dont-require-field=<boolean>   - Don't report problems in fields [default: false]
+  --dont-require-method=<boolean>  - Don't report problems in methods and constructors [default: false]
+  --require-package-info=<boolean> - Require package-info.java file to exist [default: false]
+  --relative=<boolean>             - Report relative rather than absolute filenames [default: false]
+  --verbose=<boolean>              - Print diagnostic information [default: false]
 ```
 
 If an argument is a directory, each `.java` file in it or its subdirectories will be processed.
@@ -50,9 +50,9 @@ example just `--verbose`.
 
 ## Incremental use
 
-In continuous integration job (Azure Pipelines, CircleCI, or Travis CI),
-you can require Javadoc on all changed lines and ones
-adjacent to them.  Here is example code:
+In continuous integration job (Azure Pipelines, CircleCI, GitHub Actions, or Travis CI),
+you can require Javadoc on all changed lines and lines
+adjacent to changed lines.  Here is example code:
 
 ```
 if [ -d "/tmp/$USER/plume-scripts" ] ; then
@@ -74,11 +74,12 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc "org.plumelib:require-javadoc:1.0.0"
+  requireJavadoc "org.plumelib:require-javadoc:1.0.2"
 }
 task requireJavadoc(type: JavaExec) {
+  group = 'Documentation'
   description = 'Ensures that Javadoc documentation exists.'
-  main = "org.plumelib.javadoc.RequireJavadoc"
+  mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
   args "src/main/java"
 }
@@ -108,7 +109,8 @@ Therefore, you may want to use all three.
    Javadoc will complain about missing `@param` and `@return` tags, but *not* if `@Override` is present.
    Javadoc does not warn about all Java constructs; for example, it does not process methods within enum constants, nor some private nested classes (even when `-private` is supplied).
 
-If you want to require all Javadoc tags to be present, use the Javadoc tool itself.
+If you want to require all Javadoc tags to be present (a stronger requirement
+than `require-javadoc` enforces), use the Javadoc tool itself.
 From the command line:
 ```javadoc -private -Xwerror -Xdoclint:all```
 (You should run with and without `-private`, and you may wish to adjust the [`-Xdoclint` argument](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/javadoc.html#BEJEFABE).)
@@ -125,6 +127,7 @@ check.dependsOn javadoc
 or
 ```
 task javadocStrict(type: Javadoc) {
+  group = 'Documentation'
   description = 'Run Javadoc in strict mode: with -Xdoclint:all and -Xwerror, on all members.'
   source = sourceSets.main.allJava
   classpath = sourceSets.main.runtimeClasspath
@@ -139,7 +142,9 @@ check.dependsOn javadocStrict
 
 Checkstyle is configurable to produce the same warnings as `require-javadoc` does.
 
-It has some issues (as of July 2018):
+[//]: # (Comparison is as of July 2018, but I don't think anything has changed since then.)
+
+Checkstyle has some problems:
  * Checkstyle is heavyweight to run and configure:  configuring it requires multiple files.
  * Checkstyle is nondeterministic:  it gives different results for file `A.java` depending on what other files are being checked.
  * Checkstyle crashes on correct code (for example, see https://github.com/checkstyle/checkstyle/issues/5989, which the maintainers closed as "checkstyle does not support it by design").

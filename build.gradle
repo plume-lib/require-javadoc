@@ -3,7 +3,7 @@ plugins {
   id 'application'
 
   // To create a fat jar build/libs/require-javadoc-all.jar, run: ./gradlew shadowJar
-  id 'com.github.johnrengelman.shadow' version '6.1.0'
+  id 'com.github.johnrengelman.shadow' version '7.1.2'
 
   // Formatting is disabled due to poor handling of type annotations; wait until
   // this issue is fixed: https://github.com/google/google-java-format/issues/5
@@ -11,10 +11,10 @@ plugins {
   // id 'com.github.sherter.google-java-format' version '0.7.1'
 
   // Error Prone linter
-  id("net.ltgt.errorprone") version "1.2.1"
+  id("net.ltgt.errorprone") version "2.0.2"
 
   // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.5.13'
+  id 'org.checkerframework' version '0.6.9'
 }
 
 repositories {
@@ -22,8 +22,12 @@ repositories {
 }
 
 dependencies {
-  implementation 'org.plumelib:options:1.0.4'
-  implementation group: 'com.github.javaparser', name: 'javaparser-symbol-solver-core', version: '3.13.3'
+  if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
+    implementation 'org.plumelib:options:1.0.5'
+  } else {
+    implementation 'org.plumelib:options:2.0.0'
+  }
+  implementation group: 'com.github.javaparser', name: 'javaparser-core', version: '3.24.0'
 }
 
 // To upload to Maven Central, see instructions in the file.
@@ -33,19 +37,18 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 application {
-  mainClassName = 'org.plumelib.javadoc.RequireJavadoc'
+  mainClass = 'org.plumelib.javadoc.RequireJavadoc'
 }
 
 /// Error Prone linter
 
 dependencies {
-  errorprone("com.google.errorprone:error_prone_core:2.4.0")
-  // JDK 8 support for Error Prone:
-  errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
+  errorprone("com.google.errorprone:error_prone_core:2.11.0")
 }
 tasks.withType(JavaCompile).configureEach {
   options.compilerArgs << "-Xlint:all,-processing" << "-Werror"
   options.errorprone {
+    enabled = JavaVersion.current() != JavaVersion.VERSION_1_8
     // disable("ReferenceEquality") // Use Interning Checker instead.
     // disable("StringSplitter") // obscure case isn't likely
     // disable("AnnotateFormatMethod") // Error Prone doesn't know about Checker Framework @FormatMethod
@@ -66,6 +69,7 @@ checkerFramework {
     'org.checkerframework.checker.nullness.NullnessChecker',
     'org.checkerframework.checker.regex.RegexChecker',
     'org.checkerframework.checker.signature.SignatureChecker',
+    'org.checkerframework.checker.signedness.SignednessChecker',
     'org.checkerframework.common.initializedfields.InitializedFieldsChecker'
   ]
   extraJavacArgs = [
@@ -129,26 +133,15 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc "org.plumelib:require-javadoc:1.0.0"
+  requireJavadoc "org.plumelib:require-javadoc:1.0.2"
 }
 task requireJavadoc(type: JavaExec) {
   description = 'Ensures that Javadoc documentation exists.'
-  main = "org.plumelib.javadoc.RequireJavadoc"
+  mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
   args "src/main/java"
 }
 check.dependsOn requireJavadoc
-
-/// tools.jar
-
-// Work around https://github.com/johnrengelman/shadow/issues/324
-configurations {
-  toolsJar  // tools.jar contains the Javadoc tool
-}
-dependencies {
-  toolsJar files(org.gradle.internal.jvm.Jvm.current().toolsJar)
-}
-configurations.compileClasspath.extendsFrom configurations.toolsJar
 
 /// Emacs support
 

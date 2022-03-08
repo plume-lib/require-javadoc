@@ -12,6 +12,7 @@ cache:
 
 jdk:
   - oraclejdk8
+  - oraclejdk11
 
 # Add "verGJF" task when google-java-format handles type annotations better;
 # see https://github.com/google/google-java-format/issues/5

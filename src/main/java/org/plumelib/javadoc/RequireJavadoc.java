@@ -40,6 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.plumelib.options.Option;
 import org.plumelib.options.Options;
 
@@ -152,7 +153,7 @@ public class RequireJavadoc {
    *
    * @param args the directories and files listed on the command line
    */
-  @SuppressWarnings("lock:methodref.receiver.invalid") // no locking here
+  @SuppressWarnings("lock:methodref.receiver") // no locking here
   private void setJavaFiles(String[] args) {
     if (args.length == 0) {
       args = new String[] {workingDirAbsolute.toString()};
@@ -187,8 +188,10 @@ public class RequireJavadoc {
     Set<Path> missingPackageInfoFiles = new LinkedHashSet<>();
     if (require_package_info) {
       for (Path javaFile : javaFiles) {
+        @SuppressWarnings("nullness:assignment") // the file is not "/", so getParent() is non-null
+        @NonNull Path javaFileParent = javaFile.getParent();
         // Java 11 has Path.of() instead of creating a new File.
-        Path packageInfo = javaFile.getParent().resolve(new File("package-info.java").toPath());
+        Path packageInfo = javaFileParent.resolve(new File("package-info.java").toPath());
         if (!javaFiles.contains(packageInfo)) {
           missingPackageInfoFiles.add(packageInfo);
         }
@@ -240,7 +243,8 @@ public class RequireJavadoc {
   }
 
   /**
-   * Return true if the given Java element should not be checked.
+   * Return true if the given Java element should not be checked, based on the {@code
+   * --dont-require} command-line argument.
    *
    * @param name the name of a Java element. It is a simple name, except for packages.
    * @return true if no warnings should be issued about the element
@@ -257,7 +261,8 @@ public class RequireJavadoc {
   }
 
   /**
-   * Return true if the given file or directory should be skipped.
+   * Return true if the given file or directory should be skipped, based on the {@code --exclude}
+   * command-line argument.
    *
    * @param fileName the name of a Java file or directory
    * @return true if the file or directory should be skipped
@@ -500,15 +505,9 @@ public class RequireJavadoc {
      * @return true if this method is annotated with {@code @Override}
      */
     private boolean isOverride(MethodDeclaration md) {
-      // JavaParser bug: md.getAnnotations() may lack annotations that are after a // comment.
-      // Example:  In this code:
-      //   @SuppressWarnings(...) // benevolent side effects
-      //   @Override
-      //   public boolean hasNext() { ... }
-      // md.getAnnotations() contains "@SuppressWarnings(...)" but not "@Override".
       for (AnnotationExpr anno : md.getAnnotations()) {
-        String annoString = anno.toString();
-        if (annoString.equals("@Override") || annoString.equals("@java.lang.Override")) {
+        String annoName = anno.getName().toString();
+        if (annoName.equals("Override") || annoName.equals("java.lang.Override")) {
           return true;
         }
       }
