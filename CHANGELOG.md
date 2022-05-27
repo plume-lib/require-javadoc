@@ -1,5 +1,9 @@
 # Require-Javadoc change log
 
+## 1.0.3 (2022-01-25)
+
+Support JDK 17.
+
 ## 1.0.2 (2021-04-30)
 
 Reduced jar size.  No user-visible behavior changes.
