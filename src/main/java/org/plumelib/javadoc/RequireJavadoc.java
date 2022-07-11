@@ -279,7 +279,8 @@ public class RequireJavadoc {
   }
 
   /**
-   * Return true if the given file or directory should be skipped.
+   * Return true if the given file or directory should be skipped, based on the {@code --exclude}
+   * command-line argument.
    *
    * @param path a Java file or directory
    * @return true if the file or directory should be skipped
