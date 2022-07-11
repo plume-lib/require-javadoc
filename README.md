@@ -105,9 +105,9 @@ Therefore, you may want to use all three.
 
  * `require-javadoc` requires that a Javadoc comment is present, but does not check the content of the comment.
    For example, `require-javadoc` does not complain if an `@param` or `@return` tag is missing.
+ * Javadoc warns about problems in existing Javadoc, but does not warn if a method is completely undocumented.
    With `-private`, it checks private members too.
    Without `-private`, it ensures that public members don't reference private members.
- * Javadoc warns about problems in existing Javadoc, but does not warn if a method is completely undocumented.
    Javadoc will complain about missing `@param` and `@return` tags, but *not* if `@Override` is present.
    Javadoc does not warn about all Java constructs; for example, it does not process methods within enum constants, nor some private nested classes (even when `-private` is supplied).
 
