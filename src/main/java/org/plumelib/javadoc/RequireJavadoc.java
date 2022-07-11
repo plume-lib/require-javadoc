@@ -8,6 +8,7 @@ import com.github.javaparser.Range;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
@@ -17,10 +18,21 @@ import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.AssignExpr;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.ThisExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithJavadoc;
+import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
+import com.github.javaparser.ast.stmt.ReturnStmt;
+import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +53,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.plumelib.options.Option;
 import org.plumelib.options.Options;
 
@@ -68,6 +81,24 @@ public class RequireJavadoc {
   /** If true, don't check elements with private access. */
   @Option("Don't report problems in elements with private access")
   public boolean dont_require_private;
+
+  /**
+   * If true, don't check trivial getters and setters.
+   *
+   * <p>Trivial getters and setters are of the form:
+   *
+   * <pre>{@code
+   *   public Foo getFoo() {
+   * return this.foo;
+   * }
+   *
+   * public void setFoo(Foo foo) {
+   *   this.foo = foo;
+   * }
+   * }</pre>
+   */
+  @Option("Don't report problems in trivial getters and setters")
+  public boolean dont_require_properties;
 
   /** If true, don't check type declarations: classes, interfaces, enums, annotations. */
   @Option("Don't report problems in type declarations")
@@ -289,6 +320,158 @@ public class RequireJavadoc {
     return shouldExclude(path.toString());
   }
 
+  /**
+   * Return true if this method declaration is a trivial getter or setter.
+   *
+   * <ul>
+   *   <li>A trivial getter is named "getFoo", has no formal parameters, and has a body of the form
+   *       "return foo" or "return this.foo".
+   *   <li>A trivial setter is named "setFoo", has one formal parameter named "foo", and has a body
+   *       of the form "this.foo = foo".
+   * </ul>
+   *
+   * @param md the method to check
+   * @return true if this method is a trivial getter on setter
+   */
+  boolean isTrivialGetterOrSetter(MethodDeclaration md) {
+    String methodName = md.getNameAsString();
+    if (methodName.startsWith("get")) {
+      String propertyName = propertyName(md, true);
+      if (propertyName == null) {
+        return false;
+      }
+      Statement statement = getOnlyStatement(md);
+      if (!(statement instanceof ReturnStmt)) {
+        return false;
+      }
+      Optional<Expression> oReturnExpr = ((ReturnStmt) statement).getExpression();
+      if (!oReturnExpr.isPresent()) {
+        return false;
+      }
+      Expression returnExpr = oReturnExpr.get();
+      String returnName;
+      if (returnExpr instanceof NameExpr) {
+        returnName = ((NameExpr) returnExpr).getNameAsString();
+      } else if (returnExpr instanceof FieldAccessExpr) {
+        FieldAccessExpr fa = (FieldAccessExpr) returnExpr;
+        Expression receiver = fa.getScope();
+        if (!(receiver instanceof ThisExpr)) {
+          return false;
+        }
+        returnName = fa.getNameAsString();
+      } else {
+        return false;
+      }
+      if (!returnName.equals(propertyName)) {
+        return false;
+      }
+      return true;
+    } else if (methodName.startsWith("set")) {
+      String propertyName = propertyName(md, false);
+      if (propertyName == null) {
+        return false;
+      }
+      Statement statement = getOnlyStatement(md);
+      if (!(statement instanceof ExpressionStmt)) {
+        return false;
+      }
+      Expression expr = ((ExpressionStmt) statement).getExpression();
+      if (!(expr instanceof AssignExpr)) {
+        return false;
+      }
+      AssignExpr assignExpr = (AssignExpr) expr;
+      Expression target = assignExpr.getTarget();
+      AssignExpr.Operator op = assignExpr.getOperator();
+      Expression value = assignExpr.getValue();
+      if (!(target instanceof FieldAccessExpr)) {
+        return false;
+      }
+      FieldAccessExpr fa = (FieldAccessExpr) target;
+      Expression receiver = fa.getScope();
+      if (!(receiver instanceof ThisExpr)) {
+        return false;
+      }
+      if (!fa.getNameAsString().equals(propertyName)) {
+        return false;
+      }
+      if (op != AssignExpr.Operator.ASSIGN) {
+        return false;
+      }
+      if (!(value instanceof NameExpr
+          && ((NameExpr) value).getNameAsString().equals(propertyName))) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Returns the lower-cased name of the property, if the method is a getter or setter. Otherwise
+   * returns null.
+   *
+   * @param md the method to test
+   * @param isGetter true if testing for a getter, false if testing for a setter
+   * @return the lower-cased names of the property, or null
+   */
+  @Nullable String propertyName(MethodDeclaration md, boolean isGetter) {
+    String methodName = md.getNameAsString();
+    if (!methodName.startsWith(isGetter ? "get" : "set")) {
+      return null;
+    }
+    String upperCaseProperty = methodName.substring(3);
+    if (upperCaseProperty.length() == 0) {
+      return null;
+    }
+    if (!Character.isUpperCase(upperCaseProperty.charAt(0))) {
+      return null;
+    }
+    String lowerCaseProperty =
+        "" + Character.toLowerCase(upperCaseProperty.charAt(0)) + upperCaseProperty.substring(1);
+    NodeList<Parameter> parameters = md.getParameters();
+    if (isGetter) {
+      if (parameters.size() != 0) {
+        return null;
+      }
+    } else {
+      if (parameters.size() != 1) {
+        return null;
+      }
+      Parameter parameter = parameters.get(0);
+      if (!parameter.getNameAsString().equals(lowerCaseProperty)) {
+        return null;
+      }
+    }
+    // Check presence/absence of return type. (The Java compiler will verify that the type is
+    // correct.)
+    Type returnType = md.getType();
+    boolean isVoidReturn = returnType.isVoidType();
+    if (isGetter && isVoidReturn) {
+      return null;
+    } else if (!isGetter && !isVoidReturn) {
+      return null;
+    }
+    return lowerCaseProperty;
+  }
+
+  /**
+   * If the body contains exactly one statement, returns it. Otherwise, returns null.
+   *
+   * @param md a method declaration
+   * @return its sole statement, or null
+   */
+  @Nullable Statement getOnlyStatement(MethodDeclaration md) {
+    Optional<BlockStmt> body = md.getBody();
+    if (!body.isPresent()) {
+      return null;
+    }
+    NodeList<Statement> statements = body.get().getStatements();
+    if (statements.size() != 1) {
+      return null;
+    }
+    return statements.get(0);
+  }
+
   /** Visits an AST and collects warnings about missing Javadoc. */
   private class RequireJavadocVisitor extends VoidVisitorAdapter<Void> {
 
@@ -388,6 +571,9 @@ public class RequireJavadoc {
     @Override
     public void visit(MethodDeclaration md, Void ignore) {
       if (dont_require_private && md.isPrivate()) {
+        return;
+      }
+      if (dont_require_properties && isTrivialGetterOrSetter(md)) {
         return;
       }
       String name = md.getNameAsString();

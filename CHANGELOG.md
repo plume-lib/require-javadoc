@@ -1,5 +1,10 @@
 # Require-Javadoc change log
 
+## 1.0.4 (??)
+
+Support new command-line option:
+ * `--dont-require-properties`
+
 ## 1.0.3 (2022-01-25)
 
 Support JDK 17.
