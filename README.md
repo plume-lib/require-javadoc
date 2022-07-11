@@ -52,7 +52,9 @@ example just `--verbose`.
 
 In continuous integration job (Azure Pipelines, CircleCI, GitHub Actions, or Travis CI),
 you can require Javadoc on all changed lines and lines
-adjacent to changed lines.  Here is example code:
+adjacent to changed lines.  This is a way to incrementally get your code
+documented, without having to document it all at once.
+Here are example commands:
 
 ```
 if [ -d "/tmp/$USER/plume-scripts" ] ; then
