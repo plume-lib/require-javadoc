@@ -13,11 +13,11 @@ Reduced jar size.  No user-visible behavior changes.
 Warn about missing package documentation in file package-info.java.
 
 Support new command-line options:
- * --dont-require-private
- * --dont-require-type
- * --dont-require-field
- * --dont-require-method
- * --require-package-info
+ * `--dont-require-private`
+ * `--dont-require-type`
+ * `--dont-require-field`
+ * `--dont-require-method`
+ * `--require-package-info`
 
 Fix bug related to `//` comments before `@Override` annotation
 
@@ -36,7 +36,7 @@ Fix bug related to `//` comments before `@Override` annotation
 
 ## 0.1.3
 
-- Add `-verbose` command-line argument, for debugging.
+- Add `--verbose` command-line argument, for debugging.
 
 ## 0.1.2 (2019-06-04)
 
