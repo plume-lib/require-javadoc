@@ -45,6 +45,8 @@ or any subdirectory.
 The `--dont-require` regex is matched against full package names and against simple
 (unqualified) names of classes, constructors, methods, and fields.
 
+A constructor with zero arguments is sometimes called a "default constructor".
+
 All boolean options default to false, and you can omit the `=<boolean>` to set them to true, for
 example just `--verbose`.
 

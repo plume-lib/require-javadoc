@@ -69,7 +69,11 @@ public class RequireJavadoc {
   @Option("Don't report problems in elements with private access")
   public boolean dont_require_private;
 
-  /** If true, don't check constructors with zero formal parameters. */
+  /**
+   * If true, don't check constructors with zero formal parameters. These are sometimes called
+   * "default constructors", though officially that term only refers to ones that the compiler
+   * synthesizes when the programmer didn't write one.
+   */
   @Option("Don't report problems in constructors with zero formal parameters")
   public boolean dont_require_noarg_constructor;
 
