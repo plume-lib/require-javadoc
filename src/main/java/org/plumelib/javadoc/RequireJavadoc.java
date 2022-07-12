@@ -492,14 +492,14 @@ public class RequireJavadoc {
   }
 
   /**
-   * Returns the lower-cased name of the property, if the method is a getter or setter. Otherwise
-   * returns null.
+   * Returns the name of the property with initial letter in lower case, if the method is a getter
+   * or setter. Otherwise returns null.
    *
    * <p>Examines the method's name and signature, but not its body.
    *
    * @param md the method to test
    * @param propertyType the type of property method
-   * @return the lower-cased names of the property, or null
+   * @return the lower-cased name of the property, or null
    */
   @Nullable String propertyName(MethodDeclaration md, PropertyType propertyType) {
     String methodName = md.getNameAsString();
