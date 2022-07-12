@@ -2,4 +2,6 @@ Tests are not yet automated. :-(
 
 The diff output should be empty:
 
-(cd ../.. && ./gradlew assemble) && java -cp ../../build/libs/require-javadoc-1.0.3-all.jar org.plumelib.javadoc.RequireJavadoc --relative --dont-require-properties > out.txt
+(cd ../.. && ./gradlew assemble) && java -cp ../../build/libs/require-javadoc-1.0.3-all.jar org.plumelib.javadoc.RequireJavadoc --relative --dont-require-trivial-properties > out.txt
+
+diff expected.txt out.txt

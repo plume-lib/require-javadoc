@@ -3,7 +3,7 @@
 ## 1.0.4 (??)
 
 Support new command-line option:
- * `--dont-require-properties`
+ * `--dont-require-trivial-properties`
 
 ## 1.0.3 (2022-01-25)
 

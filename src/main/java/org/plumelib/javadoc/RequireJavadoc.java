@@ -98,7 +98,7 @@ public class RequireJavadoc {
    * }</pre>
    */
   @Option("Don't report problems in trivial getters and setters")
-  public boolean dont_require_properties;
+  public boolean dont_require_trivial_properties;
 
   /** If true, don't check type declarations: classes, interfaces, enums, annotations. */
   @Option("Don't report problems in type declarations")
@@ -320,16 +320,18 @@ public class RequireJavadoc {
     return shouldExclude(path.toString());
   }
 
-  /** The type of property method: a getter, boolean getter, or setter. */
+  /** The type of property method: a getter or setter. */
   enum PropertyType {
     /** A method of the form {@code int getFoo()}. */
     GETTER("get", 0, false),
+    /** A method of the form {@code boolean hasFoo()}. */
+    GETTER_HAS("has", 0, false),
     /** A method of the form {@code boolean isFoo()}. */
     GETTER_IS("is", 0, false),
     /** A method of the form {@code void setFoo(int arg)}. */
     SETTER("set", 1, true);
 
-    /** The prefix for the method name: "get", "is", or "set". */
+    /** The prefix for the method name: "get", "has", "is", or "set". */
     final String prefix;
 
     /** The number of required formal parameters: 0 or 1. */
@@ -356,8 +358,8 @@ public class RequireJavadoc {
    * Return true if this method declaration is a trivial getter or setter.
    *
    * <ul>
-   *   <li>A trivial getter is named "getFoo", has no formal parameters, and has a body of the form
-   *       "return foo" or "return this.foo".
+   *   <li>A trivial getter is named "getFoo", "hasFoo", or "isFoo", has no formal parameters, and
+   *       has a body of the form "return foo" or "return this.foo".
    *   <li>A trivial setter is named "setFoo", has one formal parameter named "foo", and has a body
    *       of the form "this.foo = foo".
    * </ul>
@@ -367,14 +369,18 @@ public class RequireJavadoc {
    */
   boolean isTrivialGetterOrSetter(MethodDeclaration md) {
     String methodName = md.getNameAsString();
-    if (methodName.startsWith("get") || methodName.startsWith("is")) {
+    if (methodName.startsWith("get")
+        || methodName.startsWith("has")
+        || methodName.startsWith("is")) {
       PropertyType getterType =
-          methodName.startsWith("get") ? PropertyType.GETTER : PropertyType.GETTER_IS;
+          methodName.startsWith("get")
+              ? PropertyType.GETTER
+              : methodName.startsWith("has") ? PropertyType.GETTER_HAS : PropertyType.GETTER_IS;
       String propertyName = propertyName(md, getterType);
       if (propertyName == null) {
         return false;
       }
-      if (getterType == PropertyType.GETTER_IS) {
+      if (getterType == PropertyType.GETTER_HAS || getterType == PropertyType.GETTER_IS) {
         if (!md.getType().toString().equals("boolean")) {
           return false;
         }
@@ -609,7 +615,7 @@ public class RequireJavadoc {
       if (dont_require_private && md.isPrivate()) {
         return;
       }
-      if (dont_require_properties && isTrivialGetterOrSetter(md)) {
+      if (dont_require_trivial_properties && isTrivialGetterOrSetter(md)) {
         if (verbose) {
           System.out.printf("skipping trivial property method %s%n", md.getNameAsString());
         }

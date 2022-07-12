@@ -62,6 +62,10 @@ class TrivialProperties {
     return bazOK;
   }
 
+  public boolean hasBazOK() {
+    return bazOK;
+  }
+
   // Not OK
 
   public int getFoo1() {
@@ -78,6 +82,18 @@ class TrivialProperties {
 
   public void setBar1(boolean bar1) {
     baz1 = bar1;
+  }
+
+  public Foo hasFoo1() {
+    return foo1;
+  }
+
+  public int hasBar1() {
+    return bar1;
+  }
+
+  public int hasBaz1() {
+    return bar1;
   }
 
   public Foo isFoo1() {
@@ -106,6 +122,16 @@ class TrivialProperties {
 
   public void setBar2(Foo bar2) {
     foo2 = bar2;
+  }
+
+  public boolean hasFoo2() {
+    return baz2;
+  }
+
+  public void hasBar2() {}
+
+  public boolean hasBaz3() {
+    return true;
   }
 
   public boolean isFoo2() {
@@ -148,6 +174,10 @@ class TrivialProperties {
 
   public void set(Foo foo1) {
     this.foo1 = foo1;
+  }
+
+  public boolean has() {
+    return baz1;
   }
 
   public boolean is() {
