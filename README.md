@@ -28,6 +28,7 @@ Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...
   --exclude=<regex>                - Don't check files or directories whose pathname matches the regex
   --dont-require=<regex>           - Don't report problems in Java elements whose name matches the regex
   --dont-require-private=<boolean> - Don't report problems in elements with private access [default: false]
+  --dont-require-noarg-constructor=<boolean> - Don't report problems in constructors with zero formal params [default: false]
   --dont-require-trivial-properties=<boolean> - Don't report problems about trivial getters and setters [default: false]
   --dont-require-type=<boolean>    - Don't report problems in type declarations [default: false]
   --dont-require-field=<boolean>   - Don't report problems in fields [default: false]
@@ -44,6 +45,8 @@ or any subdirectory.
 
 The `--dont-require` regex is matched against full package names and against simple
 (unqualified) names of classes, constructors, methods, and fields.
+
+A constructor with zero arguments is sometimes called a "default constructor".
 
 All boolean options default to false, and you can omit the `=<boolean>` to set them to true, for
 example just `--verbose`.

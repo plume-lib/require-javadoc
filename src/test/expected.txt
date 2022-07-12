@@ -1,3 +1,4 @@
+NoArgConstructor.java:8:3: missing documentation for HasArgConstructor
 TrivialProperties.java:71:3: missing documentation for getFoo1
 TrivialProperties.java:75:3: missing documentation for setFoo1
 TrivialProperties.java:79:3: missing documentation for getBar1

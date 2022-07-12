@@ -2,7 +2,9 @@
 
 ## 1.0.4 (??)
 
+Support new command-line options:
 Support new command-line option:
+ * `--dont-require-noarg-constructor`
  * `--dont-require-trivial-properties`
 
 ## 1.0.3 (2022-01-25)
