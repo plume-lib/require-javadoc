@@ -96,12 +96,20 @@ public class RequireJavadoc {
    * <p>Trivial getters and setters are of the form:
    *
    * <pre>{@code
-   *   public Foo getFoo() {
-   * return this.foo;
+   * Foo getFoo() {
+   *   return this.foo;
    * }
    *
-   * public void setFoo(Foo foo) {
+   * void setFoo(Foo foo) {
    *   this.foo = foo;
+   * }
+   *
+   * boolean hasFoo() {
+   *   return foo;
+   * }
+   *
+   * boolean isFoo() {
+   *   return foo;
    * }
    * }</pre>
    */

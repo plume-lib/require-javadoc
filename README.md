@@ -66,7 +66,7 @@ public boolean isBar() {
     return bar;
 }
 
-public boolean hazBaz() {
+public boolean hasBaz() {
     return baz;
 }
 ```
