@@ -58,6 +58,10 @@ class TrivialProperties {
     this.bazOK = bazOK;
   }
 
+  public boolean isBazOK() {
+    return bazOK;
+  }
+
   // Not OK
 
   public int getFoo1() {
@@ -76,6 +80,18 @@ class TrivialProperties {
     baz1 = bar1;
   }
 
+  public Foo isFoo1() {
+    return foo1;
+  }
+
+  public int isBar1() {
+    return bar1;
+  }
+
+  public int isBaz1() {
+    return bar1;
+  }
+
   public int getFoo2() {
     return this.bar2;
   }
@@ -90,6 +106,16 @@ class TrivialProperties {
 
   public void setBar2(Foo bar2) {
     foo2 = bar2;
+  }
+
+  public boolean isFoo2() {
+    return baz2;
+  }
+
+  public void isBar2() {}
+
+  public boolean isBaz3() {
+    return true;
   }
 
   // Extra statements
@@ -112,5 +138,19 @@ class TrivialProperties {
   public void setBar3(int bar3) {
     System.out.println("called setBar3");
     bar3 = bar3;
+  }
+
+  // Short method name
+
+  public Foo get() {
+    return this.foo1;
+  }
+
+  public void set(Foo foo1) {
+    this.foo1 = foo1;
+  }
+
+  public boolean is() {
+    return baz1;
   }
 }

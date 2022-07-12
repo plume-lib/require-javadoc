@@ -1,7 +1,5 @@
 Tests are not yet automated. :-(
 
-Run this, then examine the output:
+The diff output should be empty:
 
-(cd ../.. && ./gradlew assemble) && java -cp ../../build/libs/require-javadoc-1.0.3-all.jar org.plumelib.javadoc.RequireJavadoc --relative --dont-require-properties
-
-The output should contain all numbered methods, but no methods whose name ends in "OK".
+(cd ../.. && ./gradlew assemble) && java -cp ../../build/libs/require-javadoc-1.0.3-all.jar org.plumelib.javadoc.RequireJavadoc --relative --dont-require-properties > out.txt

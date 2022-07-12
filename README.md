@@ -58,6 +58,10 @@ public Foo getFoo() {
 public void setFoo(Foo foo) {
     this.foo = foo;
 }
+
+public boolean isBar() {
+    return bar;
+}
 ```
 
 
