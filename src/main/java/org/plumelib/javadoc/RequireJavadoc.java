@@ -354,7 +354,7 @@ public class RequireJavadoc {
     /** A method of the form {@code void setFoo(int arg)}. */
     SETTER("set", 1, true);
 
-    /** The prefix for the method name: "get", "has", "is", or "set". */
+    /** The prefix for the method name: "get", "has", "is", "not", or "set". */
     final String prefix;
 
     /** The number of required formal parameters: 0 or 1. */
