@@ -66,6 +66,10 @@ public boolean isBar() {
     return bar;
 }
 
+public boolean notBar() {
+    return !bar;
+}
+
 public boolean hasBaz() {
     return baz;
 }

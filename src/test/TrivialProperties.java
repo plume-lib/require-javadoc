@@ -10,6 +10,8 @@ class TrivialProperties {
   int barOK;
   /** dummy comment */
   boolean bazOK;
+  /** dummy comment */
+  boolean quuxOK;
 
   /** dummy comment */
   Foo foo1;
@@ -17,6 +19,8 @@ class TrivialProperties {
   int bar1;
   /** dummy comment */
   boolean baz1;
+  /** dummy comment */
+  boolean quux1;
 
   /** dummy comment */
   Foo foo2;
@@ -24,6 +28,8 @@ class TrivialProperties {
   int bar2;
   /** dummy comment */
   boolean baz2;
+  /** dummy comment */
+  boolean quux2;
 
   /** dummy comment */
   Foo foo3;
@@ -31,6 +37,8 @@ class TrivialProperties {
   int bar3;
   /** dummy comment */
   boolean baz3;
+  /** dummy comment */
+  boolean quux3;
 
   // OK
 
@@ -58,12 +66,28 @@ class TrivialProperties {
     this.bazOK = bazOK;
   }
 
+  public boolean hasBazOK() {
+    return bazOK;
+  }
+
   public boolean isBazOK() {
     return bazOK;
   }
 
-  public boolean hasBazOK() {
-    return bazOK;
+  public boolean notBazOK() {
+    return !bazOK;
+  }
+
+  public boolean hasQuuxOK() {
+    return this.quuxOK;
+  }
+
+  public boolean isQuuxOK() {
+    return this.quuxOK;
+  }
+
+  public boolean notQuuxOK() {
+    return !this.quuxOK;
   }
 
   // Not OK
@@ -108,6 +132,18 @@ class TrivialProperties {
     return bar1;
   }
 
+  public Foo notFoo1() {
+    return foo1;
+  }
+
+  public int notBar1() {
+    return bar1;
+  }
+
+  public int notBaz1() {
+    return bar1;
+  }
+
   public int getFoo2() {
     return this.bar2;
   }
@@ -130,7 +166,7 @@ class TrivialProperties {
 
   public void hasBar2() {}
 
-  public boolean hasBaz3() {
+  public boolean hasBaz2() {
     return true;
   }
 
@@ -140,9 +176,25 @@ class TrivialProperties {
 
   public void isBar2() {}
 
-  public boolean isBaz3() {
+  public boolean isBaz2() {
     return true;
   }
+
+  public boolean notBaz2() {
+    return baz2;
+  }
+
+  public boolean notQuux2() {
+    return this.quux2;
+  }
+
+  // Wrong body
+
+  public boolean notFoo2() {
+    return baz2;
+  }
+
+  public void notBar2() {}
 
   // Extra statements
 
@@ -164,6 +216,22 @@ class TrivialProperties {
   public void setBar3(int bar3) {
     System.out.println("called setBar3");
     bar3 = bar3;
+  }
+
+  public boolean isBaz3() {
+    return !baz3;
+  }
+
+  public boolean notBaz3() {
+    return !(baz3);
+  }
+
+  public boolean isQuux3() {
+    return !this.quux3;
+  }
+
+  public boolean notQuux3() {
+    return (!this.quux3);
   }
 
   // Short method name

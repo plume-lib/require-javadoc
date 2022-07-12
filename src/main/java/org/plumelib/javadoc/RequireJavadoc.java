@@ -27,6 +27,7 @@ import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ThisExpr;
+import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithJavadoc;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
@@ -110,6 +111,10 @@ public class RequireJavadoc {
    *
    * boolean isFoo() {
    *   return foo;
+   * }
+   *
+   * boolean notFoo() {
+   *   return !foo;
    * }
    * }</pre>
    */
@@ -344,6 +349,8 @@ public class RequireJavadoc {
     GETTER_HAS("has", 0, false),
     /** A method of the form {@code boolean isFoo()}. */
     GETTER_IS("is", 0, false),
+    /** A method of the form {@code boolean notFoo()}. */
+    GETTER_NOT("not", 0, false),
     /** A method of the form {@code void setFoo(int arg)}. */
     SETTER("set", 1, true);
 
@@ -359,7 +366,7 @@ public class RequireJavadoc {
     /**
      * Create a new PropertyType.
      *
-     * @param prefix the prefix for the method name: "get", "is", or "set"
+     * @param prefix the prefix for the method name: "get", "has", "is", "not", or "set"
      * @param requiredParams the number of required formal parameters: 0 or 1
      * @param voidReturn whether the return type is void
      */
@@ -374,8 +381,9 @@ public class RequireJavadoc {
    * Return true if this method declaration is a trivial getter or setter.
    *
    * <ul>
-   *   <li>A trivial getter is named "getFoo", "hasFoo", or "isFoo", has no formal parameters, and
-   *       has a body of the form "return foo" or "return this.foo".
+   *   <li>A trivial getter is named "getFoo", "hasFoo", "isFoo", or "notFoo", has no formal
+   *       parameters, and has a body of the form "return foo" or "return this.foo" (except for
+   *       "notFoo", in which case the body is negated).
    *   <li>A trivial setter is named "setFoo", has one formal parameter named "foo", and has a body
    *       of the form "this.foo = foo".
    * </ul>
@@ -387,16 +395,21 @@ public class RequireJavadoc {
     String methodName = md.getNameAsString();
     if (methodName.startsWith("get")
         || methodName.startsWith("has")
-        || methodName.startsWith("is")) {
+        || methodName.startsWith("is")
+        || methodName.startsWith("not")) {
       PropertyType getterType =
           methodName.startsWith("get")
               ? PropertyType.GETTER
-              : methodName.startsWith("has") ? PropertyType.GETTER_HAS : PropertyType.GETTER_IS;
+              : methodName.startsWith("has")
+                  ? PropertyType.GETTER_HAS
+                  : methodName.startsWith("is") ? PropertyType.GETTER_IS : PropertyType.GETTER_NOT;
       String propertyName = propertyName(md, getterType);
       if (propertyName == null) {
         return false;
       }
-      if (getterType == PropertyType.GETTER_HAS || getterType == PropertyType.GETTER_IS) {
+      if (getterType == PropertyType.GETTER_HAS
+          || getterType == PropertyType.GETTER_IS
+          || getterType == PropertyType.GETTER_NOT) {
         if (!md.getType().toString().equals("boolean")) {
           return false;
         }
@@ -410,6 +423,17 @@ public class RequireJavadoc {
         return false;
       }
       Expression returnExpr = oReturnExpr.get();
+      // Does not handle parentheses.
+      if (getterType == PropertyType.GETTER_NOT) {
+        if (!(returnExpr instanceof UnaryExpr)) {
+          return false;
+        }
+        UnaryExpr unary = (UnaryExpr) returnExpr;
+        if (unary.getOperator() != UnaryExpr.Operator.LOGICAL_COMPLEMENT) {
+          return false;
+        }
+        returnExpr = unary.getExpression();
+      }
       String returnName;
       if (returnExpr instanceof NameExpr) {
         returnName = ((NameExpr) returnExpr).getNameAsString();
@@ -471,6 +495,8 @@ public class RequireJavadoc {
    * Returns the lower-cased name of the property, if the method is a getter or setter. Otherwise
    * returns null.
    *
+   * <p>Examines the method's name and signature, but not its body.
+   *
    * @param md the method to test
    * @param propertyType the type of property method
    * @return the lower-cased names of the property, or null
@@ -502,9 +528,9 @@ public class RequireJavadoc {
         return null;
       }
     }
-    // Check presence/absence of return type. (The Java compiler will verify that the type is
-    // correct, except that "isFoo()" accessors should have boolean return type, which is verified
-    // elsewhere.)
+    // Check presence/absence of return type. (The Java compiler will verify
+    // that the type is correct, except that "isFoo()" and "notFoo()" accessors
+    // should have boolean return type, which is verified elsewhere.)
     Type returnType = md.getType();
     if (propertyType.voidReturn != returnType.isVoidType()) {
       return null;
