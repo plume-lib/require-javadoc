@@ -69,6 +69,10 @@ public class RequireJavadoc {
   @Option("Don't report problems in elements with private access")
   public boolean dont_require_private;
 
+  /** If true, don't check constructors with zero formal parameters. */
+  @Option("Don't report problems in constructors with zero formal parameters")
+  public boolean dont_require_noarg_constructor;
+
   /** If true, don't check type declarations: classes, interfaces, enums, annotations. */
   @Option("Don't report problems in type declarations")
   public boolean dont_require_type;
@@ -370,6 +374,9 @@ public class RequireJavadoc {
     @Override
     public void visit(ConstructorDeclaration cd, Void ignore) {
       if (dont_require_private && cd.isPrivate()) {
+        return;
+      }
+      if (dont_require_noarg_constructor && cd.getParameters().size() == 0) {
         return;
       }
       String name = cd.getNameAsString();

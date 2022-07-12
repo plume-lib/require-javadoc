@@ -28,6 +28,7 @@ Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...
   --exclude=<regex>                - Don't check files or directories whose pathname matches the regex
   --dont-require=<regex>           - Don't report problems in Java elements whose name matches the regex
   --dont-require-private=<boolean> - Don't report problems in elements with private access [default: false]
+  --dont-require-noarg-constructor=<boolean> - Don't report problems in constructors with zero formal params [default: false]
   --dont-require-type=<boolean>    - Don't report problems in type declarations [default: false]
   --dont-require-field=<boolean>   - Don't report problems in fields [default: false]
   --dont-require-method=<boolean>  - Don't report problems in methods and constructors [default: false]
