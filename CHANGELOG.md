@@ -4,6 +4,7 @@
 
 Support new command-line options:
  * `--dont-require-noarg-constructor`
+ * `--dont-require-trivial-properties`
 
 ## 1.0.3 (2022-01-25)
 

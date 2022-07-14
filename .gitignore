@@ -3,6 +3,8 @@ build
 
 *.class
 
+src/test/out.txt
+
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 

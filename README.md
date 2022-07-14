@@ -29,6 +29,7 @@ Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...
   --dont-require=<regex>           - Don't report problems in Java elements whose name matches the regex
   --dont-require-private=<boolean> - Don't report problems in elements with private access [default: false]
   --dont-require-noarg-constructor=<boolean> - Don't report problems in constructors with zero formal params [default: false]
+  --dont-require-trivial-properties=<boolean> - Don't report problems about trivial getters and setters [default: false]
   --dont-require-type=<boolean>    - Don't report problems in type declarations [default: false]
   --dont-require-field=<boolean>   - Don't report problems in fields [default: false]
   --dont-require-method=<boolean>  - Don't report problems in methods and constructors [default: false]
@@ -49,6 +50,30 @@ A constructor with zero arguments is sometimes called a "default constructor".
 
 All boolean options default to false, and you can omit the `=<boolean>` to set them to true, for
 example just `--verbose`.
+
+With `--dont-require-trivial-properties`, no warnings are issued for code of the following form:
+
+```java
+public Foo getFoo() {
+    return foo;
+}
+
+public void setFoo(Foo foo) {
+    this.foo = foo;
+}
+
+public boolean isBar() {
+    return bar;
+}
+
+public boolean notBar() {
+    return !bar;
+}
+
+public boolean hasBaz() {
+    return baz;
+}
+```
 
 
 ## Incremental use
