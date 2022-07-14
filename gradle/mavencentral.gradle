@@ -14,15 +14,15 @@
 //  * Browse to https://oss.sonatype.org/#stagingRepositories, complete the Maven Central release.
 //  * Stage changes.
 //  * Add a git tag:
-//    VER=1.0.3 && git commit -m "Version $VER" && git push && git tag -a v$VER -m "Version $VER" && git push && git push --tags
-//  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 1.0.3", attach the .jar and -all.jar files from ../build/libs/
+//    VER=1.0.4 && git commit -m "Version $VER" && git push && git tag -a v$VER -m "Version $VER" && git push && git push --tags
+//  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 1.0.4", attach the .jar and -all.jar files from ../build/libs/
 
 
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 group "org.plumelib"
-version "1.0.3"
+version "1.0.4"
 
 final isSnapshot = version.contains('SNAPSHOT')
 

@@ -1,6 +1,6 @@
 # Require-Javadoc change log
 
-## 1.0.4 (??)
+## 1.0.4 (2022-07-13)
 
 Support new command-line options:
  * `--dont-require-noarg-constructor`
