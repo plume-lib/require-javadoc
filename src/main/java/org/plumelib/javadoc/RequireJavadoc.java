@@ -164,7 +164,7 @@ public class RequireJavadoc {
    * The main entry point for the require-javadoc program. See documentation at <a
    * href="https://github.com/plume-lib/require-javadoc#readme">https://github.com/plume-lib/require-javadoc#readme</a>.
    *
-   * @param args the command-line arguments; see the README file.
+   * @param args the command-line arguments; see the README file
    */
   public static void main(String[] args) {
     RequireJavadoc rj = new RequireJavadoc();
