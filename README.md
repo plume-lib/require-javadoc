@@ -157,7 +157,8 @@ Therefore, you may want to use all three.
    `require-javadoc` never requires comments on a default constructor, which does not appear in
    source code, but `javadoc -Xdoclint:all` does, reporting "warning: use of default constructor,
    which does not provide a comment".  To avoid such warnings, you can run javadoc with
-   `-Xdoclint:all,-missing` and rely on `require-javadoc` to warn about missing comments.
+   `-Xdoclint:all,-missing` and rely on `require-javadoc` to warn about missing comments
+   (but not about missing Javadoc tags such as `@param` and `@return`).
 
 
 If you want to require all Javadoc tags to be present (a stronger requirement
