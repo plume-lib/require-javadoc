@@ -144,15 +144,18 @@ Therefore, you may want to use all three.
    Javadoc will complain about missing `@param` and `@return` tags, but *not* if `@Override` is present.
    Javadoc does not warn about all Java constructs; for example, it does not process methods
    within enum constants, nor some private nested classes (even when `-private` is supplied).
- * Starting in JDK 18, `javadoc -Xdoclint` produces error messages about missing Javadoc comments.
+ * Starting in JDK 18, `javadoc -Xdoclint:all` produces error messages about missing Javadoc comments.
    This reduces the need for the `require-javadoc` program.
    The require-javadoc program is still useful for people who:
      * are using JDK 17 or earlier
      * desire finer-grained control over which program elements must be documented.
-       `-Xdoclint` provides [only](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javadoc.html#additional-options-provided-by-the-standard-doclet) `-missing`, which is very coarse.
-   The `ci-lint-diff` program is still useful for everyone.
+       `-Xdoclint` provides
+       [only](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javadoc.html#additional-options-provided-by-the-standard-doclet)
+       the key `-missing`, which is very coarse.
+   The [`ci-lint-diff`](https://github.com/plume-lib/plume-scripts/blob/master/ci-lint-diff)
+   program is still useful for everyone.
    `require-javadoc` never requires comments on a default constructor, which does not appear in
-   source code, but `javadoc -Xdoclint` does, reporting "warning: use of default constructor,
+   source code, but `javadoc -Xdoclint:all` does, reporting "warning: use of default constructor,
    which does not provide a comment".
 
 
