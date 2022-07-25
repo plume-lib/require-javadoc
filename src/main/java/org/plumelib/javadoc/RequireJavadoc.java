@@ -255,7 +255,10 @@ public class RequireJavadoc {
   }
 
   /** Collects files into the {@link #javaFiles} variable. */
-  class JavaFilesVisitor extends SimpleFileVisitor<Path> {
+  private class JavaFilesVisitor extends SimpleFileVisitor<Path> {
+
+    /** Create a new JavaFilesVisitor. */
+    JavaFilesVisitor() {}
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {

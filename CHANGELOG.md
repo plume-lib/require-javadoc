@@ -1,5 +1,9 @@
 # Require-Javadoc change log
 
+## 1.0.5 (??)
+
+Support JDK 17.
+
 ## 1.0.4 (2022-07-13)
 
 Support new command-line options:
