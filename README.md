@@ -9,7 +9,7 @@ This tool makes no requirement about the Javadoc comment, beyond its existence.
 For example, this tool does not require the existence
 of Javadoc tags such as `@param`, `@return`, etc.
 You can use Javadoc itself to enforce such a requirement,
-but Javadoc [does not warn](#comparison-to-javadoc--xwerror--xdoclintall)
+but Javadoc before JDK 18 [does not warn](#comparison-to-javadoc--xwerror--xdoclintall)
 about completely missing comments.
 
 
@@ -46,7 +46,8 @@ or any subdirectory.
 The `--dont-require` regex is matched against full package names and against simple
 (unqualified) names of classes, constructors, methods, and fields.
 
-A constructor with zero arguments is sometimes called a "default constructor".
+A constructor with zero arguments is sometimes called a "default constructor", though that term
+means a no-argument constructor that the compiler synthesized when the programmer didn't write one.
 
 All boolean options default to false, and you can omit the `=<boolean>` to set them to true, for
 example just `--verbose`.
@@ -125,19 +126,40 @@ You can supply other command-line arguments as well; for example:
 
 ## Comparison to `javadoc -Xwerror -Xdoclint:all`
 
-Neither `require-javadoc`,
+Before JDK 18,
+neither `require-javadoc`,
 nor `javadoc -Xwerror -Xdoclint:all`,
 nor `javadoc -private -Xwerror -Xdoclint:all`,
 is stronger.
+After JDK 18, `require-javadoc; is more configurable.
 Therefore, you may want to use all three.
 
- * `require-javadoc` requires that a Javadoc comment is present, but does not check the content of the comment.
-   For example, `require-javadoc` does not complain if an `@param` or `@return` tag is missing.
- * Javadoc warns about problems in existing Javadoc, but does not warn if a method is completely undocumented.
+ * `require-javadoc` requires that a Javadoc comment is present, but does not check the content
+   of the comment.  For example, `require-javadoc` does not complain if an `@param` or `@return`
+   tag is missing.
+ * Before JDK 18, Javadoc warns about problems in existing Javadoc, but does not warn if
+   a method is completely undocumented.
    With `-private`, it checks private members too.
    Without `-private`, it ensures that public members don't reference private members.
    Javadoc will complain about missing `@param` and `@return` tags, but *not* if `@Override` is present.
-   Javadoc does not warn about all Java constructs; for example, it does not process methods within enum constants, nor some private nested classes (even when `-private` is supplied).
+   Javadoc does not warn about all Java constructs; for example, it does not process methods
+   within enum constants, nor some private nested classes (even when `-private` is supplied).
+ * Starting in JDK 18, `javadoc -Xdoclint:all` produces error messages about missing Javadoc comments.
+   This reduces the need for the `require-javadoc` program.
+   The require-javadoc program is still useful for people who:
+     * are using JDK 17 or earlier
+     * desire finer-grained control over which program elements must be documented.
+       `-Xdoclint` provides
+       [only](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javadoc.html#additional-options-provided-by-the-standard-doclet)
+       the key `-missing`, which is very coarse.
+   The [`ci-lint-diff`](https://github.com/plume-lib/plume-scripts/blob/master/ci-lint-diff)
+   program is still useful for everyone.
+   `require-javadoc` never requires comments on a default constructor, which does not appear in
+   source code, but `javadoc -Xdoclint:all` does, reporting "warning: use of default constructor,
+   which does not provide a comment".  To avoid such warnings, you can run javadoc with
+   `-Xdoclint:all,-missing` and rely on `require-javadoc` to warn about missing comments
+   (but not about missing Javadoc tags such as `@param` and `@return`).
+
 
 If you want to require all Javadoc tags to be present (a stronger requirement
 than `require-javadoc` enforces), use the Javadoc tool itself.
