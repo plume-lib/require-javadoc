@@ -51,7 +51,7 @@ spotless {
   java {
     targetExclude("**/WeakIdentityHashMap.java")
     googleJavaFormat()
-    typeAnnotations()
+    formatAnnotations()
   }
 }
 
