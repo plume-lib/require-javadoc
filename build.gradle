@@ -14,7 +14,7 @@ plugins {
   id("net.ltgt.errorprone") version "2.0.2"
 
   // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.6.14'
+  id 'org.checkerframework' version '0.6.15'
 }
 
 repositories {
@@ -27,7 +27,7 @@ dependencies {
   } else {
     implementation 'org.plumelib:options:2.0.0'
   }
-  implementation group: 'com.github.javaparser', name: 'javaparser-core', version: '3.24.2'
+  implementation group: 'com.github.javaparser', name: 'javaparser-core', version: '3.24.4'
 }
 
 // To upload to Maven Central, see instructions in the file.
@@ -43,7 +43,7 @@ application {
 /// Error Prone linter
 
 dependencies {
-  errorprone("com.google.errorprone:error_prone_core:2.14.0")
+  errorprone("com.google.errorprone:error_prone_core:2.15.0")
 }
 tasks.withType(JavaCompile).configureEach {
   options.compilerArgs << "-Xlint:all,-processing" << "-Werror"
