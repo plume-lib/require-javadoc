@@ -345,7 +345,7 @@ public class RequireJavadoc {
   }
 
   /** The type of property method: a getter or setter. */
-  enum PropertyType {
+  enum PropertyKind {
     /** A method of the form {@code SomeType getFoo()}. */
     GETTER("get", 0, false),
     /** A method of the form {@code boolean hasFoo()}. */
@@ -367,13 +367,13 @@ public class RequireJavadoc {
     final boolean voidReturn;
 
     /**
-     * Create a new PropertyType.
+     * Create a new PropertyKind.
      *
      * @param prefix the prefix for the method name: "get", "has", "is", "not", or "set"
      * @param requiredParams the number of required formal parameters: 0 or 1
      * @param voidReturn whether the return type is void
      */
-    PropertyType(String prefix, int requiredParams, boolean voidReturn) {
+    PropertyKind(String prefix, int requiredParams, boolean voidReturn) {
       this.prefix = prefix;
       this.requiredParams = requiredParams;
       this.voidReturn = voidReturn;
@@ -400,19 +400,19 @@ public class RequireJavadoc {
         || methodName.startsWith("has")
         || methodName.startsWith("is")
         || methodName.startsWith("not")) {
-      PropertyType getterType =
+      PropertyKind getterType =
           methodName.startsWith("get")
-              ? PropertyType.GETTER
+              ? PropertyKind.GETTER
               : methodName.startsWith("has")
-                  ? PropertyType.GETTER_HAS
-                  : methodName.startsWith("is") ? PropertyType.GETTER_IS : PropertyType.GETTER_NOT;
+                  ? PropertyKind.GETTER_HAS
+                  : methodName.startsWith("is") ? PropertyKind.GETTER_IS : PropertyKind.GETTER_NOT;
       String propertyName = propertyName(md, getterType);
       if (propertyName == null) {
         return false;
       }
-      if (getterType == PropertyType.GETTER_HAS
-          || getterType == PropertyType.GETTER_IS
-          || getterType == PropertyType.GETTER_NOT) {
+      if (getterType == PropertyKind.GETTER_HAS
+          || getterType == PropertyKind.GETTER_IS
+          || getterType == PropertyKind.GETTER_NOT) {
         if (!md.getType().toString().equals("boolean")) {
           return false;
         }
@@ -427,7 +427,7 @@ public class RequireJavadoc {
       }
       Expression returnExpr = oReturnExpr.get();
       // Does not handle parentheses.
-      if (getterType == PropertyType.GETTER_NOT) {
+      if (getterType == PropertyKind.GETTER_NOT) {
         if (!(returnExpr instanceof UnaryExpr)) {
           return false;
         }
@@ -455,7 +455,7 @@ public class RequireJavadoc {
       }
       return true;
     } else if (methodName.startsWith("set")) {
-      String propertyName = propertyName(md, PropertyType.SETTER);
+      String propertyName = propertyName(md, PropertyKind.SETTER);
       if (propertyName == null) {
         return false;
       }
@@ -501,16 +501,16 @@ public class RequireJavadoc {
    * <p>Examines the method's name and signature, but not its body.
    *
    * @param md the method to test
-   * @param propertyType the type of property method
+   * @param propertyKind the type of property method
    * @return the lower-cased name of the property, or null
    */
-  @Nullable String propertyName(MethodDeclaration md, PropertyType propertyType) {
+  @Nullable String propertyName(MethodDeclaration md, PropertyKind propertyKind) {
     String methodName = md.getNameAsString();
-    if (!methodName.startsWith(propertyType.prefix)) {
+    if (!methodName.startsWith(propertyKind.prefix)) {
       return null;
     }
     @SuppressWarnings("index") // https://github.com/typetools/checker-framework/issues/5201
-    String upperCamelCaseProperty = methodName.substring(propertyType.prefix.length());
+    String upperCamelCaseProperty = methodName.substring(propertyKind.prefix.length());
     if (upperCamelCaseProperty.length() == 0) {
       return null;
     }
@@ -522,7 +522,7 @@ public class RequireJavadoc {
             + Character.toLowerCase(upperCamelCaseProperty.charAt(0))
             + upperCamelCaseProperty.substring(1);
     NodeList<Parameter> parameters = md.getParameters();
-    if (parameters.size() != propertyType.requiredParams) {
+    if (parameters.size() != propertyKind.requiredParams) {
       return null;
     }
     if (parameters.size() == 1) {
@@ -535,7 +535,7 @@ public class RequireJavadoc {
     // that the type is correct, except that "isFoo()" and "notFoo()" accessors
     // should have boolean return type, which is verified elsewhere.)
     Type returnType = md.getType();
-    if (propertyType.voidReturn != returnType.isVoidType()) {
+    if (propertyKind.voidReturn != returnType.isVoidType()) {
       return null;
     }
     return lowerCamelCaseProperty;
