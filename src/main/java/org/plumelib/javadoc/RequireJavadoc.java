@@ -33,6 +33,7 @@ import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import java.io.File;
@@ -348,50 +349,60 @@ public class RequireJavadoc {
     return shouldExclude(path.toString());
   }
 
-  /** The type of property method: a getter or setter. */
-  enum PropertyType {
-    /** A method of the form {@code SomeType getFoo()}. */
-    GETTER("get", 0, false),
-    /** A method of the form {@code boolean hasFoo()}. */
-    GETTER_HAS("has", 0, false),
-    /** A method of the form {@code boolean isFoo()}. */
-    GETTER_IS("is", 0, false),
-    /** A method of the form {@code boolean notFoo()}. */
-    GETTER_NOT("not", 0, false),
-    /** A method of the form {@code SomeType foo()}. */
-    GETTER_NO_PREFIX("", 0, false),
-    /** A method of the form {@code void setFoo(SomeType arg)}. */
-    SETTER("set", 1, true);
+  /** A property method's return type. */
+  enum ReturnType {
+    /** The return type is void. */
+    VOID,
+    /** The return type is boolean. */
+    BOOLEAN,
+    /** The return type is non-void. */
+    NON_VOID;
+  }
 
-    /** The prefix for the method name: "get", "has", "is", "not", or "set". */
+  /** The type of property method: a getter or setter. */
+  enum PropertyKind {
+    /** A method of the form {@code SomeType getFoo()}. */
+    GETTER("get", 0, ReturnType.NON_VOID),
+    /** A method of the form {@code SomeType foo()}. */
+    GETTER_NO_PREFIX("", 0, ReturnType.NON_VOID),
+    /** A method of the form {@code boolean hasFoo()}. */
+    GETTER_HAS("has", 0, ReturnType.BOOLEAN),
+    /** A method of the form {@code boolean isFoo()}. */
+    GETTER_IS("is", 0, ReturnType.BOOLEAN),
+    /** A method of the form {@code boolean notFoo()}. */
+    GETTER_NOT("not", 0, ReturnType.BOOLEAN),
+    /** A method of the form {@code void setFoo(SomeType arg)}. */
+    SETTER("set", 1, ReturnType.VOID);
+
+    /** The prefix for the method name: "get", "", "has", "is", "not", or "set". */
     final String prefix;
 
     /** The number of required formal parameters: 0 or 1. */
     final int requiredParams;
 
-    /** Whether the return type is void. */
-    final boolean voidReturn;
+    /** The return type. */
+    final ReturnType returnType;
 
     /**
-     * Create a new PropertyType.
+     * Create a new PropertyKind.
      *
      * @param prefix the prefix for the method name: "get", "has", "is", "not", or "set"
      * @param requiredParams the number of required formal parameters: 0 or 1
-     * @param voidReturn whether the return type is void
+     * @param returnType the return type
      */
-    PropertyType(String prefix, int requiredParams, boolean voidReturn) {
+    PropertyKind(String prefix, int requiredParams, ReturnType returnType) {
       this.prefix = prefix;
       this.requiredParams = requiredParams;
-      this.voidReturn = voidReturn;
+      this.returnType = returnType;
     }
 
     /**
-     * Return the PropertyType corresponding to the given method.
+     * Return the PropertyKind corresponding to the given method.
      *
      * @param methodName the name of the method
      * @return the Propertytype for the given method
      */
-    static PropertyType fromMethodName(String methodName) {
+    static PropertyKind fromMethodName(String methodName) {
       if (methodName.startsWith("get")) {
         return GETTER;
       } else if (methodName.startsWith("has")) {
@@ -417,6 +428,25 @@ public class RequireJavadoc {
     }
   }
 
+  /** A property/field name, and the kind of accessor method. */
+  static class PropertyNameAndKind {
+    /** The name of the property/field being accessed. */
+    final String propertyName;
+    /** The kind of accessor method. */
+    final PropertyKind kind;
+
+    /**
+     * Create a PropertyNameAndKind.
+     *
+     * @param propertyName the name of the property/field being accessed
+     * @param kind the kind of accessor method
+     */
+    PropertyNameAndKind(String propertyName, PropertyKind kind) {
+      this.propertyName = propertyName;
+      this.kind = kind;
+    }
+  }
+
   /**
    * Return true if this method declaration is a trivial getter or setter.
    *
@@ -434,18 +464,11 @@ public class RequireJavadoc {
    */
   boolean isTrivialGetterOrSetter(MethodDeclaration md) {
     String methodName = md.getNameAsString();
-    PropertyType propertyType = PropertyType.fromMethodName(methodName);
-    if (propertyType.isGetter()) {
-      String propertyName = propertyName(md, propertyType);
+    PropertyKind propertyKind = PropertyKind.fromMethodName(methodName);
+    if (propertyKind.isGetter()) {
+      String propertyName = propertyName(md, propertyKind);
       if (propertyName == null) {
         return false;
-      }
-      if (propertyType == PropertyType.GETTER_HAS
-          || propertyType == PropertyType.GETTER_IS
-          || propertyType == PropertyType.GETTER_NOT) {
-        if (!md.getType().toString().equals("boolean")) {
-          return false;
-        }
       }
       Statement statement = getOnlyStatement(md);
       if (!(statement instanceof ReturnStmt)) {
@@ -457,7 +480,7 @@ public class RequireJavadoc {
       }
       Expression returnExpr = oReturnExpr.get();
       // Does not handle parentheses.
-      if (propertyType == PropertyType.GETTER_NOT) {
+      if (propertyKind == PropertyKind.GETTER_NOT) {
         if (!(returnExpr instanceof UnaryExpr)) {
           return false;
         }
@@ -485,7 +508,7 @@ public class RequireJavadoc {
       }
       return true;
     } else if (methodName.startsWith("set")) {
-      String propertyName = propertyName(md, propertyType);
+      String propertyName = propertyName(md, propertyKind);
       if (propertyName == null) {
         return false;
       }
@@ -531,21 +554,21 @@ public class RequireJavadoc {
    * <p>Examines the method's name and signature, but not its body.
    *
    * @param md the method to test
-   * @param propertyType the type of property method
+   * @param propertyKind the type of property method
    * @return the lower-cased name of the property, or null
    */
-  @Nullable String propertyName(MethodDeclaration md, PropertyType propertyType) {
+  @Nullable String propertyName(MethodDeclaration md, PropertyKind propertyKind) {
     String methodName = md.getNameAsString();
-    if (!methodName.startsWith(propertyType.prefix)) {
+    if (!methodName.startsWith(propertyKind.prefix)) {
       return null;
     }
     @SuppressWarnings("index") // https://github.com/typetools/checker-framework/issues/5201
-    String upperCamelCaseProperty = methodName.substring(propertyType.prefix.length());
+    String upperCamelCaseProperty = methodName.substring(propertyKind.prefix.length());
     if (upperCamelCaseProperty.length() == 0) {
       return null;
     }
     String lowerCamelCaseProperty;
-    if (propertyType == PropertyType.GETTER_NO_PREFIX) {
+    if (propertyKind == PropertyKind.GETTER_NO_PREFIX) {
       lowerCamelCaseProperty = upperCamelCaseProperty;
     } else {
       if (!Character.isUpperCase(upperCamelCaseProperty.charAt(0))) {
@@ -557,7 +580,7 @@ public class RequireJavadoc {
               + upperCamelCaseProperty.substring(1);
     }
     NodeList<Parameter> parameters = md.getParameters();
-    if (parameters.size() != propertyType.requiredParams) {
+    if (parameters.size() != propertyKind.requiredParams) {
       return null;
     }
     if (parameters.size() == 1) {
@@ -570,8 +593,24 @@ public class RequireJavadoc {
     // that the type is correct, except that "isFoo()" and "notFoo()" accessors
     // should have boolean return type, which is verified elsewhere.)
     Type returnType = md.getType();
-    if (propertyType.voidReturn != returnType.isVoidType()) {
-      return null;
+    switch (propertyKind.returnType) {
+      case VOID:
+        if (!returnType.isVoidType()) {
+          return null;
+        }
+        break;
+      case BOOLEAN:
+        if (!returnType.equals(PrimitiveType.booleanType())) {
+          return null;
+        }
+        break;
+      case NON_VOID:
+        if (returnType.isVoidType()) {
+          return null;
+        }
+        break;
+      default:
+        throw new Error("Unexpected enum value " + propertyKind.returnType);
     }
     return lowerCamelCaseProperty;
   }
