@@ -33,6 +33,7 @@ import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import java.io.File;
@@ -344,18 +345,28 @@ public class RequireJavadoc {
     return shouldExclude(path.toString());
   }
 
+  /** A property method's return type. */
+  enum ReturnType {
+    /** The return type is void. */
+    VOID,
+    /** The return type is boolean. */
+    BOOLEAN,
+    /** The return type is non-void. */
+    NON_VOID;
+  }
+
   /** The type of property method: a getter or setter. */
   enum PropertyKind {
     /** A method of the form {@code SomeType getFoo()}. */
-    GETTER("get", 0, false),
+    GETTER("get", 0, ReturnType.NON_VOID),
     /** A method of the form {@code boolean hasFoo()}. */
-    GETTER_HAS("has", 0, false),
+    GETTER_HAS("has", 0, ReturnType.BOOLEAN),
     /** A method of the form {@code boolean isFoo()}. */
-    GETTER_IS("is", 0, false),
+    GETTER_IS("is", 0, ReturnType.BOOLEAN),
     /** A method of the form {@code boolean notFoo()}. */
-    GETTER_NOT("not", 0, false),
+    GETTER_NOT("not", 0, ReturnType.BOOLEAN),
     /** A method of the form {@code void setFoo(SomeType arg)}. */
-    SETTER("set", 1, true);
+    SETTER("set", 1, ReturnType.VOID);
 
     /** The prefix for the method name: "get", "has", "is", "not", or "set". */
     final String prefix;
@@ -363,20 +374,20 @@ public class RequireJavadoc {
     /** The number of required formal parameters: 0 or 1. */
     final int requiredParams;
 
-    /** Whether the return type is void. */
-    final boolean voidReturn;
+    /** The return type. */
+    final ReturnType returnType;
 
     /**
      * Create a new PropertyKind.
      *
      * @param prefix the prefix for the method name: "get", "has", "is", "not", or "set"
      * @param requiredParams the number of required formal parameters: 0 or 1
-     * @param voidReturn whether the return type is void
+     * @param returnType the return type
      */
-    PropertyKind(String prefix, int requiredParams, boolean voidReturn) {
+    PropertyKind(String prefix, int requiredParams, ReturnType returnType) {
       this.prefix = prefix;
       this.requiredParams = requiredParams;
-      this.voidReturn = voidReturn;
+      this.returnType = returnType;
     }
   }
 
@@ -409,13 +420,6 @@ public class RequireJavadoc {
       String propertyName = propertyName(md, getterType);
       if (propertyName == null) {
         return false;
-      }
-      if (getterType == PropertyKind.GETTER_HAS
-          || getterType == PropertyKind.GETTER_IS
-          || getterType == PropertyKind.GETTER_NOT) {
-        if (!md.getType().toString().equals("boolean")) {
-          return false;
-        }
       }
       Statement statement = getOnlyStatement(md);
       if (!(statement instanceof ReturnStmt)) {
@@ -535,8 +539,24 @@ public class RequireJavadoc {
     // that the type is correct, except that "isFoo()" and "notFoo()" accessors
     // should have boolean return type, which is verified elsewhere.)
     Type returnType = md.getType();
-    if (propertyKind.voidReturn != returnType.isVoidType()) {
-      return null;
+    switch (propertyKind.returnType) {
+      case VOID:
+        if (!returnType.isVoidType()) {
+          return null;
+        }
+        break;
+      case BOOLEAN:
+        if (!returnType.equals(PrimitiveType.booleanType())) {
+          return null;
+        }
+        break;
+      case NON_VOID:
+        if (returnType.isVoidType()) {
+          return null;
+        }
+        break;
+      default:
+        throw new Error("Unexpected enum value " + propertyKind.returnType);
     }
     return lowerCamelCaseProperty;
   }
