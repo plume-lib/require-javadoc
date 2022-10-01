@@ -97,11 +97,11 @@ public class RequireJavadoc {
    * <p>Trivial getters and setters are of the form:
    *
    * <pre>{@code
-   * Foo getFoo() {
-   *   return this.foo;
+   * SomeType getFoo() {
+   *   return foo;
    * }
    *
-   * void setFoo(Foo foo) {
+   * void setFoo(SomeType foo) {
    *   this.foo = foo;
    * }
    *
@@ -346,7 +346,7 @@ public class RequireJavadoc {
 
   /** The type of property method: a getter or setter. */
   enum PropertyType {
-    /** A method of the form {@code int getFoo()}. */
+    /** A method of the form {@code SomeType getFoo()}. */
     GETTER("get", 0, false),
     /** A method of the form {@code boolean hasFoo()}. */
     GETTER_HAS("has", 0, false),
@@ -354,7 +354,7 @@ public class RequireJavadoc {
     GETTER_IS("is", 0, false),
     /** A method of the form {@code boolean notFoo()}. */
     GETTER_NOT("not", 0, false),
-    /** A method of the form {@code void setFoo(int arg)}. */
+    /** A method of the form {@code void setFoo(SomeType arg)}. */
     SETTER("set", 1, true);
 
     /** The prefix for the method name: "get", "has", "is", "not", or "set". */
@@ -384,11 +384,11 @@ public class RequireJavadoc {
    * Return true if this method declaration is a trivial getter or setter.
    *
    * <ul>
-   *   <li>A trivial getter is named "getFoo", "hasFoo", "isFoo", or "notFoo", has no formal
-   *       parameters, and has a body of the form "return foo" or "return this.foo" (except for
-   *       "notFoo", in which case the body is negated).
-   *   <li>A trivial setter is named "setFoo", has one formal parameter named "foo", and has a body
-   *       of the form "this.foo = foo".
+   *   <li>A trivial getter is named {@code getFoo}, {@code hasFoo}, {@code isFoo}, or {@code
+   *       notFoo}, has no formal parameters, and has a body of the form {@code return foo} or
+   *       {@code return this.foo} (except for {@code notFoo}, in which case the body is negated).
+   *   <li>A trivial setter is named {@code setFoo}, has one formal parameter named {@code foo}, and
+   *       has a body of the form {@code this.foo = foo}.
    * </ul>
    *
    * @param md the method to check

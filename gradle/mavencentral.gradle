@@ -8,6 +8,7 @@
 //  * Use Java 8.
 //  * git pull
 //  * Update the version number in ../README.md and in this file (multiple times in each).
+//  * Update the version number in ../src/test/README .
 //  * Update ../CHANGELOG.md .
 //  * Save changes.
 //  * Run in the top-level directory:  ./gradlew javadocWeb && ./gradlew clean publish shadowJar
