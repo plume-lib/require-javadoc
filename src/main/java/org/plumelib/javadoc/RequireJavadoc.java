@@ -97,11 +97,15 @@ public class RequireJavadoc {
    * <p>Trivial getters and setters are of the form:
    *
    * <pre>{@code
-   * Foo getFoo() {
-   *   return this.foo;
+   * SomeType getFoo() {
+   *   return foo;
    * }
    *
-   * void setFoo(Foo foo) {
+   * SomeType foo() {
+   *   return foo;
+   * }
+   *
+   * void setFoo(SomeType foo) {
    *   this.foo = foo;
    * }
    *
@@ -346,7 +350,7 @@ public class RequireJavadoc {
 
   /** The type of property method: a getter or setter. */
   enum PropertyType {
-    /** A method of the form {@code int getFoo()}. */
+    /** A method of the form {@code SomeType getFoo()}. */
     GETTER("get", 0, false),
     /** A method of the form {@code boolean hasFoo()}. */
     GETTER_HAS("has", 0, false),
@@ -354,7 +358,9 @@ public class RequireJavadoc {
     GETTER_IS("is", 0, false),
     /** A method of the form {@code boolean notFoo()}. */
     GETTER_NOT("not", 0, false),
-    /** A method of the form {@code void setFoo(int arg)}. */
+    /** A method of the form {@code SomeType foo()}. */
+    GETTER_NO_PREFIX("", 0, false),
+    /** A method of the form {@code void setFoo(SomeType arg)}. */
     SETTER("set", 1, true);
 
     /** The prefix for the method name: "get", "has", "is", "not", or "set". */
@@ -378,17 +384,49 @@ public class RequireJavadoc {
       this.requiredParams = requiredParams;
       this.voidReturn = voidReturn;
     }
+
+    /**
+     * Return the PropertyType corresponding to the given method.
+     *
+     * @param methodName the name of the method
+     * @return the Propertytype for the given method
+     */
+    static PropertyType fromMethodName(String methodName) {
+      if (methodName.startsWith("get")) {
+        return GETTER;
+      } else if (methodName.startsWith("has")) {
+        return GETTER_HAS;
+      } else if (methodName.startsWith("is")) {
+        return GETTER_IS;
+      } else if (methodName.startsWith("not")) {
+        return GETTER_NOT;
+      } else if (methodName.startsWith("set")) {
+        return SETTER;
+      } else {
+        return GETTER_NO_PREFIX;
+      }
+    }
+
+    /**
+     * Returns true if this is a getter.
+     *
+     * @return true if this is a getter
+     */
+    boolean isGetter() {
+      return this != SETTER;
+    }
   }
 
   /**
    * Return true if this method declaration is a trivial getter or setter.
    *
    * <ul>
-   *   <li>A trivial getter is named "getFoo", "hasFoo", "isFoo", or "notFoo", has no formal
-   *       parameters, and has a body of the form "return foo" or "return this.foo" (except for
-   *       "notFoo", in which case the body is negated).
-   *   <li>A trivial setter is named "setFoo", has one formal parameter named "foo", and has a body
-   *       of the form "this.foo = foo".
+   *   <li>A trivial getter is named {@code getFoo}, {@code foo}, {@code hasFoo}, {@code isFoo}, or
+   *       {@code notFoo}, has no formal parameters, and has a body of the form {@code return foo}
+   *       or {@code return this.foo} (except for {@code notFoo}, in which case the body is
+   *       negated).
+   *   <li>A trivial setter is named {@code setFoo}, has one formal parameter named {@code foo}, and
+   *       has a body of the form {@code this.foo = foo}.
    * </ul>
    *
    * @param md the method to check
@@ -396,23 +434,15 @@ public class RequireJavadoc {
    */
   boolean isTrivialGetterOrSetter(MethodDeclaration md) {
     String methodName = md.getNameAsString();
-    if (methodName.startsWith("get")
-        || methodName.startsWith("has")
-        || methodName.startsWith("is")
-        || methodName.startsWith("not")) {
-      PropertyType getterType =
-          methodName.startsWith("get")
-              ? PropertyType.GETTER
-              : methodName.startsWith("has")
-                  ? PropertyType.GETTER_HAS
-                  : methodName.startsWith("is") ? PropertyType.GETTER_IS : PropertyType.GETTER_NOT;
-      String propertyName = propertyName(md, getterType);
+    PropertyType propertyType = PropertyType.fromMethodName(methodName);
+    if (propertyType.isGetter()) {
+      String propertyName = propertyName(md, propertyType);
       if (propertyName == null) {
         return false;
       }
-      if (getterType == PropertyType.GETTER_HAS
-          || getterType == PropertyType.GETTER_IS
-          || getterType == PropertyType.GETTER_NOT) {
+      if (propertyType == PropertyType.GETTER_HAS
+          || propertyType == PropertyType.GETTER_IS
+          || propertyType == PropertyType.GETTER_NOT) {
         if (!md.getType().toString().equals("boolean")) {
           return false;
         }
@@ -427,7 +457,7 @@ public class RequireJavadoc {
       }
       Expression returnExpr = oReturnExpr.get();
       // Does not handle parentheses.
-      if (getterType == PropertyType.GETTER_NOT) {
+      if (propertyType == PropertyType.GETTER_NOT) {
         if (!(returnExpr instanceof UnaryExpr)) {
           return false;
         }
@@ -455,7 +485,7 @@ public class RequireJavadoc {
       }
       return true;
     } else if (methodName.startsWith("set")) {
-      String propertyName = propertyName(md, PropertyType.SETTER);
+      String propertyName = propertyName(md, propertyType);
       if (propertyName == null) {
         return false;
       }
@@ -514,13 +544,18 @@ public class RequireJavadoc {
     if (upperCamelCaseProperty.length() == 0) {
       return null;
     }
-    if (!Character.isUpperCase(upperCamelCaseProperty.charAt(0))) {
-      return null;
+    String lowerCamelCaseProperty;
+    if (propertyType == PropertyType.GETTER_NO_PREFIX) {
+      lowerCamelCaseProperty = upperCamelCaseProperty;
+    } else {
+      if (!Character.isUpperCase(upperCamelCaseProperty.charAt(0))) {
+        return null;
+      }
+      lowerCamelCaseProperty =
+          ""
+              + Character.toLowerCase(upperCamelCaseProperty.charAt(0))
+              + upperCamelCaseProperty.substring(1);
     }
-    String lowerCamelCaseProperty =
-        ""
-            + Character.toLowerCase(upperCamelCaseProperty.charAt(0))
-            + upperCamelCaseProperty.substring(1);
     NodeList<Parameter> parameters = md.getParameters();
     if (parameters.size() != propertyType.requiredParams) {
       return null;

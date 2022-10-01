@@ -9,9 +9,16 @@ class TrivialProperties {
   /** dummy comment */
   int barOK;
   /** dummy comment */
+  int issueNumberOK;
+  /** dummy comment */
   boolean bazOK;
   /** dummy comment */
   boolean quuxOK;
+  // TODO: No tests for these two fields yet.
+  /** dummy comment */
+  boolean isEnabled;
+  /** dummy comment */
+  boolean enabled;
 
   /** dummy comment */
   Foo foo1;
@@ -46,6 +53,10 @@ class TrivialProperties {
     return this.fooOK;
   }
 
+  public Foo fooOK() {
+    return this.fooOK;
+  }
+
   public void setFooOK(Foo fooOK) {
     this.fooOK = fooOK;
   }
@@ -54,8 +65,24 @@ class TrivialProperties {
     return barOK;
   }
 
+  public int barOK() {
+    return barOK;
+  }
+
   public void setBarOK(int barOK) {
     this.barOK = barOK;
+  }
+
+  public int getIssueNumberOK() {
+    return issueNumberOK;
+  }
+
+  public int issueNumberOK() {
+    return issueNumberOK;
+  }
+
+  public void setIssueNumberOK(int issueNumberOK) {
+    this.issueNumberOK = issueNumberOK;
   }
 
   public boolean getBazOK() {
@@ -96,6 +123,10 @@ class TrivialProperties {
     return this.bar1;
   }
 
+  public int foo1() {
+    return this.bar1;
+  }
+
   public void setFoo1(int foo1) {
     this.bar1 = foo1;
   }
@@ -104,8 +135,24 @@ class TrivialProperties {
     return baz1;
   }
 
+  public boolean bar1() {
+    return baz1;
+  }
+
   public void setBar1(boolean bar1) {
     baz1 = bar1;
+  }
+
+  public boolean getIssueNumber1() {
+    return baz1;
+  }
+
+  public boolean issueNumber1() {
+    return baz1;
+  }
+
+  public void setIssueNumber1(boolean issueNumber1) {
+    baz1 = issueNumber1;
   }
 
   public Foo hasFoo1() {
@@ -114,6 +161,10 @@ class TrivialProperties {
 
   public int hasBar1() {
     return bar1;
+  }
+
+  public int hasIssueNumber1() {
+    return issueNumber1;
   }
 
   public int hasBaz1() {
@@ -126,6 +177,10 @@ class TrivialProperties {
 
   public int isBar1() {
     return bar1;
+  }
+
+  public int isIssueNumber1() {
+    return issueNumber1;
   }
 
   public int isBaz1() {
@@ -203,6 +258,11 @@ class TrivialProperties {
     return this.foo3;
   }
 
+  public Foo foo3() {
+    System.out.println("called foo3");
+    return this.foo3;
+  }
+
   public void setFoo3(Foo foo3) {
     System.out.println("called setFoo3");
     this.foo3 = foo3;
@@ -210,6 +270,11 @@ class TrivialProperties {
 
   public int getBar3() {
     System.out.println("called getBar3");
+    return bar3;
+  }
+
+  public int bar3() {
+    System.out.println("called bar3");
     return bar3;
   }
 
