@@ -150,16 +150,16 @@ public class RequireJavadoc {
   public boolean verbose = false;
 
   /** All the errors this program will report. */
-  List<String> errors = new ArrayList<>();
+  private List<String> errors = new ArrayList<>();
 
   /** The Java files to be checked. */
-  List<Path> javaFiles = new ArrayList<Path>();
+  private List<Path> javaFiles = new ArrayList<Path>();
 
   /** The current working directory, for making relative pathnames. */
-  Path workingDirRelative = Paths.get("");
+  private Path workingDirRelative = Paths.get("");
 
   /** The current working directory, for making relative pathnames. */
-  Path workingDirAbsolute = Paths.get("").toAbsolutePath();
+  private Path workingDirAbsolute = Paths.get("").toAbsolutePath();
 
   /**
    * The main entry point for the require-javadoc program. See documentation at <a
@@ -259,7 +259,7 @@ public class RequireJavadoc {
   private class JavaFilesVisitor extends SimpleFileVisitor<Path> {
 
     /** Create a new JavaFilesVisitor. */
-    JavaFilesVisitor() {}
+    public JavaFilesVisitor() {}
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
@@ -305,7 +305,7 @@ public class RequireJavadoc {
    * @param name the name of a Java element. It is a simple name, except for packages.
    * @return true if no warnings should be issued about the element
    */
-  boolean shouldNotRequire(String name) {
+  private boolean shouldNotRequire(String name) {
     if (dont_require == null) {
       return false;
     }
@@ -323,7 +323,7 @@ public class RequireJavadoc {
    * @param fileName the name of a Java file or directory
    * @return true if the file or directory should be skipped
    */
-  boolean shouldExclude(String fileName) {
+  private boolean shouldExclude(String fileName) {
     if (exclude == null) {
       return false;
     }
@@ -341,12 +341,12 @@ public class RequireJavadoc {
    * @param path a Java file or directory
    * @return true if the file or directory should be skipped
    */
-  boolean shouldExclude(Path path) {
+  private boolean shouldExclude(Path path) {
     return shouldExclude(path.toString());
   }
 
   /** A property method's return type. */
-  enum ReturnType {
+  private enum ReturnType {
     /** The return type is void. */
     VOID,
     /** The return type is boolean. */
@@ -356,7 +356,7 @@ public class RequireJavadoc {
   }
 
   /** The type of property method: a getter or setter. */
-  enum PropertyKind {
+  private enum PropertyKind {
     /** A method of the form {@code SomeType getFoo()}. */
     GETTER("get", 0, ReturnType.NON_VOID),
     /** A method of the form {@code boolean hasFoo()}. */
@@ -405,7 +405,7 @@ public class RequireJavadoc {
    * @param md the method to check
    * @return true if this method is a trivial getter on setter
    */
-  boolean isTrivialGetterOrSetter(MethodDeclaration md) {
+  private boolean isTrivialGetterOrSetter(MethodDeclaration md) {
     String methodName = md.getNameAsString();
     if (methodName.startsWith("get")
         || methodName.startsWith("has")
@@ -442,6 +442,7 @@ public class RequireJavadoc {
         returnExpr = unary.getExpression();
       }
       String returnName;
+      // Does not handle parentheses.
       if (returnExpr instanceof NameExpr) {
         returnName = ((NameExpr) returnExpr).getNameAsString();
       } else if (returnExpr instanceof FieldAccessExpr) {
@@ -567,7 +568,7 @@ public class RequireJavadoc {
    * @param md a method declaration
    * @return its sole statement, or null
    */
-  @Nullable Statement getOnlyStatement(MethodDeclaration md) {
+  private @Nullable Statement getOnlyStatement(MethodDeclaration md) {
     Optional<BlockStmt> body = md.getBody();
     if (!body.isPresent()) {
       return null;
@@ -583,14 +584,14 @@ public class RequireJavadoc {
   private class RequireJavadocVisitor extends VoidVisitorAdapter<Void> {
 
     /** The file being visited. Used for constructing error messages. */
-    Path filename;
+    private Path filename;
 
     /**
      * Create a new RequireJavadocVisitor.
      *
      * @param filename the file being visited; used for diagnostic messages
      */
-    RequireJavadocVisitor(Path filename) {
+    public RequireJavadocVisitor(Path filename) {
       this.filename = filename;
     }
 
@@ -821,7 +822,7 @@ public class RequireJavadoc {
    * @param n the node to check for a Javadoc comment
    * @return true if this node has a Javadoc comment
    */
-  boolean hasJavadocComment(Node n) {
+  private boolean hasJavadocComment(Node n) {
     if (n instanceof NodeWithJavadoc && ((NodeWithJavadoc<?>) n).hasJavaDocComment()) {
       return true;
     }
