@@ -14,7 +14,6 @@ class TrivialProperties {
   boolean bazOK;
   /** dummy comment */
   boolean quuxOK;
-  // TODO: No tests for these two fields yet.
   /** dummy comment */
   boolean isEnabled;
   /** dummy comment */
@@ -28,6 +27,10 @@ class TrivialProperties {
   boolean baz1;
   /** dummy comment */
   boolean quux1;
+  /** dummy comment */
+  boolean isEnabled1;
+  /** dummy comment */
+  boolean enabled1;
 
   /** dummy comment */
   Foo foo2;
@@ -117,6 +120,46 @@ class TrivialProperties {
     return !this.quuxOK;
   }
 
+  public boolean getIsEnabledOK() {
+    return isEnabledOK;
+  }
+
+  public void setIsEnabledOK(final boolean isEnabledOK) {
+    this.isEnabledOK = isEnabledOK;
+  }
+
+  public boolean hasIsEnabledOK() {
+    return isEnabledOK;
+  }
+
+  public boolean isIsEnabledOK() {
+    return isEnabledOK;
+  }
+
+  public boolean notIsEnabledOK() {
+    return !isEnabledOK;
+  }
+
+  public boolean getEnabledOK() {
+    return enabledOK;
+  }
+
+  public void setEnabledOK(final boolean enabledOK) {
+    this.enabledOK = enabledOK;
+  }
+
+  public boolean hasEnabledOK() {
+    return enabledOK;
+  }
+
+  public boolean isEnabledOK() {
+    return enabledOK;
+  }
+
+  public boolean notEnabledOK() {
+    return !enabledOK;
+  }
+
   // Not OK
 
   public int getFoo1() {
@@ -169,6 +212,14 @@ class TrivialProperties {
 
   public int hasBaz1() {
     return bar1;
+  }
+
+  public int hasEnabled1() {
+    return isEnabled1;
+  }
+
+  public int hasIsEnabled1() {
+    return enabled1;
   }
 
   public Foo isFoo1() {
