@@ -605,6 +605,10 @@ public class RequireJavadoc {
    * @return the name of the property, or null
    */
   private @Nullable String propertyName(MethodDeclaration md, PropertyKind propertyKind) {
+    NodeList<Parameter> parameters = md.getParameters();
+    if (parameters.size() != propertyKind.requiredParams) {
+      return null;
+    }
     String methodName = md.getNameAsString();
     assert methodName.startsWith(propertyKind.prefix);
     @SuppressWarnings("index") // https://github.com/typetools/checker-framework/issues/5201
@@ -613,10 +617,6 @@ public class RequireJavadoc {
       return null;
     }
     if (!Character.isUpperCase(upperCamelCaseProperty.charAt(0))) {
-      return null;
-    }
-    NodeList<Parameter> parameters = md.getParameters();
-    if (parameters.size() != propertyKind.requiredParams) {
       return null;
     }
     String lowerCamelCaseProperty =
