@@ -443,7 +443,6 @@ public class RequireJavadoc {
    *       has a body of the form {@code this.foo = foo}.
    * </ul>
    *
-   * @see #isTrivialGetterOrSetter(MethodDeclaration)
    * @param md the method to check
    * @return true if this method is a trivial getter or setter
    */
@@ -623,10 +622,9 @@ public class RequireJavadoc {
     }
     if (propertyKind == PropertyKind.GETTER_NO_PREFIX) {
       return upperCamelCaseProperty;
+    } else if (!Character.isUpperCase(upperCamelCaseProperty.charAt(0))) {
+      return null;
     } else {
-      if (!Character.isUpperCase(upperCamelCaseProperty.charAt(0))) {
-        return null;
-      }
       return ""
           + Character.toLowerCase(upperCamelCaseProperty.charAt(0))
           + upperCamelCaseProperty.substring(1);
