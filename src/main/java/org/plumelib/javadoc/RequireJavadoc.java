@@ -444,7 +444,7 @@ public class RequireJavadoc {
    * </ul>
    *
    * @param md the method to check
-   * @return true if this method is a trivial getter on setter
+   * @return true if this method is a trivial getter or setter
    */
   private boolean isTrivialGetterOrSetter(MethodDeclaration md) {
     PropertyKind kind = PropertyKind.fromMethodDeclaration(md);
@@ -457,20 +457,12 @@ public class RequireJavadoc {
   }
 
   /**
-   * Return true if this method declaration is a trivial getter or setter.
+   * Return true if this method declaration is a trivial getter or setter of the given kind.
    *
-   * <ul>
-   *   <li>A trivial getter is named {@code getFoo}, {@code foo}, {@code hasFoo}, {@code isFoo}, or
-   *       {@code notFoo}, has no formal parameters, and has a body of the form {@code return foo}
-   *       or {@code return this.foo} (except for {@code notFoo}, in which case the body is
-   *       negated).
-   *   <li>A trivial setter is named {@code setFoo}, has one formal parameter named {@code foo}, and
-   *       has a body of the form {@code this.foo = foo}.
-   * </ul>
-   *
+   * @see #isTrivialGetterOrSetter(MethodDeclaration)
    * @param md the method to check
    * @param propertyKind the kind of property
-   * @return true if this method is a trivial getter on setter
+   * @return true if this method is a trivial getter or setter
    */
   private boolean isTrivialGetterOrSetter(MethodDeclaration md, PropertyKind propertyKind) {
     String propertyName = propertyName(md, propertyKind);
@@ -480,7 +472,7 @@ public class RequireJavadoc {
   }
 
   /**
-   * Returns true if the signature of the given method is a property accessor.
+   * Returns true if the signature of the given method is a property accessor of the given kind.
    *
    * @param md the method
    * @param propertyKind the kind of property
@@ -525,7 +517,7 @@ public class RequireJavadoc {
   }
 
   /**
-   * Returns true if the body of the given method is a property accessor.
+   * Returns true if the body of the given method is a property accessor of the given kind.
    *
    * @param md the method
    * @param propertyKind the kind of property
@@ -610,15 +602,15 @@ public class RequireJavadoc {
   }
 
   /**
-   * Returns the name of the property with initial letter in lower case, if the method is a getter
-   * or setter. Otherwise returns null.
+   * Returns the name of the property, if the method is a getter or setter of the given kind.
+   * Otherwise returns null.
    *
    * <p>Examines the method's name, but not its signature or body. Also does not check that the
    * given property name corresponds to an existing field.
    *
    * @param md the method to test
    * @param propertyKind the type of property method
-   * @return the lower-cased name of the property, or null
+   * @return the name of the property, or null
    */
   private @Nullable String propertyName(MethodDeclaration md, PropertyKind propertyKind) {
     String methodName = md.getNameAsString();
