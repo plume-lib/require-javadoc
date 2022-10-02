@@ -492,7 +492,7 @@ public class RequireJavadoc {
       }
     }
     // Check presence/absence of return type. (The Java compiler will verify
-    // that the type is consistent with the mehtod body.)
+    // that the type is consistent with the method body.)
     Type returnType = md.getType();
     switch (propertyKind.returnType) {
       case VOID:
