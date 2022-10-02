@@ -443,6 +443,7 @@ public class RequireJavadoc {
    *       has a body of the form {@code this.foo = foo}.
    * </ul>
    *
+   * @see #isTrivialGetterOrSetter(MethodDeclaration)
    * @param md the method to check
    * @return true if this method is a trivial getter or setter
    */
