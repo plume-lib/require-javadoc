@@ -102,6 +102,10 @@ public class RequireJavadoc {
    *   return foo;
    * }
    *
+   * SomeType foo() {
+   *   return foo;
+   * }
+   *
    * void setFoo(SomeType foo) {
    *   this.foo = foo;
    * }
@@ -359,6 +363,8 @@ public class RequireJavadoc {
   private enum PropertyKind {
     /** A method of the form {@code SomeType getFoo()}. */
     GETTER("get", 0, ReturnType.NON_VOID),
+    /** A method of the form {@code SomeType foo()}. */
+    GETTER_NO_PREFIX("", 0, ReturnType.NON_VOID),
     /** A method of the form {@code boolean hasFoo()}. */
     GETTER_HAS("has", 0, ReturnType.BOOLEAN),
     /** A method of the form {@code boolean isFoo()}. */
@@ -370,7 +376,7 @@ public class RequireJavadoc {
     /** Not a getter or setter. */
     NOT_PROPERTY("", -1, ReturnType.VOID);
 
-    /** The prefix for the method name: "get", "has", "is", "not", or "set". */
+    /** The prefix for the method name: "get", "", "has", "is", "not", or "set". */
     final String prefix;
 
     /** The number of required formal parameters: 0 or 1. */
@@ -420,7 +426,7 @@ public class RequireJavadoc {
       } else if (methodName.startsWith("set")) {
         return SETTER;
       } else {
-        return NOT_PROPERTY;
+        return GETTER_NO_PREFIX;
       }
     }
   }
@@ -429,9 +435,10 @@ public class RequireJavadoc {
    * Return true if this method declaration is a trivial getter or setter.
    *
    * <ul>
-   *   <li>A trivial getter is named {@code getFoo}, {@code hasFoo}, {@code isFoo}, or {@code
-   *       notFoo}, has no formal parameters, and has a body of the form {@code return foo} or
-   *       {@code return this.foo} (except for {@code notFoo}, in which case the body is negated).
+   *   <li>A trivial getter is named {@code getFoo}, {@code foo}, {@code hasFoo}, {@code isFoo}, or
+   *       {@code notFoo}, has no formal parameters, and has a body of the form {@code return foo}
+   *       or {@code return this.foo} (except for {@code notFoo}, in which case the body is
+   *       negated).
    *   <li>A trivial setter is named {@code setFoo}, has one formal parameter named {@code foo}, and
    *       has a body of the form {@code this.foo = foo}.
    * </ul>
@@ -441,12 +448,12 @@ public class RequireJavadoc {
    */
   private boolean isTrivialGetterOrSetter(MethodDeclaration md) {
     PropertyKind kind = PropertyKind.fromMethodDeclaration(md);
-    if (kind != PropertyKind.NOT_PROPERTY) {
+    if (kind != PropertyKind.GETTER_NO_PREFIX) {
       if (isTrivialGetterOrSetter(md, kind)) {
         return true;
       }
     }
-    return false;
+    return isTrivialGetterOrSetter(md, PropertyKind.GETTER_NO_PREFIX);
   }
 
   /**
@@ -483,7 +490,9 @@ public class RequireJavadoc {
     if (upperCamelCaseProperty.length() == 0) {
       return null;
     }
-    if (!Character.isUpperCase(upperCamelCaseProperty.charAt(0))) {
+    if (propertyKind == PropertyKind.GETTER_NO_PREFIX) {
+      return upperCamelCaseProperty;
+    } else if (!Character.isUpperCase(upperCamelCaseProperty.charAt(0))) {
       return null;
     } else {
       return ""
@@ -617,8 +626,9 @@ public class RequireJavadoc {
         return false;
       }
       return true;
+    } else {
+      throw new Error("unexpected PropertyKind " + propertyKind);
     }
-    return false;
   }
 
   /**
