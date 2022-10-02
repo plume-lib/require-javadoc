@@ -458,12 +458,69 @@ public class RequireJavadoc {
    * @return true if this method is a trivial getter or setter
    */
   private boolean isTrivialGetterOrSetter(MethodDeclaration md, PropertyKind propertyKind) {
-    if (propertyKind.isGetter()) {
-      String propertyName = propertyName(md, propertyKind);
-      if (propertyName == null) {
+    String propertyName = propertyName(md, propertyKind);
+    return propertyName != null
+        && hasCorrectSignature(md, propertyKind, propertyName)
+        && hasCorrectBody(md, propertyKind, propertyName);
+  }
+
+  /**
+   * Returns true if the signature of the given method is a property accessor of the given kind.
+   *
+   * @param md the method
+   * @param propertyKind the kind of property
+   * @param propertyName the name of the property
+   * @return true if the body of the given method is a property accessor
+   */
+  private boolean hasCorrectSignature(
+      MethodDeclaration md, PropertyKind propertyKind, String propertyName) {
+    NodeList<Parameter> parameters = md.getParameters();
+    if (parameters.size() != propertyKind.requiredParams) {
+      return false;
+    }
+    if (parameters.size() == 1) {
+      Parameter parameter = parameters.get(0);
+      if (!parameter.getNameAsString().equals(propertyName)) {
         return false;
       }
-      Statement statement = getOnlyStatement(md);
+    }
+    // Check presence/absence of return type. (The Java compiler will verify
+    // that the type is consistent with the mehtod body.)
+    Type returnType = md.getType();
+    switch (propertyKind.returnType) {
+      case VOID:
+        if (!returnType.isVoidType()) {
+          return false;
+        }
+        break;
+      case BOOLEAN:
+        if (!returnType.equals(PrimitiveType.booleanType())) {
+          return false;
+        }
+        break;
+      case NON_VOID:
+        if (returnType.isVoidType()) {
+          return false;
+        }
+        break;
+      default:
+        throw new Error("Unexpected enum value " + propertyKind.returnType);
+    }
+    return true;
+  }
+
+  /**
+   * Returns true if the body of the given method is a property accessor of the given kind.
+   *
+   * @param md the method
+   * @param propertyKind the kind of property
+   * @param propertyName the name of the property
+   * @return true if the body of the given method is a property accessor
+   */
+  private boolean hasCorrectBody(
+      MethodDeclaration md, PropertyKind propertyKind, String propertyName) {
+    Statement statement = getOnlyStatement(md);
+    if (propertyKind.isGetter()) {
       if (!(statement instanceof ReturnStmt)) {
         return false;
       }
@@ -502,11 +559,6 @@ public class RequireJavadoc {
       }
       return true;
     } else if (propertyKind == PropertyKind.SETTER) {
-      String propertyName = propertyName(md, propertyKind);
-      if (propertyName == null) {
-        return false;
-      }
-      Statement statement = getOnlyStatement(md);
       if (!(statement instanceof ExpressionStmt)) {
         return false;
       }
@@ -554,9 +606,7 @@ public class RequireJavadoc {
    */
   private @Nullable String propertyName(MethodDeclaration md, PropertyKind propertyKind) {
     String methodName = md.getNameAsString();
-    if (!methodName.startsWith(propertyKind.prefix)) {
-      return null;
-    }
+    assert methodName.startsWith(propertyKind.prefix);
     @SuppressWarnings("index") // https://github.com/typetools/checker-framework/issues/5201
     String upperCamelCaseProperty = methodName.substring(propertyKind.prefix.length());
     if (upperCamelCaseProperty.length() == 0) {
