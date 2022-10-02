@@ -1,5 +1,9 @@
 # Require-Javadoc change log
 
+## 1.0.5 (2022-10-02)
+
+`--dont-require-trivial-properties` supports unprefixed, record-style getters.
+
 ## 1.0.4 (2022-07-13)
 
 Support new command-line options:
