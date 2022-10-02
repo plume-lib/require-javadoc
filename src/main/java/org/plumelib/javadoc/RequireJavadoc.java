@@ -615,42 +615,19 @@ public class RequireJavadoc {
     if (!Character.isUpperCase(upperCamelCaseProperty.charAt(0))) {
       return null;
     }
-    String lowerCamelCaseProperty =
-        ""
-            + Character.toLowerCase(upperCamelCaseProperty.charAt(0))
-            + upperCamelCaseProperty.substring(1);
     NodeList<Parameter> parameters = md.getParameters();
     if (parameters.size() != propertyKind.requiredParams) {
       return null;
     }
+    String lowerCamelCaseProperty =
+        ""
+            + Character.toLowerCase(upperCamelCaseProperty.charAt(0))
+            + upperCamelCaseProperty.substring(1);
     if (parameters.size() == 1) {
       Parameter parameter = parameters.get(0);
       if (!parameter.getNameAsString().equals(lowerCamelCaseProperty)) {
         return null;
       }
-    }
-    // Check presence/absence of return type. (The Java compiler will verify
-    // that the type is correct, except that "isFoo()" and "notFoo()" accessors
-    // should have boolean return type, which is verified elsewhere.)
-    Type returnType = md.getType();
-    switch (propertyKind.returnType) {
-      case VOID:
-        if (!returnType.isVoidType()) {
-          return null;
-        }
-        break;
-      case BOOLEAN:
-        if (!returnType.equals(PrimitiveType.booleanType())) {
-          return null;
-        }
-        break;
-      case NON_VOID:
-        if (returnType.isVoidType()) {
-          return null;
-        }
-        break;
-      default:
-        throw new Error("Unexpected enum value " + propertyKind.returnType);
     }
     return lowerCamelCaseProperty;
   }
