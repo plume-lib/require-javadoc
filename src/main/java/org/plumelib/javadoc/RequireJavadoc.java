@@ -366,7 +366,9 @@ public class RequireJavadoc {
     /** A method of the form {@code boolean notFoo()}. */
     GETTER_NOT("not", 0, ReturnType.BOOLEAN),
     /** A method of the form {@code void setFoo(SomeType arg)}. */
-    SETTER("set", 1, ReturnType.VOID);
+    SETTER("set", 1, ReturnType.VOID),
+    /** Not a getter or setter. */
+    NOT_PROPERTY("", -1, ReturnType.VOID);
 
     /** The prefix for the method name: "get", "has", "is", "not", or "set". */
     final String prefix;
@@ -389,6 +391,38 @@ public class RequireJavadoc {
       this.requiredParams = requiredParams;
       this.returnType = returnType;
     }
+
+    /**
+     * Returns true if this is a getter.
+     *
+     * @return true if this is a getter
+     */
+    boolean isGetter() {
+      return this != SETTER;
+    }
+
+    /**
+     * Return the PropertyKind for the given method, or null if it isn't a property accessor method.
+     *
+     * @param md the method to check
+     * @return the PropertyKind for the given method, or null
+     */
+    static PropertyKind fromMethodDeclaration(MethodDeclaration md) {
+      String methodName = md.getNameAsString();
+      if (methodName.startsWith("get")) {
+        return GETTER;
+      } else if (methodName.startsWith("has")) {
+        return GETTER_HAS;
+      } else if (methodName.startsWith("is")) {
+        return GETTER_IS;
+      } else if (methodName.startsWith("not")) {
+        return GETTER_NOT;
+      } else if (methodName.startsWith("set")) {
+        return SETTER;
+      } else {
+        return NOT_PROPERTY;
+      }
+    }
   }
 
   /**
@@ -406,18 +440,34 @@ public class RequireJavadoc {
    * @return true if this method is a trivial getter on setter
    */
   private boolean isTrivialGetterOrSetter(MethodDeclaration md) {
-    String methodName = md.getNameAsString();
-    if (methodName.startsWith("get")
-        || methodName.startsWith("has")
-        || methodName.startsWith("is")
-        || methodName.startsWith("not")) {
-      PropertyKind getterType =
-          methodName.startsWith("get")
-              ? PropertyKind.GETTER
-              : methodName.startsWith("has")
-                  ? PropertyKind.GETTER_HAS
-                  : methodName.startsWith("is") ? PropertyKind.GETTER_IS : PropertyKind.GETTER_NOT;
-      String propertyName = propertyName(md, getterType);
+    PropertyKind kind = PropertyKind.fromMethodDeclaration(md);
+    if (kind != PropertyKind.NOT_PROPERTY) {
+      if (isTrivialGetterOrSetter(md, kind)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Return true if this method declaration is a trivial getter or setter.
+   *
+   * <ul>
+   *   <li>A trivial getter is named {@code getFoo}, {@code foo}, {@code hasFoo}, {@code isFoo}, or
+   *       {@code notFoo}, has no formal parameters, and has a body of the form {@code return foo}
+   *       or {@code return this.foo} (except for {@code notFoo}, in which case the body is
+   *       negated).
+   *   <li>A trivial setter is named {@code setFoo}, has one formal parameter named {@code foo}, and
+   *       has a body of the form {@code this.foo = foo}.
+   * </ul>
+   *
+   * @param md the method to check
+   * @param propertyKind the kind of property
+   * @return true if this method is a trivial getter on setter
+   */
+  private boolean isTrivialGetterOrSetter(MethodDeclaration md, PropertyKind propertyKind) {
+    if (propertyKind.isGetter()) {
+      String propertyName = propertyName(md, propertyKind);
       if (propertyName == null) {
         return false;
       }
@@ -431,7 +481,7 @@ public class RequireJavadoc {
       }
       Expression returnExpr = oReturnExpr.get();
       // Does not handle parentheses.
-      if (getterType == PropertyKind.GETTER_NOT) {
+      if (propertyKind == PropertyKind.GETTER_NOT) {
         if (!(returnExpr instanceof UnaryExpr)) {
           return false;
         }
@@ -459,8 +509,8 @@ public class RequireJavadoc {
         return false;
       }
       return true;
-    } else if (methodName.startsWith("set")) {
-      String propertyName = propertyName(md, PropertyKind.SETTER);
+    } else if (propertyKind == PropertyKind.SETTER) {
+      String propertyName = propertyName(md, propertyKind);
       if (propertyName == null) {
         return false;
       }
@@ -503,7 +553,8 @@ public class RequireJavadoc {
    * Returns the name of the property with initial letter in lower case, if the method is a getter
    * or setter. Otherwise returns null.
    *
-   * <p>Examines the method's name and signature, but not its body.
+   * <p>Examines the method's name, but not its signature or body. Also does not check that the
+   * given property name corresponds to an existing field.
    *
    * @param md the method to test
    * @param propertyKind the type of property method
