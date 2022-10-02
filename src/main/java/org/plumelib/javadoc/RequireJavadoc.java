@@ -465,6 +465,34 @@ public class RequireJavadoc {
   }
 
   /**
+   * Returns the name of the property, if the method is a getter or setter of the given kind.
+   * Otherwise returns null.
+   *
+   * <p>Examines the method's name, but not its signature or body. Also does not check that the
+   * given property name corresponds to an existing field.
+   *
+   * @param md the method to test
+   * @param propertyKind the type of property method
+   * @return the name of the property, or null
+   */
+  private @Nullable String propertyName(MethodDeclaration md, PropertyKind propertyKind) {
+    String methodName = md.getNameAsString();
+    assert methodName.startsWith(propertyKind.prefix);
+    @SuppressWarnings("index") // https://github.com/typetools/checker-framework/issues/5201
+    String upperCamelCaseProperty = methodName.substring(propertyKind.prefix.length());
+    if (upperCamelCaseProperty.length() == 0) {
+      return null;
+    }
+    if (!Character.isUpperCase(upperCamelCaseProperty.charAt(0))) {
+      return null;
+    } else {
+      return ""
+          + Character.toLowerCase(upperCamelCaseProperty.charAt(0))
+          + upperCamelCaseProperty.substring(1);
+    }
+  }
+
+  /**
    * Returns true if the signature of the given method is a property accessor of the given kind.
    *
    * @param md the method
@@ -591,34 +619,6 @@ public class RequireJavadoc {
       return true;
     }
     return false;
-  }
-
-  /**
-   * Returns the name of the property, if the method is a getter or setter of the given kind.
-   * Otherwise returns null.
-   *
-   * <p>Examines the method's name, but not its signature or body. Also does not check that the
-   * given property name corresponds to an existing field.
-   *
-   * @param md the method to test
-   * @param propertyKind the type of property method
-   * @return the name of the property, or null
-   */
-  private @Nullable String propertyName(MethodDeclaration md, PropertyKind propertyKind) {
-    String methodName = md.getNameAsString();
-    assert methodName.startsWith(propertyKind.prefix);
-    @SuppressWarnings("index") // https://github.com/typetools/checker-framework/issues/5201
-    String upperCamelCaseProperty = methodName.substring(propertyKind.prefix.length());
-    if (upperCamelCaseProperty.length() == 0) {
-      return null;
-    }
-    if (!Character.isUpperCase(upperCamelCaseProperty.charAt(0))) {
-      return null;
-    } else {
-      return ""
-          + Character.toLowerCase(upperCamelCaseProperty.charAt(0))
-          + upperCamelCaseProperty.substring(1);
-    }
   }
 
   /**
