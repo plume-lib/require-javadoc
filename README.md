@@ -55,11 +55,11 @@ example just `--verbose`.
 With `--dont-require-trivial-properties`, no warnings are issued for code of the following form:
 
 ```java
-public Foo getFoo() {
+public SomeType getFoo() {
     return foo;
 }
 
-public void setFoo(Foo foo) {
+public void setFoo(SomeType foo) {
     this.foo = foo;
 }
 
@@ -105,7 +105,7 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc "org.plumelib:require-javadoc:1.0.4"
+  requireJavadoc "org.plumelib:require-javadoc:1.0.5"
 }
 task requireJavadoc(type: JavaExec) {
   group = 'Documentation'

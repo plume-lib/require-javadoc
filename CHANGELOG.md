@@ -1,8 +1,8 @@
 # Require-Javadoc change log
 
-## 1.0.5 (??)
+## 1.0.5 (2022-10-02)
 
-Support JDK 18.
+`--dont-require-trivial-properties` supports unprefixed, record-style getters.
 
 ## 1.0.4 (2022-07-13)
 
