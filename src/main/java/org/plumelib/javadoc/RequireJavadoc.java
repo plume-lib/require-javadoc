@@ -561,11 +561,11 @@ public class RequireJavadoc {
       if (!(statement instanceof ReturnStmt)) {
         return false;
       }
-      Optional<Expression> oReturnExpr = ((ReturnStmt) statement).getExpression();
-      if (!oReturnExpr.isPresent()) {
+      Optional<Expression> optReturnExpr = ((ReturnStmt) statement).getExpression();
+      if (!optReturnExpr.isPresent()) {
         return false;
       }
-      Expression returnExpr = oReturnExpr.get();
+      Expression returnExpr = optReturnExpr.get();
       // Does not handle parentheses.
       if (propertyKind == PropertyKind.GETTER_NOT) {
         if (!(returnExpr instanceof UnaryExpr)) {
@@ -605,8 +605,6 @@ public class RequireJavadoc {
       }
       AssignExpr assignExpr = (AssignExpr) expr;
       Expression target = assignExpr.getTarget();
-      AssignExpr.Operator op = assignExpr.getOperator();
-      Expression value = assignExpr.getValue();
       if (!(target instanceof FieldAccessExpr)) {
         return false;
       }
@@ -618,9 +616,10 @@ public class RequireJavadoc {
       if (!fa.getNameAsString().equals(propertyName)) {
         return false;
       }
-      if (op != AssignExpr.Operator.ASSIGN) {
+      if (assignExpr.getOperator() != AssignExpr.Operator.ASSIGN) {
         return false;
       }
+      Expression value = assignExpr.getValue();
       if (!(value instanceof NameExpr
           && ((NameExpr) value).getNameAsString().equals(propertyName))) {
         return false;
@@ -695,9 +694,9 @@ public class RequireJavadoc {
         if (shouldNotRequire(packageName)) {
           return;
         }
-        Optional<String> oTypeName = cu.getPrimaryTypeName();
-        if (oTypeName.isPresent()
-            && oTypeName.get().equals("package-info")
+        Optional<String> optTypeName = cu.getPrimaryTypeName();
+        if (optTypeName.isPresent()
+            && optTypeName.get().equals("package-info")
             && !hasJavadocComment(opd.get())
             && !hasJavadocComment(cu)) {
           errors.add(errorString(opd.get(), packageName));
@@ -920,8 +919,8 @@ public class RequireJavadoc {
    * void m() { ... }
    * }</pre>
    *
-   * the Javadoc comment and {@code // text 1} are an orphan comment, and only {@code // text2} is
-   * associated with the method.
+   * <p>the Javadoc comment and {@code // text 1} are an orphan comment, and only {@code // text2}
+   * is associated with the method.
    *
    * @param node the node whose orphan comments to collect
    * @param result the list to add orphan comments to. Is side-effected by this method. The
@@ -948,18 +947,22 @@ public class RequireJavadoc {
     sortByBeginPosition(everything);
     int positionOfTheChild = -1;
     for (int i = 0; i < everything.size(); i++) {
-      if (everything.get(i) == node) positionOfTheChild = i;
+      if (everything.get(i) == node) {
+        positionOfTheChild = i;
+      }
     }
     if (positionOfTheChild == -1) {
       throw new AssertionError("I am not a child of my parent.");
     }
     int positionOfPreviousChild = -1;
     for (int i = positionOfTheChild - 1; i >= 0 && positionOfPreviousChild == -1; i--) {
-      if (!(everything.get(i) instanceof Comment)) positionOfPreviousChild = i;
+      if (!(everything.get(i) instanceof Comment)) {
+        positionOfPreviousChild = i;
+      }
     }
     for (int i = positionOfPreviousChild + 1; i < positionOfTheChild; i++) {
       Node nodeToPrint = everything.get(i);
-      if (!(nodeToPrint instanceof Comment))
+      if (!(nodeToPrint instanceof Comment)) {
         throw new RuntimeException(
             "Expected comment, instead "
                 + nodeToPrint.getClass()
@@ -967,6 +970,7 @@ public class RequireJavadoc {
                 + positionOfPreviousChild
                 + ", position of child "
                 + positionOfTheChild);
+      }
       result.add((Comment) nodeToPrint);
     }
   }
