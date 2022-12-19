@@ -6,10 +6,10 @@ plugins {
   id 'com.github.johnrengelman.shadow' version '7.1.2'
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
-  id "com.diffplug.spotless" version "6.12.0"
+  id 'com.diffplug.spotless' version '6.12.0'
 
   // Error Prone linter
-  id("net.ltgt.errorprone") version "3.0.1"
+  id('net.ltgt.errorprone') version '3.0.1'
 
   // Checker Framework pluggable type-checking
   id 'org.checkerframework' version '0.6.20'
@@ -50,7 +50,7 @@ spotless {
     endWithNewline()
   }
   java {
-    targetExclude("**/WeakIdentityHashMap.java")
+    targetExclude('**/WeakIdentityHashMap.java')
     googleJavaFormat()
     formatAnnotations()
   }
@@ -59,17 +59,17 @@ spotless {
 /// Error Prone linter
 
 dependencies {
-  errorprone("com.google.errorprone:error_prone_core:2.16")
+  errorprone('com.google.errorprone:error_prone_core:2.16')
 }
 tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
-  options.compilerArgs << "-Xlint:all,-processing" << "-Werror"
+  options.compilerArgs << '-Xlint:all,-processing' << '-Werror'
   options.errorprone {
     enabled = JavaVersion.current() != JavaVersion.VERSION_1_8
-    // disable("ReferenceEquality") // Use Interning Checker instead.
-    // disable("StringSplitter") // obscure case isn't likely
-    // disable("AnnotateFormatMethod") // Error Prone doesn't know about Checker Framework @FormatMethod
-    // disable("UseCorrectAssertInTests") // Java's `assert` statument is so much more readable
+    // disable('ReferenceEquality') // Use Interning Checker instead.
+    // disable('StringSplitter') // obscure case isn't likely
+    // disable('AnnotateFormatMethod') // Error Prone doesn't know about Checker Framework @FormatMethod
+    // disable('UseCorrectAssertInTests') // Java's `assert` statument is so much more readable
   }
 }
 
@@ -101,12 +101,12 @@ checkerFramework {
 }
 
 // To use a locally-built Checker Framework, run gradle with "-PcfLocal".
-if (project.hasProperty("cfLocal")) {
-  def cfHome = String.valueOf(System.getenv("CHECKERFRAMEWORK"))
+if (project.hasProperty('cfLocal')) {
+  def cfHome = String.valueOf(System.getenv('CHECKERFRAMEWORK'))
   dependencies {
-    compileOnly files(cfHome + "/checker/dist/checker-qual.jar")
-    testCompileOnly files(cfHome + "/checker/dist/checker-qual.jar")
-    checkerFramework files(cfHome + "/checker/dist/checker.jar")
+    compileOnly files(cfHome + '/checker/dist/checker-qual.jar')
+    testCompileOnly files(cfHome + '/checker/dist/checker-qual.jar')
+    checkerFramework files(cfHome + '/checker/dist/checker.jar')
   }
 }
 
@@ -131,7 +131,7 @@ javadoc {
 check.dependsOn javadoc
 
 task javadocWeb(type: Javadoc) {
-  description "Upload API documentation to website."
+  description 'Upload API documentation to website.'
   source = sourceSets.main.allJava
   destinationDir = file("/cse/web/research/plumelib/${project.name}/api")
   classpath = project.sourceSets.main.compileClasspath
@@ -153,7 +153,7 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc "org.plumelib:require-javadoc:1.0.6"
+  requireJavadoc 'org.plumelib:require-javadoc:1.0.6'
 }
 task requireJavadoc(type: JavaExec) {
   // "dependsOn jar" because this is the requireJavadoc project, and Gradle uses
@@ -161,9 +161,9 @@ task requireJavadoc(type: JavaExec) {
   // a dependency on it.
   dependsOn jar
   description = 'Ensures that Javadoc documentation exists.'
-  mainClass = "org.plumelib.javadoc.RequireJavadoc"
+  mainClass = 'org.plumelib.javadoc.RequireJavadoc'
   classpath = configurations.requireJavadoc
-  args "src/main/java"
+  args 'src/main/java'
 }
 check.dependsOn requireJavadoc
 
@@ -171,6 +171,6 @@ check.dependsOn requireJavadoc
 
 /* Make Emacs TAGS table */
 task tags(type: Exec) {
-  description "Run etags to create an Emacs TAGS table"
-  commandLine "bash", "-c", "find src/ -name '*.java' | sort | xargs etags"
+  description 'Run etags to create an Emacs TAGS table'
+  commandLine 'bash', '-c', "find src/ -name '*.java' | sort | xargs etags"
 }
