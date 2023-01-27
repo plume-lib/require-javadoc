@@ -6,7 +6,8 @@ plugins {
   id 'com.github.johnrengelman.shadow' version '7.1.2'
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
-  id 'com.diffplug.spotless' version '6.13.0'
+  // Requires JDK 11 or higher.
+  id 'com.diffplug.spotless' version '6.14.0' apply false
 
   // Error Prone linter
   id('net.ltgt.errorprone') version '3.0.1'
@@ -39,20 +40,24 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 
-spotless {
-  format 'misc', {
-    // define the files to apply `misc` to
-    target '*.gradle', '*.md', '.gitignore'
+ext.isJava11orHigher = JavaVersion.current() >= JavaVersion.VERSION_11
+if (isJava11orHigher) {
+  apply plugin: 'com.diffplug.spotless'
+  spotless {
+    format 'misc', {
+      // define the files to apply `misc` to
+      target '*.gradle', '*.md', '.gitignore'
 
-    // define the steps to apply to those files
-    trimTrailingWhitespace()
-    indentWithSpaces(2)
-    endWithNewline()
-  }
-  java {
-    targetExclude('**/WeakIdentityHashMap.java')
-    googleJavaFormat()
-    formatAnnotations()
+      // define the steps to apply to those files
+      trimTrailingWhitespace()
+      indentWithSpaces(2)
+      endWithNewline()
+    }
+    java {
+      targetExclude('**/WeakIdentityHashMap.java')
+      googleJavaFormat()
+      formatAnnotations()
+    }
   }
 }
 
