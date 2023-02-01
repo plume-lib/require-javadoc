@@ -21,3 +21,6 @@ jobs:
       run: ./gradlew build
     - name: ./gradlew requireJavadoc
       run: ./gradlew requireJavadoc
+    - name: ./gradlew spotlessCheck
+      run: ./gradlew spotlessCheck
+      if: matrix.java != '8'
