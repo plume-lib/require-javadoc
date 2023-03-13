@@ -91,4 +91,8 @@ signing {
   sign publishing.publications.maven
 }
 
-tasks.withType(Sign).configureEach { onlyIf { !isSnapshot } }
+tasks.withType(Sign).configureEach {
+  onlyIf {
+    !isSnapshot
+  }
+}
