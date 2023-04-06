@@ -3,11 +3,11 @@ plugins {
   id 'application'
 
   // To create a fat jar build/libs/...-all.jar, run: ./gradlew shadowJar
-  id 'com.github.johnrengelman.shadow' version '8.1.0'
+  id 'com.github.johnrengelman.shadow' version '8.1.1'
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
   // Requires JDK 11 or higher; the plugin crashes under JDK 8.
-  id 'com.diffplug.spotless' version '6.16.0'
+  id 'com.diffplug.spotless' version '6.17.0'
 
   // Error Prone linter
   id('net.ltgt.errorprone') version '3.0.1'
@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.github.javaparser:javaparser-core:3.25.1'
+  implementation 'com.github.javaparser:javaparser-core:3.25.2'
   if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
     implementation 'org.plumelib:options:1.0.6'
   } else {
