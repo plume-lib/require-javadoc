@@ -1,5 +1,9 @@
 # Require-Javadoc change log
 
+## 2.0.0 (2023-??-??)
+
+Java 11 or later is required.
+
 ## 1.0.6 (2022-12-02)
 
 Support JDK 19.

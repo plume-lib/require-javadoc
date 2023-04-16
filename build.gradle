@@ -22,11 +22,7 @@ repositories {
 
 dependencies {
   implementation 'com.github.javaparser:javaparser-core:3.25.2'
-  if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
-    implementation 'org.plumelib:options:2.0.3'
-  } else {
-    implementation 'org.plumelib:options:2.0.3'
-  }
+  implementation 'org.plumelib:options:2.0.3'
 }
 
 // To upload to Maven Central, see instructions in the file.
