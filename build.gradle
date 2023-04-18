@@ -32,8 +32,13 @@ application {
   mainClass = 'org.plumelib.javadoc.RequireJavadoc'
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+if (JavaVersion.current().compareTo(org.gradle.api.JavaVersion.VERSION_20) < 0) {
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
+} else {
+  sourceCompatibility = 11
+  targetCompatibility = 11
+}
 
 
 spotless {
