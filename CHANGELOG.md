@@ -1,5 +1,19 @@
 # Require-Javadoc change log
 
+## 2.0.0 (2023-??-??)
+
+Java 11 or later is required.
+
+## 1.0.6 (2022-12-02)
+
+Support JDK 19.
+
+Don't transitively depend on commons-text 1.9, which is subject to CVE-2022-42889.
+
+## 1.0.5 (2022-10-02)
+
+`--dont-require-trivial-properties` supports unprefixed, record-style getters.
+
 ## 1.0.4 (2022-07-13)
 
 Support new command-line options:

@@ -55,11 +55,11 @@ example just `--verbose`.
 With `--dont-require-trivial-properties`, no warnings are issued for code of the following form:
 
 ```java
-public Foo getFoo() {
+public SomeType getFoo() {
     return foo;
 }
 
-public void setFoo(Foo foo) {
+public void setFoo(SomeType foo) {
     this.foo = foo;
 }
 
@@ -80,10 +80,12 @@ public boolean hasBaz() {
 ## Incremental use
 
 In continuous integration job (Azure Pipelines, CircleCI, GitHub Actions, or Travis CI),
-you can require Javadoc on all changed lines and lines
+you can require Javadoc on all *changed* lines and lines
 adjacent to changed lines.  This is a way to incrementally get your code
 documented, without having to document it all at once.
-Here are example commands:
+Here are example commands.  (They obtain and use a program
+[`ci-lint-diff`](https://github.com/plume-lib/plume-scripts/blob/master/ci-lint-diff),
+which is part of the [plume-scripts package](https://github.com/plume-lib/plume-scripts).)
 
 ```
 if [ -d "/tmp/$USER/plume-scripts" ] ; then
@@ -105,7 +107,7 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc "org.plumelib:require-javadoc:1.0.4"
+  requireJavadoc "org.plumelib:require-javadoc:1.0.6"
 }
 task requireJavadoc(type: JavaExec) {
   group = 'Documentation'
@@ -131,7 +133,7 @@ neither `require-javadoc`,
 nor `javadoc -Xwerror -Xdoclint:all`,
 nor `javadoc -private -Xwerror -Xdoclint:all`,
 is stronger.
-After JDK 18, `require-javadoc; is more configurable.
+After JDK 18, `require-javadoc` is more configurable.
 Therefore, you may want to use all three.
 
  * `require-javadoc` requires that a Javadoc comment is present, but does not check the content
@@ -165,7 +167,8 @@ If you want to require all Javadoc tags to be present (a stronger requirement
 than `require-javadoc` enforces), use the Javadoc tool itself.
 From the command line:
 ```javadoc -private -Xwerror -Xdoclint:all```
-(You should run with and without `-private`, and you may wish to adjust the [`-Xdoclint` argument](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/javadoc.html#BEJEFABE).)
+(You should run with and without `-private`, since they yield different warnings.
+You may wish to adjust the [`-Xdoclint` argument](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/javadoc.html#BEJEFABE).)
 
 In a Gradle buildfile, use one of the following (and a similar version to check only public members):
 ```
@@ -199,6 +202,6 @@ Checkstyle is configurable to produce the same warnings as `require-javadoc` doe
 Checkstyle has some problems:
  * Checkstyle is heavyweight to run and configure:  configuring it requires multiple files.
  * Checkstyle is nondeterministic:  it gives different results for file `A.java` depending on what other files are being checked.
- * Checkstyle crashes on correct code (for example, see https://github.com/checkstyle/checkstyle/issues/5989, which the maintainers closed as "checkstyle does not support it by design").
+ * Checkstyle crashes on correct code.  For example, see https://github.com/checkstyle/checkstyle/issues/5989, which the maintainers closed as "checkstyle does not support it by design".
 
 By contrast to Checkstyle, `require-javadoc` is easier to use, and it actually works.

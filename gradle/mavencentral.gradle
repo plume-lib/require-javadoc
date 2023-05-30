@@ -1,28 +1,28 @@
 // REQUIREMENTS to make a release:
-//  * Perform work on a machine connected to the CSE filesystem.
 //  * Your ~/.gradle/gradle.properties file must contain:
 //     ossrhUsername=YOUR_USER_NAME_HERE
 //     ossrhPassword=YOUR_PASSWORD_HERE
 
-// To make a release:
-//  * Use Java 8.
+// To make a release (run on any filesystem, except the last step):
 //  * git pull
+//  * In ../build.gradle, ensure that "To use a snapshot version" is not enabled.
 //  * Update the version number in ../README.md and in this file (multiple times in each).
+//    Ensure the version number in this file does not contain "-SNAPSHOT".
+//  * Update the version number in ../src/test/README .
 //  * Update ../CHANGELOG.md .
-//  * Save changes.
-//  * Run in the top-level directory:  ./gradlew javadocWeb && ./gradlew clean publish shadowJar
+//  * Save files and stage changes.
+//  * Run in the top-level directory:  ./gradlew clean publish
 //  * Browse to https://oss.sonatype.org/#stagingRepositories, complete the Maven Central release.
-//  * Stage changes.
 //  * Add a git tag:
-//    VER=1.0.4 && git commit -m "Version $VER" && git push && git tag -a v$VER -m "Version $VER" && git push && git push --tags
-//  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 1.0.4", attach the .jar and -all.jar files from ../build/libs/
-
+//    VER=1.0.6 && git commit -m "Version $VER" && git push && git tag -a v$VER -m "Version $VER" && git push && git push --tags
+//  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 1.0.6", use the text from ../CHANGELOG.md as the description, attach the .jar and -all.jar files from ../build/libs/ .
+//  * Finally, run on the CSE filesystem:  git pull && ./gradlew javadocWeb
 
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 group "org.plumelib"
-version "1.0.4"
+version "1.0.6"
 
 final isSnapshot = version.contains('SNAPSHOT')
 
@@ -74,7 +74,7 @@ publishing {
         url = (isSnapshot
             ? project.properties.getOrDefault('SNAPSHOT_REPOSITORY_URL', 'https://oss.sonatype.org/content/repositories/snapshots/')
             : project.properties.getOrDefault('RELEASE_REPOSITORY_URL', 'https://oss.sonatype.org/service/local/staging/deploy/maven2/')
-        )
+            )
         credentials {
           username = project.properties.get('ossrhUsername')
           password = project.properties.get('ossrhPassword')
@@ -91,4 +91,8 @@ signing {
   sign publishing.publications.maven
 }
 
-tasks.withType(Sign).configureEach { onlyIf { !isSnapshot } }
+tasks.withType(Sign).configureEach {
+  onlyIf {
+    !isSnapshot
+  }
+}

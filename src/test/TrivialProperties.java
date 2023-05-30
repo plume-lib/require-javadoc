@@ -9,9 +9,15 @@ class TrivialProperties {
   /** dummy comment */
   int barOK;
   /** dummy comment */
+  int issueNumberOK;
+  /** dummy comment */
   boolean bazOK;
   /** dummy comment */
   boolean quuxOK;
+  /** dummy comment */
+  boolean isEnabled;
+  /** dummy comment */
+  boolean enabled;
 
   /** dummy comment */
   Foo foo1;
@@ -21,6 +27,10 @@ class TrivialProperties {
   boolean baz1;
   /** dummy comment */
   boolean quux1;
+  /** dummy comment */
+  boolean isEnabled1;
+  /** dummy comment */
+  boolean enabled1;
 
   /** dummy comment */
   Foo foo2;
@@ -46,6 +56,10 @@ class TrivialProperties {
     return this.fooOK;
   }
 
+  public Foo fooOK() {
+    return this.fooOK;
+  }
+
   public void setFooOK(Foo fooOK) {
     this.fooOK = fooOK;
   }
@@ -54,8 +68,24 @@ class TrivialProperties {
     return barOK;
   }
 
+  public int barOK() {
+    return barOK;
+  }
+
   public void setBarOK(int barOK) {
     this.barOK = barOK;
+  }
+
+  public int getIssueNumberOK() {
+    return issueNumberOK;
+  }
+
+  public int issueNumberOK() {
+    return issueNumberOK;
+  }
+
+  public void setIssueNumberOK(int issueNumberOK) {
+    this.issueNumberOK = issueNumberOK;
   }
 
   public boolean getBazOK() {
@@ -90,9 +120,53 @@ class TrivialProperties {
     return !this.quuxOK;
   }
 
+  public boolean getIsEnabledOK() {
+    return isEnabledOK;
+  }
+
+  public void setIsEnabledOK(final boolean isEnabledOK) {
+    this.isEnabledOK = isEnabledOK;
+  }
+
+  public boolean hasIsEnabledOK() {
+    return isEnabledOK;
+  }
+
+  public boolean isIsEnabledOK() {
+    return isEnabledOK;
+  }
+
+  public boolean notIsEnabledOK() {
+    return !isEnabledOK;
+  }
+
+  public boolean getEnabledOK() {
+    return enabledOK;
+  }
+
+  public void setEnabledOK(final boolean enabledOK) {
+    this.enabledOK = enabledOK;
+  }
+
+  public boolean hasEnabledOK() {
+    return enabledOK;
+  }
+
+  public boolean isEnabledOK() {
+    return enabledOK;
+  }
+
+  public boolean notEnabledOK() {
+    return !enabledOK;
+  }
+
   // Not OK
 
   public int getFoo1() {
+    return this.bar1;
+  }
+
+  public int foo1() {
     return this.bar1;
   }
 
@@ -104,8 +178,24 @@ class TrivialProperties {
     return baz1;
   }
 
+  public boolean bar1() {
+    return baz1;
+  }
+
   public void setBar1(boolean bar1) {
     baz1 = bar1;
+  }
+
+  public boolean getIssueNumber1() {
+    return baz1;
+  }
+
+  public boolean issueNumber1() {
+    return baz1;
+  }
+
+  public void setIssueNumber1(boolean issueNumber1) {
+    baz1 = issueNumber1;
   }
 
   public Foo hasFoo1() {
@@ -116,8 +206,20 @@ class TrivialProperties {
     return bar1;
   }
 
+  public int hasIssueNumber1() {
+    return issueNumber1;
+  }
+
   public int hasBaz1() {
     return bar1;
+  }
+
+  public int hasEnabled1() {
+    return isEnabled1;
+  }
+
+  public int hasIsEnabled1() {
+    return enabled1;
   }
 
   public Foo isFoo1() {
@@ -126,6 +228,10 @@ class TrivialProperties {
 
   public int isBar1() {
     return bar1;
+  }
+
+  public int isIssueNumber1() {
+    return issueNumber1;
   }
 
   public int isBaz1() {
@@ -203,6 +309,11 @@ class TrivialProperties {
     return this.foo3;
   }
 
+  public Foo foo3() {
+    System.out.println("called foo3");
+    return this.foo3;
+  }
+
   public void setFoo3(Foo foo3) {
     System.out.println("called setFoo3");
     this.foo3 = foo3;
@@ -210,6 +321,11 @@ class TrivialProperties {
 
   public int getBar3() {
     System.out.println("called getBar3");
+    return bar3;
+  }
+
+  public int bar3() {
+    System.out.println("called bar3");
     return bar3;
   }
 
