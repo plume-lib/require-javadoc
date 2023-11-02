@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.github.javaparser:javaparser-core:3.25.5'
+  implementation 'com.github.javaparser:javaparser-core:3.25.6'
   implementation 'org.plumelib:options:2.0.3'
 }
 
