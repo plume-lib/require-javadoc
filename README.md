@@ -10,7 +10,8 @@ For example, this tool does not require the existence
 of Javadoc tags such as `@param`, `@return`, etc.
 You can use Javadoc itself to enforce such a requirement,
 but Javadoc before JDK 18 [does not warn](#comparison-to-javadoc--xwerror--xdoclintall)
-about completely missing comments.
+about completely missing comments.  In JDK 18+, Javadoc's warnings about
+missing comments are not as customizable as this tool is.
 
 
 ## Use
