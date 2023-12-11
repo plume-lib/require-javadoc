@@ -7,13 +7,13 @@ plugins {
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
   // Requires JDK 11 or higher; the plugin crashes under JDK 8.
-  id 'com.diffplug.spotless' version '6.22.0'
+  id 'com.diffplug.spotless' version '6.23.3'
 
   // Error Prone linter
   id('net.ltgt.errorprone') version '3.1.0'
 
   // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.6.34'
+  id 'org.checkerframework' version '0.6.36'
 }
 
 repositories {
@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.github.javaparser:javaparser-core:3.25.5'
+  implementation 'com.github.javaparser:javaparser-core:3.25.7'
   implementation 'org.plumelib:options:2.0.3'
 }
 
@@ -63,7 +63,7 @@ spotless {
 /// Error Prone linter
 
 dependencies {
-  errorprone('com.google.errorprone:error_prone_core:2.22.0')
+  errorprone('com.google.errorprone:error_prone_core:2.23.0')
 }
 tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".

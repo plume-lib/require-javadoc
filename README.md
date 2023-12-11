@@ -10,7 +10,8 @@ For example, this tool does not require the existence
 of Javadoc tags such as `@param`, `@return`, etc.
 You can use Javadoc itself to enforce such a requirement,
 but Javadoc before JDK 18 [does not warn](#comparison-to-javadoc--xwerror--xdoclintall)
-about completely missing comments.
+about completely missing comments.  In JDK 18+, Javadoc's warnings about
+missing comments are not as customizable as this tool is.
 
 
 ## Use
@@ -91,7 +92,7 @@ which is part of the [plume-scripts package](https://github.com/plume-lib/plume-
 if [ -d "/tmp/$USER/plume-scripts" ] ; then
   git -C /tmp/$USER/plume-scripts pull -q 2>&1
 else
-  mkdir -p /tmp/$USER && git -C /tmp/$USER/ clone --depth 1 -q https://github.com/plume-lib/plume-scripts.git
+  mkdir -p /tmp/$USER && git -C /tmp/$USER/ clone --filter=blob:none -q https://github.com/plume-lib/plume-scripts.git
 fi
 (./gradlew requireJavadoc > /tmp/warnings.txt 2>&1) || true
 /tmp/$USER/plume-scripts/ci-lint-diff /tmp/warnings.txt
