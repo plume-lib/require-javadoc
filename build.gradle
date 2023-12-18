@@ -18,6 +18,7 @@ plugins {
 
 repositories {
   mavenCentral()
+  maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
 }
 
 dependencies {
@@ -101,6 +102,13 @@ checkerFramework {
     '-AwarnRedundantAnnotations',
     '-AwarnUnneededSuppressions',
   ]
+}
+
+ext.checkerFrameworkVersion = '3.43.0-SNAPSHOT'
+dependencies {
+  compileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
+  testCompileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
+  checkerFramework "org.checkerframework:checker:${checkerFrameworkVersion}"
 }
 
 // To use a locally-built Checker Framework, run gradle with "-PcfLocal".
