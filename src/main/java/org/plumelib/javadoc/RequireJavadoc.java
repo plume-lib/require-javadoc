@@ -63,7 +63,7 @@ import org.plumelib.options.Options;
  * A program that issues an error for any class, constructor, method, or field that lacks a Javadoc
  * comment. Does not issue a warning for methods annotated with {@code @Override}. See documentation
  * at <a
- * href="https://github.com/plume-lib/require-javadoc#readme">https://github.com/plume-lib/require-javadoc#readme</a>.
+ * href="https://github.com/plume-lib/require-javadoc">https://github.com/plume-lib/require-javadoc</a>.
  */
 public class RequireJavadoc {
 
@@ -167,9 +167,9 @@ public class RequireJavadoc {
 
   /**
    * The main entry point for the require-javadoc program. See documentation at <a
-   * href="https://github.com/plume-lib/require-javadoc#readme">https://github.com/plume-lib/require-javadoc#readme</a>.
+   * href="https://github.com/plume-lib/require-javadoc">https://github.com/plume-lib/require-javadoc</a>.
    *
-   * @param args the command-line arguments; see the README file
+   * @param args the command-line arguments; see the README.md file
    */
   public static void main(String[] args) {
     RequireJavadoc rj = new RequireJavadoc();
