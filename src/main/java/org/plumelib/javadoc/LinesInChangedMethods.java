@@ -36,6 +36,11 @@ import org.checkerframework.checker.signedness.qual.Signed;
  */
 public class LinesInChangedMethods {
 
+  /** Creates a LinesInChangedMethods. */
+  public LinesInChangedMethods() {
+    throw new Error("do not instantiate");
+  }
+
   // Implementation approach:
   // For each filename:
   //   Read the file and create a map (line -> line) that maps from a line within a method body to a
