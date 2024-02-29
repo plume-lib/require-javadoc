@@ -24,6 +24,7 @@ repositories {
 dependencies {
   implementation 'com.github.javaparser:javaparser-core:3.25.8'
   implementation 'org.plumelib:options:2.0.3'
+  implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 // To upload to Maven Central, see instructions in the file.
