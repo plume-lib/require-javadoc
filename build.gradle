@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.github.javaparser:javaparser-core:3.25.8'
+  implementation 'com.github.javaparser:javaparser-core:3.25.9'
   implementation 'org.plumelib:options:2.0.3'
   implementation 'com.google.code.gson:gson:2.10.1'
 }
