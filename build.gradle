@@ -24,6 +24,7 @@ repositories {
 dependencies {
   implementation 'com.github.javaparser:javaparser-core:3.25.8'
   implementation 'org.plumelib:options:2.0.3'
+  implementation 'org.plumelib:plume-util:1.9.0'
   implementation 'com.google.code.gson:gson:2.10.1'
 }
 
@@ -70,11 +71,19 @@ dependencies {
 tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
   options.compilerArgs << '-Xlint:all,-processing' << '-Werror'
+  // Only needed when debugging.
+  options.compilerArgs << '-g'
   options.errorprone {
     // disable('ReferenceEquality') // Use Interning Checker instead.
     // disable('StringSplitter') // Obscure case isn't likely.
     // disable('AnnotateFormatMethod') // Error Prone doesn't know about Checker Framework @FormatMethod
   }
+}
+
+compileJava {
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED'
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED'
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED'
 }
 
 /// Checker Framework pluggable type-checking
@@ -129,6 +138,22 @@ javadoc {
   options.addStringOption('Xwerror', '-Xdoclint:all')
   options.addStringOption('private', '-quiet')
   options.addStringOption('source', '11')
+  // Buggy per https://github.com/java9-modularity/gradle-modules-plugin/issues/170
+  // moduleOptions {
+  //   addExports = [
+  //     'jdk.compiler/com.sun.tools.javac.parser' : 'ALL-UNNAMED',
+  //     'jdk.compiler/com.sun.tools.javac.tree' : ' ALL-UNNAMED' ,
+  //     'jdk.compiler/com.sun.tools.javac.util':'ALL-UNNAMED'
+  //   ]
+  // }
+  // Workaround until bug is fixed.
+  options {
+    addMultilineStringsOption("-add-exports").setValue([
+      'jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+      'jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+      'jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED'
+    ])
+  }
   doLast {
     ant.replaceregexp(match:"@import url\\('resources/fonts/dejavu.css'\\);\\s*", replace:'',
     flags:'g', byline:true) {
