@@ -104,14 +104,19 @@ checkerFramework {
     '-AwarnUnneededSuppressions',
   ]
 }
-
-ext.checkerFrameworkVersion = '3.43.0-SNAPSHOT'
-dependencies {
-  compileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
-  testCompileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
-  checkerFramework "org.checkerframework:checker:${checkerFrameworkVersion}"
+// To use a snapshot version of the Checker Framework.
+if (false) {
+  // TODO: Change the above test to false when CF is released.
+  ext.checkerFrameworkVersion = '3.43.0-SNAPSHOT'
+  dependencies {
+    compileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
+    testCompileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
+    checkerFramework "org.checkerframework:checker:${checkerFrameworkVersion}"
+  }
+  configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'minutes'
+  }
 }
-
 // To use a locally-built Checker Framework, run gradle with "-PcfLocal".
 if (project.hasProperty('cfLocal')) {
   def cfHome = String.valueOf(System.getenv('CHECKERFRAMEWORK'))

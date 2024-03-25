@@ -215,7 +215,7 @@ public class RequireJavadoc {
    *
    * @param args the directories and files listed on the command line
    */
-  @SuppressWarnings("lock:type.arguments.not.inferred") // no locking here
+  @SuppressWarnings("lock:methodref.receiver") // Comparator.comparing
   private void setJavaFiles(String[] args) {
     if (args.length == 0) {
       args = new String[] {workingDirAbsolute.toString()};
