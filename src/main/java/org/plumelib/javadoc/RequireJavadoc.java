@@ -3,6 +3,7 @@ package org.plumelib.javadoc;
 import static com.github.javaparser.utils.PositionUtils.sortByBeginPosition;
 
 import com.github.javaparser.ParseProblemException;
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.Position;
 import com.github.javaparser.Range;
 import com.github.javaparser.StaticJavaParser;
@@ -19,6 +20,7 @@ import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.body.RecordDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.expr.AnnotationExpr;
@@ -126,7 +128,7 @@ public class RequireJavadoc {
   @Option("Don't report problems in trivial getters and setters")
   public boolean dont_require_trivial_properties;
 
-  /** If true, don't check type declarations: classes, interfaces, enums, annotations. */
+  /** If true, don't check type declarations: classes, interfaces, enums, annotations, records. */
   @Option("Don't report problems in type declarations")
   public boolean dont_require_type;
 
@@ -185,6 +187,9 @@ public class RequireJavadoc {
         System.out.println("Checking " + javaFile);
       }
       try {
+        ParserConfiguration parserConfiguration = new ParserConfiguration();
+        parserConfiguration.setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17);
+        StaticJavaParser.setConfiguration(parserConfiguration);
         CompilationUnit cu = StaticJavaParser.parse(javaFile);
         RequireJavadocVisitor visitor = rj.new RequireJavadocVisitor(javaFile);
         visitor.visit(cu, null);
@@ -865,6 +870,47 @@ public class RequireJavadoc {
         errors.add(errorString(amd, name));
       }
       super.visit(amd, ignore);
+    }
+
+    @Override
+    public void visit(RecordDeclaration rd, Void ignore) {
+      if (dont_require_private && rd.isPrivate()) {
+        return;
+      }
+      String name = rd.getNameAsString();
+      if (shouldNotRequire(name)) {
+        return;
+      }
+      if (verbose) {
+        System.out.printf("Visiting record %s%n", name);
+      }
+      if (!dont_require_type && !hasJavadocComment(rd)) {
+        errors.add(errorString(rd, name));
+      }
+      for (Parameter p : rd.getParameters()) {
+        warnRecordParameter(p);
+      }
+      super.visit(rd, ignore);
+    }
+
+    /**
+     * Issue a warning about a record parameter, if it is undocumented. For methods (including
+     * constructors) parameters do not need to have a Javadoc comment, because they are documented
+     * in the method's Javadoc comment.
+     *
+     * @param p the record parameter
+     */
+    private void warnRecordParameter(Parameter p) {
+      String name = p.getNameAsString();
+      if (shouldNotRequire(name)) {
+        return;
+      }
+      if (verbose) {
+        System.out.printf("Visiting record parameter %s%n", name);
+      }
+      if (!hasJavadocComment(p)) {
+        errors.add(errorString(p, name));
+      }
     }
 
     /**
