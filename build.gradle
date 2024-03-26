@@ -17,11 +17,16 @@ plugins {
 }
 
 repositories {
+  mavenLocal()
   mavenCentral()
   maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
 }
 
+ext.errorproneVersion = '2.26.1'
+
 dependencies {
+  compileOnly "com.google.errorprone:error_prone_annotations:${errorproneVersion}"
+
   implementation 'com.github.javaparser:javaparser-core:3.25.9'
   implementation 'org.plumelib:options:2.0.3'
   implementation 'com.google.code.gson:gson:2.10.1'
@@ -34,8 +39,10 @@ application {
   mainClass = 'org.plumelib.javadoc.RequireJavadoc'
 }
 
-sourceCompatibility = 11
-targetCompatibility = 11
+java {
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
+}
 
 
 spotless {
@@ -65,15 +72,15 @@ spotless {
 /// Error Prone linter
 
 dependencies {
-  errorprone('com.google.errorprone:error_prone_core:2.26.1')
+  errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
 }
 tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
   options.compilerArgs << '-Xlint:all,-processing' << '-Werror'
   options.errorprone {
-    // disable('ReferenceEquality') // Use Interning Checker instead.
-    // disable('StringSplitter') // Obscure case isn't likely.
-    // disable('AnnotateFormatMethod') // Error Prone doesn't know about Checker Framework @FormatMethod
+    disable('ExtendsObject')  // Incorrect when using the Checker Framework
+    disable('ReferenceEquality') // Use Interning Checker instead.
+    disable('AnnotateFormatMethod') // Error Prone doesn't know about Checker Framework @FormatMethod
   }
 }
 
@@ -154,6 +161,13 @@ task javadocWeb(type: Javadoc) {
     flags:'g', byline:true) {
       fileset(dir: destinationDir)
     }
+    // Set permissions
+    project.exec {
+      commandLine('chgrp', '-R',  'plse_www', "/cse/web/research/plumelib/${project.name}/api")
+    }
+    project.exec {
+      commandLine('chmod', '-R',  'g+w', "/cse/web/research/plumelib/${project.name}/api")
+    }
   }
 }
 
@@ -169,6 +183,7 @@ task requireJavadoc(type: JavaExec) {
   // Gradle uses the built-from-source version of
   // 'org.plumelib:require-javadoc'.  So declare a dependency on it.
   dependsOn jar
+  group = 'Documentation'
   description = 'Ensures that Javadoc documentation exists.'
   mainClass = 'org.plumelib.javadoc.RequireJavadoc'
   classpath = configurations.requireJavadoc
