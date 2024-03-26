@@ -2,9 +2,9 @@
 
 ## 2.0.0 (2023-??-??)
 
-Java 11 or later is required.
+Java 11 or later is required to run require-javadoc.
 
-## 1.0.7x (2024-03-26)
+## 1.0.7 (2024-03-26)
 
 Support Java 17 syntax.
 
