@@ -4,6 +4,12 @@
 
 Java 11 or later is required.
 
+## 1.0.7x (2024-03-26)
+
+Support Java 17 syntax.
+
+Support running under JDK 21.
+
 ## 1.0.6 (2022-12-02)
 
 Support JDK 19.
