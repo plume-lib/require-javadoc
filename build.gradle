@@ -6,8 +6,8 @@ plugins {
   id 'com.github.johnrengelman.shadow' version '8.1.1'
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
-  // Requires JDK 11 or higher; the plugin crashes under JDK 8.
-  id 'com.diffplug.spotless' version '6.25.0'
+  // Version 6.14.0 and later requires JRE 11+, but version 6.13.0 doesn't work on JRE 21.
+  id 'com.diffplug.spotless' version '6.13.0'
 
   // Error Prone linter
   id('net.ltgt.errorprone') version '3.1.0'
@@ -22,11 +22,11 @@ repositories {
   maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
 }
 
-ext.errorproneVersion = '2.26.1'
+// Error Prone versions later than 2.10.0 require JDK 11.
+ext.errorproneVersion = '2.10.0'
 
 dependencies {
-  compileOnly "com.google.errorprone:error_prone_annotations:${errorproneVersion}"
-
+  implementation "com.google.errorprone:error_prone_annotations:${errorproneVersion}"
   implementation 'com.github.javaparser:javaparser-core:3.25.9'
   implementation 'org.plumelib:options:2.0.3'
   implementation 'com.google.code.gson:gson:2.10.1'
@@ -40,8 +40,8 @@ application {
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_11
-  targetCompatibility = JavaVersion.VERSION_11
+  sourceCompatibility = JavaVersion.VERSION_1_8
+  targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 
@@ -78,7 +78,8 @@ tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
   options.compilerArgs << '-Xlint:all,-processing' << '-Werror'
   options.errorprone {
-    disable('ExtendsObject')  // Incorrect when using the Checker Framework
+    // ExtendsObject does not yet exist in Error Prone 2.10.0.
+    // disable('ExtendsObject')  // Incorrect when using the Checker Framework
     disable('ReferenceEquality') // Use Interning Checker instead.
     disable('AnnotateFormatMethod') // Error Prone doesn't know about Checker Framework @FormatMethod
   }
@@ -140,7 +141,7 @@ if (project.hasProperty('cfLocal')) {
 javadoc {
   options.addStringOption('Xwerror', '-Xdoclint:all')
   options.addStringOption('private', '-quiet')
-  options.addStringOption('source', '11')
+  options.addStringOption('source', '8')
   doLast {
     ant.replaceregexp(match:"@import url\\('resources/fonts/dejavu.css'\\);\\s*", replace:'',
     flags:'g', byline:true) {
@@ -155,7 +156,7 @@ task javadocWeb(type: Javadoc) {
   source = sourceSets.main.allJava
   destinationDir = file("/cse/web/research/plumelib/${project.name}/api")
   classpath = project.sourceSets.main.compileClasspath
-  options.addStringOption('source', '11')
+  options.addStringOption('source', '8')
   doLast {
     ant.replaceregexp(match:"@import url\\('resources/fonts/dejavu.css'\\);\\s*", replace:'',
     flags:'g', byline:true) {
@@ -176,7 +177,7 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc 'org.plumelib:require-javadoc:1.0.7'
+  requireJavadoc 'org.plumelib:require-javadoc:1.0.6'
 }
 task requireJavadoc(type: JavaExec) {
   // "dependsOn jar" because this is the requireJavadoc project itself, and
