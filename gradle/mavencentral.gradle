@@ -14,15 +14,15 @@
 //  * Run in the top-level directory:  ./gradlew clean publish
 //  * Browse to https://oss.sonatype.org/#stagingRepositories, complete the Maven Central release.
 //  * Add a git tag:
-//    VER=1.0.7 && git commit -m "Version $VER" && git push && git tag -a v$VER -m "Version $VER" && git push && git push --tags
-//  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 1.0.7", use the text from ../CHANGELOG.md as the description, attach the .jar and -all.jar files from ../build/libs/ .
+//    VER=1.0.8 && git commit -m "Version $VER" && git push && git tag -a v$VER -m "Version $VER" && git push && git push --tags
+//  * Make a GitHub release. Go to the GitHub releases page, make a release, call it "require-javadoc 1.0.8", use the text from ../CHANGELOG.md as the description, attach the .jar and -all.jar files from ../build/libs/ .
 //  * Finally, run on the CSE filesystem:  git pull && ./gradlew javadocWeb
 
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 group "org.plumelib"
-version "1.0.7"
+version "1.0.8"
 
 final isSnapshot = version.contains('SNAPSHOT')
 

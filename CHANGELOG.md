@@ -4,6 +4,10 @@
 
 Java 11 or later is required to run require-javadoc.
 
+## 1.0.8 (2024-03-27)
+
+Bugfix: reinstate support for compiling and running under JDK 8.
+
 ## 1.0.7 (2024-03-26)
 
 Support Java 17 syntax.
