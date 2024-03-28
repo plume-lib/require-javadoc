@@ -25,6 +25,10 @@ repositories {
 // Error Prone versions later than 2.10.0 require JDK 11.
 ext.errorproneVersion = '2.10.0'
 
+ext {
+  isJava21orHigher = JavaVersion.current() >= JavaVersion.VERSION_21
+}
+
 dependencies {
   implementation "com.google.errorprone:error_prone_annotations:${errorproneVersion}"
   implementation 'com.github.javaparser:javaparser-core:3.25.9'
@@ -45,6 +49,7 @@ java {
 }
 
 
+if (! isJava21orHigher) {
 spotless {
   format 'misc', {
     // define the files to apply `misc` to
@@ -68,6 +73,7 @@ spotless {
     // endWithNewline() // Don't want to end empty files with a newline
   }
 }
+}
 
 /// Error Prone linter
 
@@ -76,7 +82,8 @@ dependencies {
 }
 tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
-  options.compilerArgs << '-Xlint:all,-processing' << '-Werror'
+  // No " << '-Werror'" because of JDK 21 warning "source value 8 is obsolete..."
+  options.compilerArgs << '-Xlint:all,-processing'
   options.errorprone {
     // ExtendsObject does not yet exist in Error Prone 2.10.0.
     // disable('ExtendsObject')  // Incorrect when using the Checker Framework
@@ -105,7 +112,8 @@ checkerFramework {
     'org.checkerframework.common.initializedfields.InitializedFieldsChecker',
   ]
   extraJavacArgs = [
-    '-Werror',
+    // No "'-Werror'" because of JDK 21 warning "source value 8 is obsolete..."
+    // '-Werror',
     '-AcheckPurityAnnotations',
     '-ArequirePrefixInWarningSuppressions',
     '-AwarnRedundantAnnotations',
@@ -139,7 +147,9 @@ if (project.hasProperty('cfLocal')) {
 
 // Turn Javadoc warnings into errors.
 javadoc {
-  options.addStringOption('Xwerror', '-Xdoclint:all')
+  // No "'-Werror'" because of JDK 21 warning "source value 8 is obsolete..."
+  // options.addStringOption('Xwerror', '-Xdoclint:all')
+  options.addStringOption('Xdoclint:all', '-quiet')
   options.addStringOption('private', '-quiet')
   options.addStringOption('source', '8')
   doLast {
