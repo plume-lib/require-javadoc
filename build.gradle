@@ -82,8 +82,8 @@ dependencies {
 }
 tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
-  // No " << '-Werror'" because of JDK 21 warning "source value 8 is obsolete..."
-  options.compilerArgs << '-Xlint:all,-processing'
+  // "-Xlint:-options" is because of JDK 21 warning "source value 8 is obsolete..."
+  options.compilerArgs << '-Xlint:all,-processing,-options' << '-Werror'
   options.errorprone {
     // ExtendsObject does not yet exist in Error Prone 2.10.0.
     // disable('ExtendsObject')  // Incorrect when using the Checker Framework

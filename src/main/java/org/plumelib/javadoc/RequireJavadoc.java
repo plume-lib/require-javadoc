@@ -215,7 +215,11 @@ public class RequireJavadoc {
    *
    * @param args the directories and files listed on the command line
    */
-  @SuppressWarnings("lock:methodref.receiver") // Comparator.comparing
+  @SuppressWarnings({
+    "lock:unneeded.suppression", // TEMPORARY, until a CF release is made
+    "lock:methodref.receiver", // Comparator.comparing
+    "lock:type.arguments.not.inferred" // Comparator.comparing
+  })
   private void setJavaFiles(String[] args) {
     if (args.length == 0) {
       args = new String[] {workingDirAbsolute.toString()};
