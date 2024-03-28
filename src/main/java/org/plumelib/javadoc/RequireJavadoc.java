@@ -891,30 +891,9 @@ public class RequireJavadoc {
       if (!dont_require_type && !hasJavadocComment(rd)) {
         errors.add(errorString(rd, name));
       }
-      for (Parameter p : rd.getParameters()) {
-        warnRecordParameter(p);
-      }
+      // Don't warn about record parameters, because Javadoc requires @param for them in the record
+      // declaration itself.
       super.visit(rd, ignore);
-    }
-
-    /**
-     * Issue a warning about a record parameter, if it is undocumented. For methods (including
-     * constructors) parameters do not need to have a Javadoc comment, because they are documented
-     * in the method's Javadoc comment.
-     *
-     * @param p the record parameter
-     */
-    private void warnRecordParameter(Parameter p) {
-      String name = p.getNameAsString();
-      if (shouldNotRequire(name)) {
-        return;
-      }
-      if (verbose) {
-        System.out.printf("Visiting record parameter %s%n", name);
-      }
-      if (!hasJavadocComment(p)) {
-        errors.add(errorString(p, name));
-      }
     }
 
     /**
