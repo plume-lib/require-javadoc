@@ -4,6 +4,11 @@
 
 Java 11 or later is required to run require-javadoc.
 
+## 1.0.9 (2024-03-28)
+
+Don't require documentation on record parameters (fields), because Javadoc
+requires `@param` tags in the Javadoc for the record.
+
 ## 1.0.8 (2024-03-27)
 
 Bugfix: reinstate support for compiling and running under JDK 8.
