@@ -187,7 +187,7 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc 'org.plumelib:require-javadoc:1.0.8'
+  requireJavadoc 'org.plumelib:require-javadoc:1.0.9'
 }
 task requireJavadoc(type: JavaExec) {
   // "dependsOn jar" because this is the requireJavadoc project itself, and
