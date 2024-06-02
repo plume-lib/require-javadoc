@@ -13,7 +13,7 @@ plugins {
   id('net.ltgt.errorprone') version '3.1.0'
 
   // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.6.38'
+  id 'org.checkerframework' version '0.6.39'
 }
 
 repositories {
@@ -33,7 +33,7 @@ dependencies {
   implementation "com.google.errorprone:error_prone_annotations:${errorproneVersion}"
   implementation 'com.github.javaparser:javaparser-core:3.25.10'
   implementation 'org.plumelib:options:2.0.3'
-  implementation 'com.google.code.gson:gson:2.10.1'
+  implementation 'com.google.code.gson:gson:2.11.0'
 }
 
 // To upload to Maven Central, see instructions in the file.
@@ -123,7 +123,7 @@ checkerFramework {
 // To use a snapshot version of the Checker Framework.
 if (false) {
   // TODO: Change the above test to false when CF is released.
-  ext.checkerFrameworkVersion = '3.43.0-SNAPSHOT'
+  ext.checkerFrameworkVersion = '3.43.0'
   dependencies {
     compileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
     testCompileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
