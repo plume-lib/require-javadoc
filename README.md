@@ -1,6 +1,6 @@
 # require-javadoc
 
-This program requires that a Javadoc comment be present on
+This program requires that a Javadoc comment is present on
 every Java class, constructor, method, and field.
 It does not require a Javadoc comment on methods with an `@Override` annotation,
 nor on fields named `serialVersionUID`.
@@ -92,7 +92,7 @@ which is part of the [plume-scripts package](https://github.com/plume-lib/plume-
 if [ -d "/tmp/$USER/plume-scripts" ] ; then
   git -C /tmp/$USER/plume-scripts pull -q 2>&1
 else
-  mkdir -p /tmp/$USER && git -C /tmp/$USER/ clone --filter=blob:none -q https://github.com/plume-lib/plume-scripts.git
+  mkdir -p /tmp/$USER && git -C /tmp/$USER/ clone --depth=1 -q https://github.com/plume-lib/plume-scripts.git
 fi
 (./gradlew requireJavadoc > /tmp/warnings.txt 2>&1) || true
 /tmp/$USER/plume-scripts/ci-lint-diff /tmp/warnings.txt
