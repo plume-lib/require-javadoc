@@ -75,7 +75,7 @@ if (! isJava21orHigher) {
   }
 }
 
-/// Error Prone linter
+// Error Prone linter
 
 dependencies {
   errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
@@ -92,7 +92,7 @@ tasks.withType(JavaCompile).configureEach {
   }
 }
 
-/// Checker Framework pluggable type-checking
+// Checker Framework pluggable type-checking
 
 apply plugin: 'org.checkerframework'
 
@@ -143,7 +143,7 @@ if (project.hasProperty('cfLocal')) {
   }
 }
 
-/// Javadoc
+// Javadoc
 
 // Turn Javadoc warnings into errors.
 javadoc {
@@ -202,7 +202,7 @@ task requireJavadoc(type: JavaExec) {
 }
 check.dependsOn requireJavadoc
 
-/// Emacs support
+// Emacs support
 
 /* Make Emacs TAGS table */
 task tags(type: Exec) {
