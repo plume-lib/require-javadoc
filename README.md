@@ -150,7 +150,7 @@ Therefore, you may want to use all three.
  * Starting in JDK 18, `javadoc -Xdoclint:all` produces error messages about missing Javadoc comments.
    This reduces the need for the `require-javadoc` program.
    The require-javadoc program is still useful for people who:
-     * are using JDK 17 or earlier
+     * are using JDK 17 or earlier, or
      * desire finer-grained control over which program elements must be documented.
        `-Xdoclint` provides
        [only](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javadoc.html#additional-options-provided-by-the-standard-doclet)
