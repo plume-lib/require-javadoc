@@ -10,10 +10,16 @@ plugins {
   id 'com.diffplug.spotless' version '6.13.0'
 
   // Error Prone linter
-  id('net.ltgt.errorprone') version '4.0.1'
+  // TODO: Java 23: remove "apply false".
+  id('net.ltgt.errorprone') version '4.0.1' apply false
 
   // Checker Framework pluggable type-checking
   id 'org.checkerframework' version '0.6.43'
+}
+
+// TODO: Java 23: remove this code block.
+if (JavaVersion.current() <= JavaVersion.VERSION_22) {
+  apply plugin: 'net.ltgt.errorprone'
 }
 
 repositories {
@@ -49,6 +55,7 @@ java {
 }
 
 
+// TODO: Why is this condition needed?
 if (! isJava21orHigher) {
   spotless {
     format 'misc', {
@@ -75,24 +82,27 @@ if (! isJava21orHigher) {
   }
 }
 
-/// Error Prone linter
+// Error Prone linter
 
-dependencies {
-  errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
-}
-tasks.withType(JavaCompile).configureEach {
-  // "-processing" avoids javac warning "No processor claimed any of these annotations".
-  // "-Xlint:-options" is because of JDK 21 warning "source value 8 is obsolete..."
-  options.compilerArgs << '-Xlint:all,-processing,-options' << '-Werror'
-  options.errorprone {
-    // ExtendsObject does not yet exist in Error Prone 2.10.0.
-    // disable('ExtendsObject')  // Incorrect when using the Checker Framework
-    disable('ReferenceEquality') // Use Interning Checker instead.
-    disable('AnnotateFormatMethod') // Error Prone doesn't know about Checker Framework @FormatMethod
+// TODO: Java 23: remove the "if" line" and corresponding "}"
+if (JavaVersion.current() <= JavaVersion.VERSION_22) {
+  dependencies {
+    errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
+  }
+  tasks.withType(JavaCompile).configureEach {
+    // "-processing" avoids javac warning "No processor claimed any of these annotations".
+    // "-Xlint:-options" is because of JDK 21 warning "source value 8 is obsolete..."
+    options.compilerArgs << '-Xlint:all,-processing,-options' << '-Werror'
+    options.errorprone {
+      // ExtendsObject does not yet exist in Error Prone 2.10.0.
+      // disable('ExtendsObject')  // Incorrect when using the Checker Framework
+      disable('ReferenceEquality') // Use Interning Checker instead.
+      disable('AnnotateFormatMethod') // Error Prone doesn't know about Checker Framework @FormatMethod
+    }
   }
 }
 
-/// Checker Framework pluggable type-checking
+// Checker Framework pluggable type-checking
 
 apply plugin: 'org.checkerframework'
 
@@ -142,8 +152,14 @@ if (project.hasProperty('cfLocal')) {
     checkerFramework files(cfHome + '/checker/dist/checker.jar')
   }
 }
+// TODO: Java 23: remove this block.
+if (JavaVersion.current() > JavaVersion.VERSION_22) {
+  checkerFramework {
+    skipCheckerFramework = true
+  }
+}
 
-/// Javadoc
+// Javadoc
 
 // Turn Javadoc warnings into errors.
 javadoc {
@@ -202,7 +218,7 @@ task requireJavadoc(type: JavaExec) {
 }
 check.dependsOn requireJavadoc
 
-/// Emacs support
+// Emacs support
 
 /* Make Emacs TAGS table */
 task tags(type: Exec) {
