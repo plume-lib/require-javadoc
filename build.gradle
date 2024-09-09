@@ -22,6 +22,11 @@ if (JavaVersion.current() <= JavaVersion.VERSION_22) {
   apply plugin: 'net.ltgt.errorprone'
 }
 
+// TODO: Java 23: remove this code block.
+if (JavaVersion.current() <= JavaVersion.VERSION_22) {
+  apply plugin: 'net.ltgt.errorprone'
+}
+
 repositories {
   mavenLocal()
   mavenCentral()
