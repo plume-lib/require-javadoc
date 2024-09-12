@@ -714,7 +714,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting compilation unit%n");
       }
-      super.visit(cu, ignore);
+      super.visit(cu, null);
     }
 
     @Override
@@ -732,7 +732,7 @@ public class RequireJavadoc {
       if (!dont_require_type && !hasJavadocComment(cd)) {
         errors.add(errorString(cd, name));
       }
-      super.visit(cd, ignore);
+      super.visit(cd, null);
     }
 
     @Override
@@ -753,7 +753,7 @@ public class RequireJavadoc {
       if (!dont_require_method && !hasJavadocComment(cd)) {
         errors.add(errorString(cd, name));
       }
-      super.visit(cd, ignore);
+      super.visit(cd, null);
     }
 
     @Override
@@ -777,7 +777,7 @@ public class RequireJavadoc {
       if (!dont_require_method && !isOverride(md) && !hasJavadocComment(md)) {
         errors.add(errorString(md, name));
       }
-      super.visit(md, ignore);
+      super.visit(md, null);
     }
 
     @Override
@@ -806,7 +806,7 @@ public class RequireJavadoc {
         }
       }
       if (shouldRequire) {
-        super.visit(fd, ignore);
+        super.visit(fd, null);
       }
     }
 
@@ -825,7 +825,7 @@ public class RequireJavadoc {
       if (!dont_require_type && !hasJavadocComment(ed)) {
         errors.add(errorString(ed, name));
       }
-      super.visit(ed, ignore);
+      super.visit(ed, null);
     }
 
     @Override
@@ -840,7 +840,7 @@ public class RequireJavadoc {
       if (!dont_require_field && !hasJavadocComment(ecd)) {
         errors.add(errorString(ecd, name));
       }
-      super.visit(ecd, ignore);
+      super.visit(ecd, null);
     }
 
     @Override
@@ -858,7 +858,7 @@ public class RequireJavadoc {
       if (!dont_require_type && !hasJavadocComment(ad)) {
         errors.add(errorString(ad, name));
       }
-      super.visit(ad, ignore);
+      super.visit(ad, null);
     }
 
     @Override
@@ -873,7 +873,7 @@ public class RequireJavadoc {
       if (!dont_require_method && !hasJavadocComment(amd)) {
         errors.add(errorString(amd, name));
       }
-      super.visit(amd, ignore);
+      super.visit(amd, null);
     }
 
     @Override
@@ -893,7 +893,7 @@ public class RequireJavadoc {
       }
       // Don't warn about record parameters, because Javadoc requires @param for them in the record
       // declaration itself.
-      super.visit(rd, ignore);
+      super.visit(rd, null);
     }
 
     /**
