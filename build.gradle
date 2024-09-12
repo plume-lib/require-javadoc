@@ -36,12 +36,13 @@ repositories {
 // Error Prone versions later than 2.10.0 require JDK 11.
 ext.errorproneVersion = '2.10.0'
 
+ext.isJava17orHigher = JavaVersion.current() >= JavaVersion.VERSION_17
+
 ext {
   isJava21orHigher = JavaVersion.current() >= JavaVersion.VERSION_21
 }
 
 dependencies {
-  implementation "com.google.errorprone:error_prone_annotations:${errorproneVersion}"
   implementation 'com.github.javaparser:javaparser-core:3.26.2'
   implementation 'org.plumelib:options:2.0.3'
   implementation 'com.google.code.gson:gson:2.11.0'
@@ -104,6 +105,7 @@ if (JavaVersion.current() <= JavaVersion.VERSION_22) {
       disable('ReferenceEquality') // Use Interning Checker instead.
       disable('AnnotateFormatMethod') // Error Prone doesn't know about Checker Framework @FormatMethod
     }
+    options.errorprone.enabled = isJava17orHigher
   }
 }
 
