@@ -11,7 +11,7 @@ plugins {
 
   // Error Prone linter
   // TODO: Java 23: remove "apply false".
-  id('net.ltgt.errorprone') version '4.0.1' apply false
+  id('net.ltgt.errorprone') version '4.1.0' apply false
 
   // Checker Framework pluggable type-checking
   id 'org.checkerframework' version '0.6.45'
