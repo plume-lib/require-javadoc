@@ -1,9 +1,9 @@
-// REQUIREMENTS to make a release:
+        // REQUIREMENTS to make a release:
 //  * Your ~/.gradle/gradle.properties file must contain:
-//     ossrhUsername=YOUR_USER_NAME_HERE
-//     ossrhPassword=YOUR_PASSWORD_HERE
+//     SONATYPE_NEXUS_USERNAME=...
+//     SONATYPE_NEXUS_PASSWORD=...
 
-// To make a release (run on any filesystem, except the last step):
+// To make a release (run on any filesystem, except the `javadocWeb` step):
 //  * git pull
 //  * In ../build.gradle, ensure that "To use a snapshot version" is not enabled.
 //  * Update the version number in ../README.md and in this file (multiple times in each).
@@ -21,8 +21,11 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
-group "org.plumelib"
-version "1.0.9"
+group 'org.plumelib'
+version '1.0.9'
+ext {
+  packageName = 'require-javadoc'
+}
 
 final isSnapshot = version.contains('SNAPSHOT')
 
@@ -43,12 +46,12 @@ publishing {
       pom {
         name = 'Require-Javadoc'
         description = 'Require Javadoc comments to be present.'
-        url = 'https://github.com/plume-lib/require-javadoc'
+        url = "https://github.com/plume-lib/${packageName}"
 
         scm {
-          connection = 'scm:git:git@github.com:plume-lib/require-javadoc.git'
-          developerConnection = 'scm:git:git@github.com:plume-lib/require-javadoc.git'
-          url = 'git@github.com:plume-lib/require-javadoc.git'
+          connection = "scm:git:git@github.com:plume-lib/${packageName}.git"
+          developerConnection = "scm:git:git@github.com:plume-lib/${packageName}.git"
+          url = "git@github.com:plume-lib/${packageName}.git"
         }
 
         licenses {
@@ -76,8 +79,8 @@ publishing {
             : project.properties.getOrDefault('RELEASE_REPOSITORY_URL', 'https://oss.sonatype.org/service/local/staging/deploy/maven2/')
             )
         credentials {
-          username = project.properties.get('ossrhUsername')
-          password = project.properties.get('ossrhPassword')
+          username = project.properties.get('SONATYPE_NEXUS_USERNAME')
+          password = project.properties.get('SONATYPE_NEXUS_PASSWORD')
         }
       }
     }
