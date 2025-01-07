@@ -1,3 +1,6 @@
+JavaRecords.java:5:5: missing documentation for second
+JavaRecords.java:9:1: missing documentation for MyOtherRecord
+JavaRecords.java:15:1: missing documentation for Undocumented
 NoArgConstructor.java:8:3: missing documentation for HasArgConstructor
 TrivialProperties.java:165:3: missing documentation for getFoo1
 TrivialProperties.java:169:3: missing documentation for foo1

@@ -3,6 +3,7 @@ package org.plumelib.javadoc;
 import static com.github.javaparser.utils.PositionUtils.sortByBeginPosition;
 
 import com.github.javaparser.ParseProblemException;
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.Position;
 import com.github.javaparser.Range;
 import com.github.javaparser.StaticJavaParser;
@@ -19,6 +20,7 @@ import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.body.RecordDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.expr.AnnotationExpr;
@@ -126,7 +128,7 @@ public class RequireJavadoc {
   @Option("Don't report problems in trivial getters and setters")
   public boolean dont_require_trivial_properties;
 
-  /** If true, don't check type declarations: classes, interfaces, enums, annotations. */
+  /** If true, don't check type declarations: classes, interfaces, enums, annotations, records. */
   @Option("Don't report problems in type declarations")
   public boolean dont_require_type;
 
@@ -185,6 +187,9 @@ public class RequireJavadoc {
         System.out.println("Checking " + javaFile);
       }
       try {
+        ParserConfiguration parserConfiguration = new ParserConfiguration();
+        parserConfiguration.setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17);
+        StaticJavaParser.setConfiguration(parserConfiguration);
         CompilationUnit cu = StaticJavaParser.parse(javaFile);
         RequireJavadocVisitor visitor = rj.new RequireJavadocVisitor(javaFile);
         visitor.visit(cu, null);
@@ -210,7 +215,11 @@ public class RequireJavadoc {
    *
    * @param args the directories and files listed on the command line
    */
-  @SuppressWarnings("lock:type.arguments.not.inferred") // no locking here
+  @SuppressWarnings({
+    "lock:unneeded.suppression", // TEMPORARY, until a CF release is made
+    "lock:methodref.receiver", // Comparator.comparing
+    "lock:type.arguments.not.inferred" // Comparator.comparing
+  })
   private void setJavaFiles(String[] args) {
     if (args.length == 0) {
       args = new String[] {workingDirAbsolute.toString()};
@@ -705,7 +714,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting compilation unit%n");
       }
-      super.visit(cu, ignore);
+      super.visit(cu, null);
     }
 
     @Override
@@ -723,7 +732,7 @@ public class RequireJavadoc {
       if (!dont_require_type && !hasJavadocComment(cd)) {
         errors.add(errorString(cd, name));
       }
-      super.visit(cd, ignore);
+      super.visit(cd, null);
     }
 
     @Override
@@ -744,7 +753,7 @@ public class RequireJavadoc {
       if (!dont_require_method && !hasJavadocComment(cd)) {
         errors.add(errorString(cd, name));
       }
-      super.visit(cd, ignore);
+      super.visit(cd, null);
     }
 
     @Override
@@ -768,7 +777,7 @@ public class RequireJavadoc {
       if (!dont_require_method && !isOverride(md) && !hasJavadocComment(md)) {
         errors.add(errorString(md, name));
       }
-      super.visit(md, ignore);
+      super.visit(md, null);
     }
 
     @Override
@@ -797,7 +806,7 @@ public class RequireJavadoc {
         }
       }
       if (shouldRequire) {
-        super.visit(fd, ignore);
+        super.visit(fd, null);
       }
     }
 
@@ -816,7 +825,7 @@ public class RequireJavadoc {
       if (!dont_require_type && !hasJavadocComment(ed)) {
         errors.add(errorString(ed, name));
       }
-      super.visit(ed, ignore);
+      super.visit(ed, null);
     }
 
     @Override
@@ -831,7 +840,7 @@ public class RequireJavadoc {
       if (!dont_require_field && !hasJavadocComment(ecd)) {
         errors.add(errorString(ecd, name));
       }
-      super.visit(ecd, ignore);
+      super.visit(ecd, null);
     }
 
     @Override
@@ -849,7 +858,7 @@ public class RequireJavadoc {
       if (!dont_require_type && !hasJavadocComment(ad)) {
         errors.add(errorString(ad, name));
       }
-      super.visit(ad, ignore);
+      super.visit(ad, null);
     }
 
     @Override
@@ -864,7 +873,27 @@ public class RequireJavadoc {
       if (!dont_require_method && !hasJavadocComment(amd)) {
         errors.add(errorString(amd, name));
       }
-      super.visit(amd, ignore);
+      super.visit(amd, null);
+    }
+
+    @Override
+    public void visit(RecordDeclaration rd, Void ignore) {
+      if (dont_require_private && rd.isPrivate()) {
+        return;
+      }
+      String name = rd.getNameAsString();
+      if (shouldNotRequire(name)) {
+        return;
+      }
+      if (verbose) {
+        System.out.printf("Visiting record %s%n", name);
+      }
+      if (!dont_require_type && !hasJavadocComment(rd)) {
+        errors.add(errorString(rd, name));
+      }
+      // Don't warn about record parameters, because Javadoc requires @param for them in the record
+      // declaration itself.
+      super.visit(rd, null);
     }
 
     /**

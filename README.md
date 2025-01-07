@@ -1,6 +1,6 @@
 # require-javadoc
 
-This program requires that a Javadoc comment be present on
+This program requires that a Javadoc comment is present on
 every Java class, constructor, method, and field.
 It does not require a Javadoc comment on methods with an `@Override` annotation,
 nor on fields named `serialVersionUID`.
@@ -92,7 +92,7 @@ which is part of the [plume-scripts package](https://github.com/plume-lib/plume-
 if [ -d "/tmp/$USER/plume-scripts" ] ; then
   git -C /tmp/$USER/plume-scripts pull -q 2>&1
 else
-  mkdir -p /tmp/$USER && git -C /tmp/$USER/ clone --filter=blob:none -q https://github.com/plume-lib/plume-scripts.git
+  mkdir -p /tmp/$USER && git -C /tmp/$USER/ clone --depth=1 -q https://github.com/plume-lib/plume-scripts.git
 fi
 (./gradlew requireJavadoc > /tmp/warnings.txt 2>&1) || true
 /tmp/$USER/plume-scripts/ci-lint-diff /tmp/warnings.txt
@@ -108,7 +108,7 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc "org.plumelib:require-javadoc:1.0.6"
+  requireJavadoc "org.plumelib:require-javadoc:1.0.9"
 }
 task requireJavadoc(type: JavaExec) {
   group = 'Documentation'
@@ -150,7 +150,7 @@ Therefore, you may want to use all three.
  * Starting in JDK 18, `javadoc -Xdoclint:all` produces error messages about missing Javadoc comments.
    This reduces the need for the `require-javadoc` program.
    The require-javadoc program is still useful for people who:
-     * are using JDK 17 or earlier
+     * are using JDK 17 or earlier, or
      * desire finer-grained control over which program elements must be documented.
        `-Xdoclint` provides
        [only](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javadoc.html#additional-options-provided-by-the-standard-doclet)
