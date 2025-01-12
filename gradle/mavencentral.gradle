@@ -21,8 +21,8 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
-group 'org.plumelib'
-version '1.0.9'
+group = 'org.plumelib'
+version = '1.0.9'
 ext {
   packageName = 'require-javadoc'
 }
