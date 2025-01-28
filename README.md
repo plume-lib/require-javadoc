@@ -13,6 +13,13 @@ but Javadoc before JDK 18 [does not warn](#comparison-to-javadoc--xwerror--xdocl
 about completely missing comments.  In JDK 18+, Javadoc's warnings about
 missing comments are not as customizable as this tool is.
 
+This program does not work on JDK, because it uses
+[JavaParser](https://github.com/javaparser/javaparser) which only supports Java
+syntax [up to Java
+21](https://github.com/javaparser/javaparser/blob/master/readme.md).  TODO: This
+program should be rewritten to use, say,
+[javac-parse](https://github.com/plume-lib/javac-parse) rather than JavaParser.
+
 
 ## Use
 
