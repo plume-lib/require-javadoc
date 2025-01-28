@@ -182,6 +182,8 @@ public class RequireJavadoc {
 
     rj.setJavaFiles(remainingArgs);
 
+    List<String> exceptionsThrown = new ArrayList<>();
+
     for (Path javaFile : rj.javaFiles) {
       if (rj.verbose) {
         System.out.println("Checking " + javaFile);
@@ -194,16 +196,22 @@ public class RequireJavadoc {
         RequireJavadocVisitor visitor = rj.new RequireJavadocVisitor(javaFile);
         visitor.visit(cu, null);
       } catch (IOException e) {
-        System.out.println("Problem while reading " + javaFile + ": " + e.getMessage());
-        System.exit(2);
+        exceptionsThrown.add("Problem while reading " + javaFile + ": " + e.getMessage());
       } catch (ParseProblemException e) {
-        System.out.println("Problem while parsing " + javaFile + ": " + e.getMessage());
-        System.exit(2);
+        exceptionsThrown.add("Problem while parsing " + javaFile + ": " + e.getMessage());
       }
     }
     for (String error : rj.errors) {
       System.out.println(error);
     }
+
+    if (!exceptionsThrown.isEmpty()) {
+      for (String exceptionThrown : exceptionsThrown) {
+        System.out.println(exceptionThrown);
+      }
+      System.exit(2);
+    }
+
     System.exit(rj.errors.isEmpty() ? 0 : 1);
   }
 
