@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.plumelib.javacparse.JavacParse;
 import org.plumelib.options.Option;
 import org.plumelib.options.Options;
 
@@ -131,7 +132,7 @@ public class RequireJavadoc {
   private Path workingDirAbsolute = Paths.get("").toAbsolutePath();
 
   /** The current compilation unit. */
-  private JCCompilationUnit currentCompilationUnit;
+  private JCTree.JCCompilationUnit currentCompilationUnit;
 
   /**
    * The main entry point for the require-javadoc program. See documentation at <a
@@ -158,11 +159,9 @@ public class RequireJavadoc {
         JCTree.JCCompilationUnit cu = JavacParse.parseJavaFile(javaFile.toString());
         rj.currentCompilationUnit = cu;
         RequireJavadocVisitor visitor = rj.new RequireJavadocVisitor(javaFile);
-        visitor.visit(cu, null);
+        visitor.visitTopLevel(cu, null);
       } catch (IOException e) {
         exceptionsThrown.add("Problem while reading " + javaFile + ": " + e.getMessage());
-      } catch (ParseProblemException e) {
-        exceptionsThrown.add("Problem while parsing " + javaFile + ": " + e.getMessage());
       }
     }
     for (String error : rj.errors) {
@@ -394,8 +393,8 @@ public class RequireJavadoc {
      * @param md the method to check
      * @return the PropertyKind for the given method, or null
      */
-    static PropertyKind fromMethodDeclaration(MethodDeclaration md) {
-      String methodName = md.getNameAsString();
+    static PropertyKind fromMethodDeclaration(JCTree.JCMethodDecl md) {
+      String methodName = md.getName().toString();
       if (methodName.startsWith("get")) {
         return GETTER;
       } else if (methodName.startsWith("has")) {
@@ -440,7 +439,7 @@ public class RequireJavadoc {
   /**
    * Return true if this method declaration is a trivial getter or setter of the given kind.
    *
-   * @see #isTrivialGetterOrSetter(MethodDeclaration)
+   * @see #isTrivialGetterOrSetter(JCTree.JCMethodDecl)
    * @param md the method to check
    * @param propertyKind the kind of property
    * @return true if this method is a trivial getter or setter
@@ -464,7 +463,7 @@ public class RequireJavadoc {
    * @return the name of the property, or null
    */
   private @Nullable String propertyName(JCTree.JCMethodDecl md, PropertyKind propertyKind) {
-    String methodName = md.getNameAsString();
+    String methodName = md.getName().toString();
     assert methodName.startsWith(propertyKind.prefix);
     @SuppressWarnings("index") // https://github.com/typetools/checker-framework/issues/5201
     String upperCamelCaseProperty = methodName.substring(propertyKind.prefix.length());
@@ -492,19 +491,19 @@ public class RequireJavadoc {
    */
   private boolean hasCorrectSignature(
       JCTree.JCMethodDecl md, PropertyKind propertyKind, String propertyName) {
-    NodeList<Parameter> parameters = md.getParameters();
+    List<JCTree.JCVariableDecl> parameters = md.getParameters();
     if (parameters.size() != propertyKind.requiredParams) {
       return false;
     }
     if (parameters.size() == 1) {
-      Parameter parameter = parameters.get(0);
-      if (!parameter.getNameAsString().equals(propertyName)) {
+      JCTree.JCVariableDecl parameter = parameters.get(0);
+      if (!parameter.getName().toString().equals(propertyName)) {
         return false;
       }
     }
     // Check presence/absence of return type. (The Java compiler will verify
     // that the type is consistent with the method body.)
-    Type returnType = md.getType();
+    JCTree returnType = md.getReturnType();
     switch (propertyKind.returnType) {
       case VOID:
         if (!returnType.isVoidType()) {
@@ -539,36 +538,36 @@ public class RequireJavadoc {
       JCTree.JCMethodDecl md, PropertyKind propertyKind, String propertyName) {
     JCTree.JCStatement statement = getOnlyStatement(md);
     if (propertyKind.isGetter()) {
-      if (!(statement instanceof ReturnStmt)) {
+      if (!(statement instanceof JCTree.JCReturn)) {
         return false;
       }
-      Optional<Expression> optReturnExpr = ((ReturnStmt) statement).getExpression();
-      if (!optReturnExpr.isPresent()) {
+      JCTree.JCExpression returnExpr = ((JCTree.JCReturn) statement).getExpression();
+      if (returnExpr == null) {
         return false;
       }
-      Expression returnExpr = optReturnExpr.get();
+
       // Does not handle parentheses.
       if (propertyKind == PropertyKind.GETTER_NOT) {
-        if (!(returnExpr instanceof UnaryExpr)) {
+        if (!(returnExpr instanceof JCTree.JCUnary)) {
           return false;
         }
-        UnaryExpr unary = (UnaryExpr) returnExpr;
-        if (unary.getOperator() != UnaryExpr.Operator.LOGICAL_COMPLEMENT) {
+        JCTree.JCUnary unary = (JCTree.JCUnary) returnExpr;
+        if (unary.getTag() != JCTree.Tag.NOT) {
           return false;
         }
         returnExpr = unary.getExpression();
       }
       String returnName;
       // Does not handle parentheses.
-      if (returnExpr instanceof NameExpr) {
-        returnName = ((NameExpr) returnExpr).getNameAsString();
-      } else if (returnExpr instanceof FieldAccessExpr) {
-        FieldAccessExpr fa = (FieldAccessExpr) returnExpr;
-        Expression receiver = fa.getScope();
+      if (returnExpr instanceof JCTree.JCIdent) {
+        returnName = ((JCTree.JCIdent) returnExpr).getName().toString();
+      } else if (returnExpr instanceof JCTree.JCFieldAccess) {
+        JCTree.JCFieldAccess fa = (JCTree.JCFieldAccess) returnExpr;
+        JCTree.JCExpression receiver = fa.getExpression();
         if (!(receiver instanceof ThisExpr)) {
           return false;
         }
-        returnName = fa.getNameAsString();
+        returnName = fa.getIdentifier().toString();
       } else {
         return false;
       }
@@ -577,32 +576,32 @@ public class RequireJavadoc {
       }
       return true;
     } else if (propertyKind == PropertyKind.SETTER) {
-      if (!(statement instanceof ExpressionStmt)) {
+      if (!(statement instanceof JCTree.JCExpressionStatement)) {
         return false;
       }
-      Expression expr = ((ExpressionStmt) statement).getExpression();
-      if (!(expr instanceof AssignExpr)) {
+      JCTree.JCExpression expr = ((JCTree.JCExpressionStatement) statement).getExpression();
+      if (!(expr instanceof JCTree.JCAssign)) {
         return false;
       }
-      AssignExpr assignExpr = (AssignExpr) expr;
-      Expression target = assignExpr.getTarget();
-      if (!(target instanceof FieldAccessExpr)) {
+      JCTree.JCAssign assignExpr = (JCTree.JCAssign) expr;
+      JCTree.JCExpression target = assignExpr.getVariable();
+      if (!(target instanceof JCTree.JCFieldAccess)) {
         return false;
       }
-      FieldAccessExpr fa = (FieldAccessExpr) target;
-      Expression receiver = fa.getScope();
+      JCTree.JCFieldAccess fa = (JCTree.JCFieldAccess) target;
+      JCTree.JCExpression receiver = fa.getExpression();
       if (!(receiver instanceof ThisExpr)) {
         return false;
       }
-      if (!fa.getNameAsString().equals(propertyName)) {
+      if (!fa.getIdentifier().toString().equals(propertyName)) {
         return false;
       }
-      if (assignExpr.getOperator() != AssignExpr.Operator.ASSIGN) {
+      if (assignExpr.getOperator() != JCTree.JCAssign.Operator.ASSIGN) {
         return false;
       }
-      Expression value = assignExpr.getValue();
-      if (!(value instanceof NameExpr
-          && ((NameExpr) value).getNameAsString().equals(propertyName))) {
+      JCTree.JCExpression value = assignExpr.getExpression();
+      if (!(value instanceof JCTree.JCIdent
+          && ((JCTree.JCIdent) value).getName().toString().equals(propertyName))) {
         return false;
       }
       return true;
@@ -618,11 +617,11 @@ public class RequireJavadoc {
    * @return its sole statement, or null
    */
   private JCTree.@Nullable JCStatement getOnlyStatement(JCTree.JCMethodDecl md) {
-    Optional<BlockStmt> body = md.getBody();
+    JCTree.JCBlock body = md.getBody();
     if (!body.isPresent()) {
       return null;
     }
-    NodeList<JCTree.JCStatement> statements = body.get().getStatements();
+    List<JCTree.JCStatement> statements = body.get().getStatements();
     if (statements.size() != 1) {
       return null;
     }
@@ -669,13 +668,13 @@ public class RequireJavadoc {
 
     @Override
     public void visitTopLevel(JCTree.JCCompilationUnit cu, Void ignore) {
-      Optional<PackageDeclaration> opd = cu.getPackageDeclaration();
+      JCTree.JCPackageDecl opd = cu.getPackage();
       if (opd.isPresent()) {
         String packageName = opd.get().getName().asString();
         if (shouldNotRequire(packageName)) {
           return;
         }
-        Optional<String> optTypeName = cu.getPrimaryTypeName();
+        String optTypeName = cu.getPrimaryTypeName();
         if (optTypeName.isPresent()
             && optTypeName.get().equals("package-info")
             && !hasJavadocComment(opd.get())
@@ -694,7 +693,7 @@ public class RequireJavadoc {
       if (dont_require_private && cd.isPrivate()) {
         return;
       }
-      String name = cd.getNameAsString();
+      String name = cd.getSimpleName().toString();
       if (shouldNotRequire(name)) {
         return;
       }
@@ -723,11 +722,11 @@ public class RequireJavadoc {
       }
       if (dont_require_trivial_properties && isTrivialGetterOrSetter(md)) {
         if (verbose) {
-          System.out.printf("skipping trivial property method %s%n", md.getNameAsString());
+          System.out.printf("skipping trivial property method %s%n", md.getName().toString());
         }
         return;
       }
-      String name = md.getNameAsString();
+      String name = md.getName().toString();
       if (shouldNotRequire(name)) {
         return;
       }
@@ -752,7 +751,7 @@ public class RequireJavadoc {
       }
       boolean hasJavadocComment = hasJavadocComment(fd);
       for (VariableDeclarator vd : fd.getVariables()) {
-        String name = vd.getNameAsString();
+        String name = vd.getName().toString();
         // TODO: Also check the type of the serialVersionUID variable.
         if (name.equals("serialVersionUID")) {
           continue;
@@ -771,8 +770,8 @@ public class RequireJavadoc {
     }
 
     @Override
-    public void visit(EnumConstantDeclaration ecd, Void ignore) {
-      String name = ecd.getNameAsString();
+    public void visitEnumConstantDeclaration(JCTree.JCVariableDecl ecd, Void ignore) {
+      String name = ecd.getName().toString();
       if (shouldNotRequire(name)) {
         return;
       }
@@ -782,12 +781,12 @@ public class RequireJavadoc {
       if (!dont_require_field && !hasJavadocComment(ecd)) {
         errors.add(errorString(ecd, name));
       }
-      super.visit(ecd, null);
+      super.visitVariable(ecd, null);
     }
 
     @Override
-    public void visit(AnnotationMemberDeclaration amd, Void ignore) {
-      String name = amd.getNameAsString();
+    public void visitAnnotationMemberDeclaration(JCTree.JCVariableDecl amd, Void ignore) {
+      String name = amd.getName().toString();
       if (shouldNotRequire(name)) {
         return;
       }
@@ -797,7 +796,7 @@ public class RequireJavadoc {
       if (!dont_require_method && !hasJavadocComment(amd)) {
         errors.add(errorString(amd, name));
       }
-      super.visit(amd, null);
+      super.visitVariable(amd, null);
     }
 
     /**
@@ -807,8 +806,8 @@ public class RequireJavadoc {
      * @return true if this method is annotated with {@code @Override}
      */
     private boolean isOverride(JCTree.JCMethodDecl md) {
-      for (AnnotationExpr anno : md.getAnnotations()) {
-        String annoName = anno.getName().toString();
+      for (JCTree.JCAnnotation anno : md.getModifiers().getAnnotations()) {
+        String annoName = anno.getAnnotationType().getName().toString();
         if (annoName.equals("Override") || annoName.equals("java.lang.Override")) {
           return true;
         }
