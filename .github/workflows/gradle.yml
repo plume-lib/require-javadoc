@@ -27,3 +27,5 @@ jobs:
       run: ./gradlew requireJavadoc
     - name: ./gradlew spotlessCheck
       run: ./gradlew spotlessCheck
+    - name: run-tests.sh
+      run: src/test/run-tests.sh
