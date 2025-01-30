@@ -9,7 +9,7 @@ record MyRecord(
 record MyOtherRecord(
     /** First field. */
     String first,
-    /** First field. */
+    /** Second field. */
     String second) {}
 
-class Undocumented {}
+class MyUndocumentedClass {}
