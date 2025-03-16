@@ -2,8 +2,13 @@
 
 This program requires that a Javadoc comment is present on
 every Java class, constructor, method, and field.
-It does not require a Javadoc comment on methods with an `@Override` annotation,
-nor on fields named `serialVersionUID`.
+There are a few exceptions:
+
+ * methods with an `@Override` annotation.
+ * fields named `serialVersionUID`.
+ * record parameters/fields (because Javadoc
+   requires `@param` tags in the Javadoc for the record).
+ * see command-line arguments below for further customization.
 
 This tool makes no requirement about the Javadoc comment, beyond its existence.
 For example, this tool does not require the existence
