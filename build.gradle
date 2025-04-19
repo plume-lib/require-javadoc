@@ -3,7 +3,7 @@ plugins {
   id 'application'
 
   // To create a fat jar build/libs/...-all.jar, run: ./gradlew shadowJar
-  id 'com.gradleup.shadow' version '8.3.5'
+  id 'com.gradleup.shadow' version '8.3.6'
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
   // Version 6.14.0 and later requires JRE 11+, but version 6.13.0 doesn't work on JRE 21.
@@ -11,7 +11,7 @@ plugins {
 
   // Error Prone linter
   // TODO: Java 23: remove "apply false".
-  id('net.ltgt.errorprone') version '4.1.0' apply false
+  id('net.ltgt.errorprone') version '4.2.0' apply false
 
   // Checker Framework pluggable type-checking
   id 'org.checkerframework' version '0.6.45'
@@ -34,13 +34,13 @@ repositories {
 }
 
 ext {
-  errorproneVersion = '2.36.0'
+  errorproneVersion = '2.38.0'
   isJava17orHigher = JavaVersion.current() >= JavaVersion.VERSION_17
   isJava21orHigher = JavaVersion.current() >= JavaVersion.VERSION_21
 }
 
 dependencies {
-  // implementation 'com.google.code.gson:gson:2.11.0'
+  // implementation 'com.google.code.gson:gson:2.13.0'
   implementation 'org.plumelib:javac-parse:0.1.0'
   implementation 'org.plumelib:options:2.0.3'
 }
@@ -137,7 +137,7 @@ checkerFramework {
 // To use a snapshot version of the Checker Framework.
 if (false) {
   // TODO: Change the above test to false when CF is released.
-  ext.checkerFrameworkVersion = '3.48.4'
+  ext.checkerFrameworkVersion = '3.49.2'
   dependencies {
     compileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
     testCompileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
