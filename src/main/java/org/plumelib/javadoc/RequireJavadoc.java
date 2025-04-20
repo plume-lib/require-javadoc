@@ -224,7 +224,6 @@ public class RequireJavadoc {
    * @param args the directories and files listed on the command line
    */
   @SuppressWarnings({
-    "lock:unneeded.suppression", // TEMPORARY, until a CF release is made
     "lock:methodref.receiver", // Comparator.comparing
     "lock:type.arguments.not.inferred" // Comparator.comparing
   })
