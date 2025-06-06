@@ -47,7 +47,6 @@ java {
 }
 
 
-// TODO: Why is this condition needed?
 if (! isJava21orHigher) {
   spotless {
     format 'misc', {
