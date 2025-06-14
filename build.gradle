@@ -10,21 +10,10 @@ plugins {
   id 'com.diffplug.spotless' version '6.13.0'
 
   // Error Prone linter
-  // TODO: Java 23: remove "apply false".
-  id('net.ltgt.errorprone') version '4.2.0' apply false
+  id('net.ltgt.errorprone') version '4.2.0'
 
   // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.6.45'
-}
-
-// TODO: Java 23: remove this code block.
-if (JavaVersion.current() <= JavaVersion.VERSION_22) {
-  apply plugin: 'net.ltgt.errorprone'
-}
-
-// TODO: Java 23: remove this code block.
-if (JavaVersion.current() <= JavaVersion.VERSION_22) {
-  apply plugin: 'net.ltgt.errorprone'
+  id 'org.checkerframework' version '0.6.55'
 }
 
 repositories {
@@ -40,7 +29,7 @@ ext {
 }
 
 dependencies {
-  // implementation 'com.google.code.gson:gson:2.13.0'
+  // implementation 'com.google.code.gson:gson:2.13.1'
   implementation 'org.plumelib:javac-parse:0.1.0'
   implementation 'org.plumelib:options:2.0.3'
 }
@@ -58,7 +47,6 @@ java {
 }
 
 
-// TODO: Why is this condition needed?
 if (! isJava21orHigher) {
   spotless {
     format 'misc', {
@@ -87,23 +75,20 @@ if (! isJava21orHigher) {
 
 // Error Prone linter
 
-// TODO: Java 23: remove the "if" line" and corresponding "}"
-if (JavaVersion.current() <= JavaVersion.VERSION_22) {
-  dependencies {
-    errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
+dependencies {
+  errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
+}
+tasks.withType(JavaCompile).configureEach {
+  // "-processing" avoids javac warning "No processor claimed any of these annotations".
+  // "-Xlint:-options" is because of JDK 21 warning "source value 8 is obsolete..."
+  options.compilerArgs << '-Xlint:all,-processing,-options' << '-Werror'
+  options.errorprone {
+    // ExtendsObject does not yet exist in Error Prone 2.10.0.
+    // disable('ExtendsObject')  // Incorrect when using the Checker Framework
+    disable('ReferenceEquality') // Use Interning Checker instead.
+    disable('AnnotateFormatMethod') // Error Prone doesn't know about Checker Framework @FormatMethod
   }
-  tasks.withType(JavaCompile).configureEach {
-    // "-processing" avoids javac warning "No processor claimed any of these annotations".
-    // "-Xlint:-options" is because of JDK 21 warning "source value 8 is obsolete..."
-    options.compilerArgs << '-Xlint:all,-processing,-options' << '-Werror'
-    options.errorprone {
-      // ExtendsObject does not yet exist in Error Prone 2.10.0.
-      // disable('ExtendsObject')  // Incorrect when using the Checker Framework
-      disable('ReferenceEquality') // Use Interning Checker instead.
-      disable('AnnotateFormatMethod') // Error Prone doesn't know about Checker Framework @FormatMethod
-    }
-    options.errorprone.enabled = isJava17orHigher
-  }
+  options.errorprone.enabled = isJava17orHigher
 }
 
 // Checker Framework pluggable type-checking
@@ -137,7 +122,7 @@ checkerFramework {
 // To use a snapshot version of the Checker Framework.
 if (false) {
   // TODO: Change the above test to false when CF is released.
-  ext.checkerFrameworkVersion = '3.49.2'
+  ext.checkerFrameworkVersion = '3.49.4'
   dependencies {
     compileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
     testCompileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
