@@ -30,8 +30,8 @@ ext {
 
 dependencies {
   implementation 'com.github.javaparser:javaparser-core:3.26.4'
-  implementation 'org.plumelib:options:2.0.3'
   implementation 'com.google.code.gson:gson:2.13.1'
+  implementation 'org.plumelib:options:2.0.3'
 }
 
 // To upload to Maven Central, see instructions in the file.
