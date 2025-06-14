@@ -29,8 +29,8 @@ ext {
 }
 
 dependencies {
+  implementation 'com.github.javaparser:javaparser-core:3.26.4'
   // implementation 'com.google.code.gson:gson:2.13.1'
-  implementation 'org.plumelib:javac-parse:0.1.0'
   implementation 'org.plumelib:options:2.0.3'
 }
 
