@@ -24,7 +24,17 @@ missing comments are not as customizable as this tool is.
 Example usage, to check every `.java` file in or under the current directory:
 
 ```
-java -cp require-javadoc-all.jar org.plumelib.javadoc.RequireJavadoc
+java \
+  --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
+  --add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
+  --add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
+  --add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
+  --add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
+  -cp require-javadoc-all.jar \
+  org.plumelib.javadoc.RequireJavadoc
 ```
 
 Details about invoking the program:
@@ -52,8 +62,9 @@ or any subdirectory.
 The `--dont-require` regex is matched against full package names and against simple
 (unqualified) names of classes, constructors, methods, and fields.
 
-A constructor with zero arguments is sometimes called a "default constructor", though that term
-means a no-argument constructor that the compiler synthesized when the programmer didn't write one.
+A constructor with zero arguments is sometimes called a "default constructor",
+though "default constructor" actually means a no-argument constructor that the
+compiler synthesized when the programmer didn't write one.
 
 All boolean options default to false, and you can omit the `=<boolean>` to set them to true, for
 example just `--verbose`.
