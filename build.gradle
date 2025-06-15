@@ -31,6 +31,7 @@ ext {
 dependencies {
   implementation 'com.github.javaparser:javaparser-core:3.26.4'
   // implementation 'com.google.code.gson:gson:2.13.1'
+  implementation 'org.plumelib:javac-parse:0.2.0-SNAPSHOT'
   implementation 'org.plumelib:options:2.0.3'
 }
 
@@ -42,8 +43,8 @@ application {
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_1_8
-  targetCompatibility = JavaVersion.VERSION_1_8
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
 }
 
 
@@ -72,6 +73,12 @@ if (! isJava21orHigher) {
     }
   }
 }
+
+task runShellTests(type: Exec) {
+  commandLine "./src/test/run-tests.sh"
+}
+test.dependsOn runShellTests
+
 
 // Error Prone linter
 
@@ -156,7 +163,7 @@ javadoc {
   // options.addStringOption('Xwerror', '-Xdoclint:all')
   options.addStringOption('Xdoclint:all', '-quiet')
   options.addStringOption('private', '-quiet')
-  options.addStringOption('source', '8')
+  options.addStringOption('source', '11')
   doLast {
     ant.replaceregexp(match:"@import url\\('resources/fonts/dejavu.css'\\);\\s*", replace:'',
     flags:'g', byline:true) {
@@ -192,11 +199,11 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc 'org.plumelib:require-javadoc:1.0.9'
+  requireJavadoc 'org.plumelib:require-javadoc:1.1.0-SNAPSHOT'
 }
 task requireJavadoc(type: JavaExec) {
-  // "dependsOn jar" because this is the requireJavadoc project itself, and
-  // Gradle uses the built-from-source version of
+  // "dependsOn jar" because this is the requireJavadoc project itself,
+  // and Gradle uses the built-from-source version of
   // 'org.plumelib:require-javadoc'.  So declare a dependency on it.
   dependsOn jar
   group = 'Documentation'
@@ -204,8 +211,47 @@ task requireJavadoc(type: JavaExec) {
   mainClass = 'org.plumelib.javadoc.RequireJavadoc'
   classpath = configurations.requireJavadoc
   args 'src/main/java'
+  jvmArgs += [
+    '--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+    '--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+    '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+    '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+  ]
 }
 check.dependsOn requireJavadoc
+
+compileJava {
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED'
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED'
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED'
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED'
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED'
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED'
+}
+compileTestJava {
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED'
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED'
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED'
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED'
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED'
+  options.compilerArgs += '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED'
+}
+javadoc {
+  options {
+    addMultilineStringsOption("-add-exports").setValue([
+      'jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED',
+      'jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
+      'jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+      'jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+      'jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+      'jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+    ])
+  }
+}
 
 // Emacs support
 

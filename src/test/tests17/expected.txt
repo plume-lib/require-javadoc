@@ -1,0 +1,2 @@
+JavaRecords.java:9:1: missing documentation for MyOtherRecord
+JavaRecords.java:13:1: missing documentation for MyUndocumentedClass

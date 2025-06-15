@@ -18,13 +18,6 @@ but Javadoc before JDK 18 [does not warn](#comparison-to-javadoc--xwerror--xdocl
 about completely missing comments.  In JDK 18+, Javadoc's warnings about
 missing comments are not as customizable as this tool is.
 
-This program does not work on JDK 24, because it uses
-[JavaParser](https://github.com/javaparser/javaparser) which only supports Java
-syntax [up to Java
-21](https://github.com/javaparser/javaparser/blob/master/readme.md).  TODO: This
-program should be rewritten to use, say,
-[javac-parse](https://github.com/plume-lib/javac-parse) rather than JavaParser.
-
 
 ## Use
 
@@ -120,7 +113,7 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc "org.plumelib:require-javadoc:1.0.9"
+  requireJavadoc "org.plumelib:require-javadoc:1.1.0-SNAPSHOT"
 }
 task requireJavadoc(type: JavaExec) {
   group = 'Documentation'
@@ -128,6 +121,16 @@ task requireJavadoc(type: JavaExec) {
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
   args "src/main/java"
+  jvmArgs += [
+    '--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+    '--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+    '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+    '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+  ]
 }
 check.dependsOn requireJavadoc
 ```
