@@ -124,7 +124,7 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc "org.plumelib:require-javadoc:1.1.0-SNAPSHOT"
+  requireJavadoc "org.plumelib:require-javadoc:2.0.0"
 }
 task requireJavadoc(type: JavaExec) {
   group = 'Documentation'

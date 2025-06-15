@@ -30,7 +30,7 @@ ext {
 
 dependencies {
   implementation 'com.github.javaparser:javaparser-core:3.27.0'
-  implementation 'org.plumelib:javac-parse:0.2.0-SNAPSHOT'
+  implementation 'org.plumelib:javac-parse:0.2.0'
   implementation 'org.plumelib:options:2.0.3'
 }
 
@@ -198,7 +198,7 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc 'org.plumelib:require-javadoc:1.1.0-SNAPSHOT'
+  requireJavadoc 'org.plumelib:require-javadoc:1.0.9'
 }
 task requireJavadoc(type: JavaExec) {
   // "dependsOn jar" because this is the requireJavadoc project itself,

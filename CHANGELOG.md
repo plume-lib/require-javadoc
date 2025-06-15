@@ -1,6 +1,6 @@
 # Require-Javadoc change log
 
-## 1.1.0 (2025-06-14)
+## 2.0.0 (2025-06-14)
 
 require-javadoc supports all Java versions, including Java 24.
 
