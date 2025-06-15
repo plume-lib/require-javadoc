@@ -64,7 +64,7 @@ The `--dont-require` regex is matched against full package names and against sim
 
 A constructor with zero arguments is sometimes called a "default constructor",
 though "default constructor" actually means a no-argument constructor that the
-compiler synthesized when the programmer didn't write one.
+compiler synthesized when the programmer didn't write any constructor.
 
 All boolean options default to false, and you can omit the `=<boolean>` to set them to true, for
 example just `--verbose`.
