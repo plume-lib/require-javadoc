@@ -18,20 +18,23 @@ but Javadoc before JDK 18 [does not warn](#comparison-to-javadoc--xwerror--xdocl
 about completely missing comments.  In JDK 18+, Javadoc's warnings about
 missing comments are not as customizable as this tool is.
 
-This program does not work on JDK 24, because it uses
-[JavaParser](https://github.com/javaparser/javaparser) which only supports Java
-syntax [up to Java
-21](https://github.com/javaparser/javaparser/blob/master/readme.md).  TODO: This
-program should be rewritten to use, say,
-[javac-parse](https://github.com/plume-lib/javac-parse) rather than JavaParser.
-
 
 ## Use
 
 Example usage, to check every `.java` file in or under the current directory:
 
 ```
-java -cp require-javadoc-all.jar org.plumelib.javadoc.RequireJavadoc
+java \
+  --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
+  --add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
+  --add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
+  --add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
+  --add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
+  -cp require-javadoc-all.jar \
+  org.plumelib.javadoc.RequireJavadoc
 ```
 
 Details about invoking the program:
@@ -59,8 +62,9 @@ or any subdirectory.
 The `--dont-require` regex is matched against full package names and against simple
 (unqualified) names of classes, constructors, methods, and fields.
 
-A constructor with zero arguments is sometimes called a "default constructor", though that term
-means a no-argument constructor that the compiler synthesized when the programmer didn't write one.
+A constructor with zero arguments is sometimes called a "default constructor",
+though "default constructor" actually means a no-argument constructor that the
+compiler synthesized when the programmer didn't write any constructor.
 
 All boolean options default to false, and you can omit the `=<boolean>` to set them to true, for
 example just `--verbose`.
@@ -120,7 +124,7 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc "org.plumelib:require-javadoc:1.0.9"
+  requireJavadoc "org.plumelib:require-javadoc:2.0.0"
 }
 task requireJavadoc(type: JavaExec) {
   group = 'Documentation'
@@ -128,6 +132,16 @@ task requireJavadoc(type: JavaExec) {
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
   args "src/main/java"
+  jvmArgs += [
+    '--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+    '--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+    '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+    '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+  ]
 }
 check.dependsOn requireJavadoc
 ```

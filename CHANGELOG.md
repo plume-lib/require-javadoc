@@ -1,8 +1,13 @@
 # Require-Javadoc change log
 
-## 2.0.0 (2023-??-??)
+## 2.0.0 (2025-06-14)
+
+require-javadoc supports all Java versions, including Java 24.
 
 Java 11 or later is required to run require-javadoc.
+
+When running require-javadoc, you must pass `--add-exports` and `--add-opens`
+command-line options to `java`; see the documentation.
 
 ## 1.0.9 (2024-03-28)
 

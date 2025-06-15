@@ -1,45 +1,12 @@
 package org.plumelib.javadoc;
 
-import static com.github.javaparser.utils.PositionUtils.sortByBeginPosition;
-
-import com.github.javaparser.ParseProblemException;
-import com.github.javaparser.ParserConfiguration;
-import com.github.javaparser.Position;
-import com.github.javaparser.Range;
-import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.PackageDeclaration;
-import com.github.javaparser.ast.body.AnnotationDeclaration;
-import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.ConstructorDeclaration;
-import com.github.javaparser.ast.body.EnumConstantDeclaration;
-import com.github.javaparser.ast.body.EnumDeclaration;
-import com.github.javaparser.ast.body.FieldDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.body.RecordDeclaration;
-import com.github.javaparser.ast.body.VariableDeclarator;
-import com.github.javaparser.ast.comments.Comment;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.AssignExpr;
-import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.FieldAccessExpr;
-import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.ast.expr.ThisExpr;
-import com.github.javaparser.ast.expr.UnaryExpr;
-import com.github.javaparser.ast.nodeTypes.NodeWithJavadoc;
-import com.github.javaparser.ast.stmt.BlockStmt;
-import com.github.javaparser.ast.stmt.ExpressionStmt;
-import com.github.javaparser.ast.stmt.ReturnStmt;
-import com.github.javaparser.ast.stmt.Statement;
-import com.github.javaparser.ast.type.PrimitiveType;
-import com.github.javaparser.ast.type.Type;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.sun.source.tree.LineMap;
+import com.sun.source.tree.Tree;
+import com.sun.tools.javac.tree.DocCommentTable;
+import com.sun.tools.javac.tree.JCTree;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -47,17 +14,22 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.type.TypeKind;
+import javax.tools.Diagnostic;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.plumelib.javacparse.JavacParse;
+import org.plumelib.javacparse.JavacParseResult;
 import org.plumelib.options.Option;
 import org.plumelib.options.Options;
 
@@ -89,7 +61,7 @@ public class RequireJavadoc {
   /**
    * If true, don't check constructors with zero formal parameters. These are sometimes called
    * "default constructors", though that term means a no-argument constructor that the compiler
-   * synthesized when the programmer didn't write one.
+   * synthesized when the programmer didn't write any constructor.
    */
   @Option("Don't report problems in constructors with zero formal parameters")
   public boolean dont_require_noarg_constructor;
@@ -155,6 +127,27 @@ public class RequireJavadoc {
   @Option("Print diagnostic information")
   public boolean verbose = false;
 
+  /** Tree.Kind.RECORD, or OTHER if running under Java 15 or earlier. */
+  private static final Tree.Kind RECORD;
+
+  static {
+    if (Runtime.version().feature() >= 16) {
+      try {
+        Field recordField = Tree.Kind.class.getDeclaredField("RECORD");
+        @SuppressWarnings("nullness:argument") // pass null because it's a static field
+        Tree.Kind recordFieldValue = (Tree.Kind) recordField.get(null);
+        if (recordFieldValue == null) {
+          throw new Error("Field RECORD is nill Tree.Kind");
+        }
+        RECORD = recordFieldValue;
+      } catch (NoSuchFieldException | IllegalAccessException e) {
+        throw new Error("Cannot find field RECORD in Tree.Kind", e);
+      }
+    } else {
+      RECORD = Tree.Kind.OTHER;
+    }
+  }
+
   /** All the errors this program will report. */
   private List<String> errors = new ArrayList<>();
 
@@ -166,6 +159,19 @@ public class RequireJavadoc {
 
   /** The current working directory, for making relative pathnames. */
   private Path workingDirAbsolute = Paths.get("").toAbsolutePath();
+
+  /** The current compilation unit. Set in {@link #main}. */
+  private JCTree.JCCompilationUnit currentCompilationUnit;
+
+  /** The visitor. Set in {@link #main}. */
+  private RequireJavadocVisitor visitor;
+
+  /** Creates a new RequireJavadoc instance. */
+  @SuppressWarnings({
+    "nullness:initialization.fields.uninitialized",
+    "initializedfields:contracts.postcondition"
+  }) // `currentCompilationUnit` and `visitor` are set in main(); TODO: refactor.
+  private RequireJavadoc() {}
 
   /**
    * The main entry point for the require-javadoc program. See documentation at <a
@@ -189,16 +195,13 @@ public class RequireJavadoc {
         System.out.println("Checking " + javaFile);
       }
       try {
-        ParserConfiguration parserConfiguration = new ParserConfiguration();
-        parserConfiguration.setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17);
-        StaticJavaParser.setConfiguration(parserConfiguration);
-        CompilationUnit cu = StaticJavaParser.parse(javaFile);
-        RequireJavadocVisitor visitor = rj.new RequireJavadocVisitor(javaFile);
-        visitor.visit(cu, null);
+        JavacParseResult jpr = JavacParse.parseJavaFile(javaFile.toString());
+        JCTree.JCCompilationUnit cu = jpr.getCompilationUnit();
+        rj.currentCompilationUnit = cu;
+        rj.visitor = rj.new RequireJavadocVisitor(javaFile);
+        rj.visitor.visitTopLevel(cu);
       } catch (IOException e) {
         exceptionsThrown.add("Problem while reading " + javaFile + ": " + e.getMessage());
-      } catch (ParseProblemException e) {
-        exceptionsThrown.add("Problem while parsing " + javaFile + ": " + e.getMessage());
       }
     }
     for (String error : rj.errors) {
@@ -214,9 +217,6 @@ public class RequireJavadoc {
 
     System.exit(rj.errors.isEmpty() ? 0 : 1);
   }
-
-  /** Creates a new RequireJavadoc instance. */
-  private RequireJavadoc() {}
 
   /**
    * Set the Java files to be processed from the command-line arguments.
@@ -371,7 +371,7 @@ public class RequireJavadoc {
     VOID,
     /** The return type is boolean. */
     BOOLEAN,
-    /** The return type is non-void. */
+    /** The return type is non-void. (It might be boolean.) */
     NON_VOID;
   }
 
@@ -429,8 +429,8 @@ public class RequireJavadoc {
      * @param md the method to check
      * @return the PropertyKind for the given method, or null
      */
-    static PropertyKind fromMethodDeclaration(MethodDeclaration md) {
-      String methodName = md.getNameAsString();
+    static PropertyKind fromMethodDeclaration(JCTree.JCMethodDecl md) {
+      String methodName = md.getName().toString();
       if (methodName.startsWith("get")) {
         return GETTER;
       } else if (methodName.startsWith("has")) {
@@ -462,7 +462,7 @@ public class RequireJavadoc {
    * @param md the method to check
    * @return true if this method is a trivial getter or setter
    */
-  private boolean isTrivialGetterOrSetter(MethodDeclaration md) {
+  private boolean isTrivialGetterOrSetter(JCTree.JCMethodDecl md) {
     PropertyKind kind = PropertyKind.fromMethodDeclaration(md);
     if (kind != PropertyKind.GETTER_NO_PREFIX) {
       if (isTrivialGetterOrSetter(md, kind)) {
@@ -475,12 +475,12 @@ public class RequireJavadoc {
   /**
    * Return true if this method declaration is a trivial getter or setter of the given kind.
    *
-   * @see #isTrivialGetterOrSetter(MethodDeclaration)
+   * @see #isTrivialGetterOrSetter(JCTree.JCMethodDecl)
    * @param md the method to check
    * @param propertyKind the kind of property
    * @return true if this method is a trivial getter or setter
    */
-  private boolean isTrivialGetterOrSetter(MethodDeclaration md, PropertyKind propertyKind) {
+  private boolean isTrivialGetterOrSetter(JCTree.JCMethodDecl md, PropertyKind propertyKind) {
     String propertyName = propertyName(md, propertyKind);
     return propertyName != null
         && hasCorrectSignature(md, propertyKind, propertyName)
@@ -498,8 +498,8 @@ public class RequireJavadoc {
    * @param propertyKind the type of property method
    * @return the name of the property, or null
    */
-  private @Nullable String propertyName(MethodDeclaration md, PropertyKind propertyKind) {
-    String methodName = md.getNameAsString();
+  private @Nullable String propertyName(JCTree.JCMethodDecl md, PropertyKind propertyKind) {
+    String methodName = md.getName().toString();
     assert methodName.startsWith(propertyKind.prefix);
     @SuppressWarnings("index") // https://github.com/typetools/checker-framework/issues/5201
     String upperCamelCaseProperty = methodName.substring(propertyKind.prefix.length());
@@ -526,40 +526,42 @@ public class RequireJavadoc {
    * @return true if the body of the given method is a property accessor
    */
   private boolean hasCorrectSignature(
-      MethodDeclaration md, PropertyKind propertyKind, String propertyName) {
-    NodeList<Parameter> parameters = md.getParameters();
+      JCTree.JCMethodDecl md, PropertyKind propertyKind, String propertyName) {
+    List<JCTree.JCVariableDecl> parameters = md.getParameters();
     if (parameters.size() != propertyKind.requiredParams) {
       return false;
     }
     if (parameters.size() == 1) {
-      Parameter parameter = parameters.get(0);
-      if (!parameter.getNameAsString().equals(propertyName)) {
+      JCTree.JCVariableDecl parameter = parameters.get(0);
+      if (!parameter.getName().toString().equals(propertyName)) {
         return false;
       }
     }
     // Check presence/absence of return type. (The Java compiler will verify
     // that the type is consistent with the method body.)
-    Type returnType = md.getType();
+    JCTree returnType = md.getReturnType();
     switch (propertyKind.returnType) {
       case VOID:
-        if (!returnType.isVoidType()) {
-          return false;
-        }
-        break;
+        return isTypeWithKind(returnType, TypeKind.VOID);
       case BOOLEAN:
-        if (!returnType.equals(PrimitiveType.booleanType())) {
-          return false;
-        }
-        break;
+        return isTypeWithKind(returnType, TypeKind.BOOLEAN);
       case NON_VOID:
-        if (returnType.isVoidType()) {
-          return false;
-        }
-        break;
+        return !isTypeWithKind(returnType, TypeKind.VOID);
       default:
         throw new Error("Unexpected enum value " + propertyKind.returnType);
     }
-    return true;
+  }
+
+  /**
+   * Returns true if a given tree is a primitive or void type of the given kind.
+   *
+   * @param tree a tree
+   * @param typeKind a primitive or void type
+   * @return true if the tree is a type of the given kind
+   */
+  private boolean isTypeWithKind(JCTree tree, TypeKind typeKind) {
+    return tree instanceof JCTree.JCPrimitiveTypeTree
+        && typeKind == ((JCTree.JCPrimitiveTypeTree) tree).getPrimitiveTypeKind();
   }
 
   /**
@@ -571,73 +573,52 @@ public class RequireJavadoc {
    * @return true if the body of the given method is a property accessor
    */
   private boolean hasCorrectBody(
-      MethodDeclaration md, PropertyKind propertyKind, String propertyName) {
-    Statement statement = getOnlyStatement(md);
+      JCTree.JCMethodDecl md, PropertyKind propertyKind, String propertyName) {
+    JCTree.JCStatement statement = getOnlyStatement(md);
+    if (statement == null) {
+      return false;
+    }
     if (propertyKind.isGetter()) {
-      if (!(statement instanceof ReturnStmt)) {
+      if (!(statement instanceof JCTree.JCReturn)) {
         return false;
       }
-      Optional<Expression> optReturnExpr = ((ReturnStmt) statement).getExpression();
-      if (!optReturnExpr.isPresent()) {
+      JCTree.JCExpression returnExpr = ((JCTree.JCReturn) statement).getExpression();
+      if (returnExpr == null) {
         return false;
       }
-      Expression returnExpr = optReturnExpr.get();
-      // Does not handle parentheses.
+
+      // TODO: remove enclosing parentheses.
       if (propertyKind == PropertyKind.GETTER_NOT) {
-        if (!(returnExpr instanceof UnaryExpr)) {
+        if (!(returnExpr instanceof JCTree.JCUnary)) {
           return false;
         }
-        UnaryExpr unary = (UnaryExpr) returnExpr;
-        if (unary.getOperator() != UnaryExpr.Operator.LOGICAL_COMPLEMENT) {
+        JCTree.JCUnary unary = (JCTree.JCUnary) returnExpr;
+        if (unary.getTag() != JCTree.Tag.NOT) {
           return false;
         }
+        // TODO: remove enclosing parentheses.
         returnExpr = unary.getExpression();
       }
-      String returnName;
-      // Does not handle parentheses.
-      if (returnExpr instanceof NameExpr) {
-        returnName = ((NameExpr) returnExpr).getNameAsString();
-      } else if (returnExpr instanceof FieldAccessExpr) {
-        FieldAccessExpr fa = (FieldAccessExpr) returnExpr;
-        Expression receiver = fa.getScope();
-        if (!(receiver instanceof ThisExpr)) {
-          return false;
-        }
-        returnName = fa.getNameAsString();
-      } else {
-        return false;
-      }
-      if (!returnName.equals(propertyName)) {
-        return false;
-      }
-      return true;
+      String returnName = asFieldName(returnExpr);
+      return returnName != null && returnName.equals(propertyName);
     } else if (propertyKind == PropertyKind.SETTER) {
-      if (!(statement instanceof ExpressionStmt)) {
+      if (!(statement instanceof JCTree.JCExpressionStatement)) {
         return false;
       }
-      Expression expr = ((ExpressionStmt) statement).getExpression();
-      if (!(expr instanceof AssignExpr)) {
+      JCTree.JCExpression expr = ((JCTree.JCExpressionStatement) statement).getExpression();
+      if (!(expr instanceof JCTree.JCAssign)) {
         return false;
       }
-      AssignExpr assignExpr = (AssignExpr) expr;
-      Expression target = assignExpr.getTarget();
-      if (!(target instanceof FieldAccessExpr)) {
+      JCTree.JCAssign assignExpr = (JCTree.JCAssign) expr;
+      JCTree.JCExpression assignLhs = assignExpr.getVariable();
+      String lhsName = asFieldName(assignLhs);
+      if (lhsName == null || !lhsName.equals(propertyName)) {
         return false;
       }
-      FieldAccessExpr fa = (FieldAccessExpr) target;
-      Expression receiver = fa.getScope();
-      if (!(receiver instanceof ThisExpr)) {
-        return false;
-      }
-      if (!fa.getNameAsString().equals(propertyName)) {
-        return false;
-      }
-      if (assignExpr.getOperator() != AssignExpr.Operator.ASSIGN) {
-        return false;
-      }
-      Expression value = assignExpr.getValue();
-      if (!(value instanceof NameExpr
-          && ((NameExpr) value).getNameAsString().equals(propertyName))) {
+      // TODO: remove enclosing parentheses.
+      JCTree.JCExpression assignRhs = assignExpr.getExpression();
+      if (!(assignRhs instanceof JCTree.JCIdent
+          && ((JCTree.JCIdent) assignRhs).getName().toString().equals(propertyName))) {
         return false;
       }
       return true;
@@ -647,17 +628,43 @@ public class RequireJavadoc {
   }
 
   /**
+   * If the expression is an identifier or "this.identifier", return the name of the identifier.
+   *
+   * @param expr an expression
+   * @return the name of the identifier, if it is one; null otherwise
+   */
+  private @Nullable String asFieldName(JCTree.JCExpression expr) {
+    // TODO: handle parentheses.
+    if (expr instanceof JCTree.JCIdent) {
+      return ((JCTree.JCIdent) expr).getName().toString();
+    } else if (expr instanceof JCTree.JCFieldAccess) {
+      JCTree.JCFieldAccess fa = (JCTree.JCFieldAccess) expr;
+      // Can expr be a field access with null expression and identifier "this"?
+      // Or can this case just be omitted?
+      JCTree.JCExpression receiver = fa.getExpression();
+      if (!(receiver == null
+          || (receiver instanceof JCTree.JCIdent
+              && ((JCTree.JCIdent) receiver).getName().toString().equals("this")))) {
+        return null;
+      }
+      return fa.getIdentifier().toString();
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * If the body contains exactly one statement, returns it. Otherwise, returns null.
    *
    * @param md a method declaration
    * @return its sole statement, or null
    */
-  private @Nullable Statement getOnlyStatement(MethodDeclaration md) {
-    Optional<BlockStmt> body = md.getBody();
-    if (!body.isPresent()) {
+  private JCTree.@Nullable JCStatement getOnlyStatement(JCTree.JCMethodDecl md) {
+    JCTree.JCBlock body = md.getBody();
+    if (body == null) {
       return null;
     }
-    NodeList<Statement> statements = body.get().getStatements();
+    List<JCTree.JCStatement> statements = body.getStatements();
     if (statements.size() != 1) {
       return null;
     }
@@ -665,16 +672,29 @@ public class RequireJavadoc {
   }
 
   /** Visits an AST and collects warnings about missing Javadoc. */
-  private class RequireJavadocVisitor extends VoidVisitorAdapter<Void> {
+  private class RequireJavadocVisitor extends JCTree.Visitor {
 
     /** The file being visited. Used for constructing error messages. */
     private Path filename;
+
+    /**
+     * The compilation unit being visited. Used for constructing error messages. Set by {@link
+     * #visitTopLevel}.
+     */
+    private JCTree.JCCompilationUnit cu;
+
+    /** The name of the class being visited (and others that contain it). */
+    private Deque<String> classNames = new ArrayDeque<>();
 
     /**
      * Create a new RequireJavadocVisitor.
      *
      * @param filename the file being visited; used for diagnostic messages
      */
+    @SuppressWarnings({
+      "nullness:initialization.fields.uninitialized",
+      "initializedfields:contracts.postcondition"
+    }) // `visitTopLevel()` sets `cu`
     public RequireJavadocVisitor(Path filename) {
       this.filename = filename;
     }
@@ -682,99 +702,108 @@ public class RequireJavadoc {
     /**
      * Return a string stating that documentation is missing on the given construct.
      *
-     * @param node a Java language construct (class, constructor, method, field, etc.)
+     * @param tree a Java language construct (class, constructor, method, field, etc.)
      * @param simpleName the construct's simple name, used in diagnostic messages
      * @return an error message for the given construct
      */
-    private String errorString(Node node, String simpleName) {
-      Optional<Range> range = node.getRange();
-      if (range.isPresent()) {
-        Position begin = range.get().begin;
-        Path path =
-            (relative
-                ? (filename.isAbsolute() ? workingDirAbsolute : workingDirRelative)
-                    .relativize(filename)
-                : filename);
-        return String.format(
-            "%s:%d:%d: missing documentation for %s", path, begin.line, begin.column, simpleName);
-      } else {
+    private String errorString(JCTree tree, String simpleName) {
+      int pos = tree.getStartPosition();
+      if (pos == Diagnostic.NOPOS) {
         return "missing documentation for " + simpleName;
       }
+      Path path =
+          (relative
+              ? (filename.isAbsolute() ? workingDirAbsolute : workingDirRelative)
+                  .relativize(filename)
+              : filename);
+      LineMap lineMap = cu.getLineMap();
+      return String.format(
+          "%s:%d:%d: missing documentation for %s",
+          path, lineMap.getLineNumber(pos), lineMap.getColumnNumber(pos), simpleName);
     }
 
+    // Default behavior; in superclass, is `Assert.error()`.
     @Override
-    public void visit(CompilationUnit cu, Void ignore) {
-      Optional<PackageDeclaration> opd = cu.getPackageDeclaration();
-      if (opd.isPresent()) {
-        String packageName = opd.get().getName().asString();
+    public void visitTree(JCTree that) {}
+
+    @Override
+    public void visitTopLevel(JCTree.JCCompilationUnit cu) {
+      this.cu = cu;
+      JCTree.JCPackageDecl pd = cu.getPackage();
+      String packageName = null;
+      if (pd != null) {
+        packageName = pd.getPackageName().toString();
         if (shouldNotRequire(packageName)) {
           return;
         }
-        Optional<String> optTypeName = cu.getPrimaryTypeName();
-        if (optTypeName.isPresent()
-            && optTypeName.get().equals("package-info")
-            && !hasJavadocComment(opd.get())
-            && !hasJavadocComment(cu)) {
-          errors.add(errorString(opd.get(), packageName));
+      }
+      String fileName = cu.getSourceFile().getName();
+      if (fileName.endsWith("package-info.java") || fileName.endsWith("module-info.java")) {
+        if (!hasJavadocComment(pd)) {
+          if (packageName == null) {
+            throw new Error("null package for " + fileName);
+          }
+          errors.add(errorString(pd, packageName));
         }
       }
       if (verbose) {
         System.out.printf("Visiting compilation unit%n");
       }
-      super.visit(cu, null);
+
+      for (JCTree def : cu.defs) {
+        def.accept(this);
+      }
     }
 
     @Override
-    public void visit(ClassOrInterfaceDeclaration cd, Void ignore) {
-      if (dont_require_private && cd.isPrivate()) {
+    public void visitClassDef(JCTree.JCClassDecl cd) {
+      if (dont_require_private && cd.getModifiers().getFlags().contains(Modifier.PRIVATE)) {
         return;
       }
-      String name = cd.getNameAsString();
+      String name = cd.getSimpleName().toString();
       if (shouldNotRequire(name)) {
         return;
       }
       if (verbose) {
         System.out.printf("Visiting type %s%n", name);
       }
+      classNames.addFirst(name);
+
       if (!dont_require_type && !hasJavadocComment(cd)) {
         errors.add(errorString(cd, name));
       }
-      super.visit(cd, null);
+
+      if (cd.getKind() == RECORD) {
+        // Don't warn about record parameters, because Javadoc requires @param for them in the
+        // record declaration itself.
+      } else {
+        for (JCTree def : cd.defs) {
+          def.accept(this);
+        }
+      }
+
+      classNames.removeFirst();
     }
 
     @Override
-    public void visit(ConstructorDeclaration cd, Void ignore) {
-      if (dont_require_private && cd.isPrivate()) {
-        return;
-      }
-      if (dont_require_noarg_constructor && cd.getParameters().size() == 0) {
-        return;
-      }
-      String name = cd.getNameAsString();
-      if (shouldNotRequire(name)) {
-        return;
-      }
-      if (verbose) {
-        System.out.printf("Visiting constructor %s%n", name);
-      }
-      if (!dont_require_method && !hasJavadocComment(cd)) {
-        errors.add(errorString(cd, name));
-      }
-      super.visit(cd, null);
-    }
-
-    @Override
-    public void visit(MethodDeclaration md, Void ignore) {
-      if (dont_require_private && md.isPrivate()) {
+    public void visitMethodDef(JCTree.JCMethodDecl md) {
+      if (dont_require_private && md.getModifiers().getFlags().contains(Modifier.PRIVATE)) {
         return;
       }
       if (dont_require_trivial_properties && isTrivialGetterOrSetter(md)) {
         if (verbose) {
-          System.out.printf("skipping trivial property method %s%n", md.getNameAsString());
+          System.out.printf("skipping trivial property method %s%n", md.getName().toString());
         }
         return;
       }
-      String name = md.getNameAsString();
+
+      @NonNull String name = md.getName().toString();
+      if (name.equals("<init>")) {
+        @SuppressWarnings("nullness:assignment") // the stack is not empty
+        @NonNull String tmpName = classNames.peekFirst();
+        name = tmpName;
+      }
+
       if (shouldNotRequire(name)) {
         return;
       }
@@ -784,123 +813,28 @@ public class RequireJavadoc {
       if (!dont_require_method && !isOverride(md) && !hasJavadocComment(md)) {
         errors.add(errorString(md, name));
       }
-      super.visit(md, null);
     }
 
     @Override
-    public void visit(FieldDeclaration fd, Void ignore) {
-      if (dont_require_private && fd.isPrivate()) {
+    public void visitVarDef(JCTree.JCVariableDecl fd) {
+      if (dont_require_private && fd.getModifiers().getFlags().contains(Modifier.PRIVATE)) {
         return;
       }
       // True if shouldNotRequire is false for at least one of the fields
-      boolean shouldRequire = false;
+      String name = fd.getName().toString();
       if (verbose) {
-        System.out.printf("Visiting field %s%n", fd.getVariables().get(0).getName());
+        System.out.printf("Visiting field %s%n", name);
       }
-      boolean hasJavadocComment = hasJavadocComment(fd);
-      for (VariableDeclarator vd : fd.getVariables()) {
-        String name = vd.getNameAsString();
-        // TODO: Also check the type of the serialVersionUID variable.
-        if (name.equals("serialVersionUID")) {
-          continue;
-        }
-        if (shouldNotRequire(name)) {
-          continue;
-        }
-        shouldRequire = true;
-        if (!dont_require_field && !hasJavadocComment) {
-          errors.add(errorString(vd, name));
-        }
-      }
-      if (shouldRequire) {
-        super.visit(fd, null);
-      }
-    }
-
-    @Override
-    public void visit(EnumDeclaration ed, Void ignore) {
-      if (dont_require_private && ed.isPrivate()) {
+      // TODO: Also check the type of the serialVersionUID variable.
+      if (name.equals("serialVersionUID")) {
         return;
       }
-      String name = ed.getNameAsString();
       if (shouldNotRequire(name)) {
         return;
       }
-      if (verbose) {
-        System.out.printf("Visiting enum %s%n", name);
+      if (!dont_require_field && !hasJavadocComment(fd)) {
+        errors.add(errorString(fd, name));
       }
-      if (!dont_require_type && !hasJavadocComment(ed)) {
-        errors.add(errorString(ed, name));
-      }
-      super.visit(ed, null);
-    }
-
-    @Override
-    public void visit(EnumConstantDeclaration ecd, Void ignore) {
-      String name = ecd.getNameAsString();
-      if (shouldNotRequire(name)) {
-        return;
-      }
-      if (verbose) {
-        System.out.printf("Visiting enum constant %s%n", name);
-      }
-      if (!dont_require_field && !hasJavadocComment(ecd)) {
-        errors.add(errorString(ecd, name));
-      }
-      super.visit(ecd, null);
-    }
-
-    @Override
-    public void visit(AnnotationDeclaration ad, Void ignore) {
-      if (dont_require_private && ad.isPrivate()) {
-        return;
-      }
-      String name = ad.getNameAsString();
-      if (shouldNotRequire(name)) {
-        return;
-      }
-      if (verbose) {
-        System.out.printf("Visiting annotation %s%n", name);
-      }
-      if (!dont_require_type && !hasJavadocComment(ad)) {
-        errors.add(errorString(ad, name));
-      }
-      super.visit(ad, null);
-    }
-
-    @Override
-    public void visit(AnnotationMemberDeclaration amd, Void ignore) {
-      String name = amd.getNameAsString();
-      if (shouldNotRequire(name)) {
-        return;
-      }
-      if (verbose) {
-        System.out.printf("Visiting annotation member %s%n", name);
-      }
-      if (!dont_require_method && !hasJavadocComment(amd)) {
-        errors.add(errorString(amd, name));
-      }
-      super.visit(amd, null);
-    }
-
-    @Override
-    public void visit(RecordDeclaration rd, Void ignore) {
-      if (dont_require_private && rd.isPrivate()) {
-        return;
-      }
-      String name = rd.getNameAsString();
-      if (shouldNotRequire(name)) {
-        return;
-      }
-      if (verbose) {
-        System.out.printf("Visiting record %s%n", name);
-      }
-      if (!dont_require_type && !hasJavadocComment(rd)) {
-        errors.add(errorString(rd, name));
-      }
-      // Don't warn about record parameters, because Javadoc requires @param for them in the record
-      // declaration itself.
-      super.visit(rd, null);
     }
 
     /**
@@ -909,9 +843,9 @@ public class RequireJavadoc {
      * @param md the method to check for an {@code @Override} annotation
      * @return true if this method is annotated with {@code @Override}
      */
-    private boolean isOverride(MethodDeclaration md) {
-      for (AnnotationExpr anno : md.getAnnotations()) {
-        String annoName = anno.getName().toString();
+    private boolean isOverride(JCTree.JCMethodDecl md) {
+      for (JCTree.JCAnnotation anno : md.getModifiers().getAnnotations()) {
+        String annoName = anno.getAnnotationType().toString();
         if (annoName.equals("Override") || annoName.equals("java.lang.Override")) {
           return true;
         }
@@ -921,93 +855,13 @@ public class RequireJavadoc {
   }
 
   /**
-   * Return true if this node has a Javadoc comment.
+   * Return true if this tree has a Javadoc comment.
    *
-   * @param n the node to check for a Javadoc comment
-   * @return true if this node has a Javadoc comment
+   * @param t the tree to check for a Javadoc comment
+   * @return true if this tree has a Javadoc comment
    */
-  private boolean hasJavadocComment(Node n) {
-    if (n instanceof NodeWithJavadoc && ((NodeWithJavadoc<?>) n).hasJavaDocComment()) {
-      return true;
-    }
-    List<Comment> orphans = new ArrayList<>();
-    getOrphanCommentsBeforeThisChildNode(n, orphans);
-    for (Comment orphan : orphans) {
-      if (orphan.isJavadocComment()) {
-        return true;
-      }
-    }
-    Optional<Comment> oc = n.getComment();
-    if (oc.isPresent()
-        && (oc.get().isJavadocComment() || oc.get().getContent().startsWith("/**"))) {
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Get "orphan comments": comments before the comment before this node. For example, in
-   *
-   * <pre>{@code
-   * /** ... *}{@code /
-   * // text 1
-   * // text 2
-   * void m() { ... }
-   * }</pre>
-   *
-   * <p>the Javadoc comment and {@code // text 1} are an orphan comment, and only {@code // text2}
-   * is associated with the method.
-   *
-   * @param node the node whose orphan comments to collect
-   * @param result the list to add orphan comments to. Is side-effected by this method. The
-   *     implementation uses this to minimize the diffs against upstream.
-   */
-  @SuppressWarnings({
-    "JdkObsolete", // for LinkedList
-    "interning:not.interned", // element of a list
-    "ReferenceEquality",
-  })
-  // This implementation is from Randoop's `Minimize.java` file, and before that from JavaParser's
-  // PrettyPrintVisitor.printOrphanCommentsBeforeThisChildNode.  The JavaParser maintainers refuse
-  // to provide such functionality in JavaParser proper.
-  private static void getOrphanCommentsBeforeThisChildNode(final Node node, List<Comment> result) {
-    if (node instanceof Comment) {
-      return;
-    }
-
-    Node parent = node.getParentNode().orElse(null);
-    if (parent == null) {
-      return;
-    }
-    List<Node> everything = new LinkedList<>(parent.getChildNodes());
-    sortByBeginPosition(everything);
-    int positionOfTheChild = -1;
-    for (int i = 0; i < everything.size(); i++) {
-      if (everything.get(i) == node) {
-        positionOfTheChild = i;
-      }
-    }
-    if (positionOfTheChild == -1) {
-      throw new AssertionError("I am not a child of my parent.");
-    }
-    int positionOfPreviousChild = -1;
-    for (int i = positionOfTheChild - 1; i >= 0 && positionOfPreviousChild == -1; i--) {
-      if (!(everything.get(i) instanceof Comment)) {
-        positionOfPreviousChild = i;
-      }
-    }
-    for (int i = positionOfPreviousChild + 1; i < positionOfTheChild; i++) {
-      Node nodeToPrint = everything.get(i);
-      if (!(nodeToPrint instanceof Comment)) {
-        throw new RuntimeException(
-            "Expected comment, instead "
-                + nodeToPrint.getClass()
-                + ". Position of previous child: "
-                + positionOfPreviousChild
-                + ", position of child "
-                + positionOfTheChild);
-      }
-      result.add((Comment) nodeToPrint);
-    }
+  private boolean hasJavadocComment(JCTree t) {
+    DocCommentTable docComments = currentCompilationUnit.docComments;
+    return docComments != null && docComments.hasComment(t);
   }
 }

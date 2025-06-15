@@ -3,7 +3,8 @@ build
 
 *.class
 
-src/test/out.txt
+src/test/tests11/out.txt
+src/test/tests17/out.txt
 
 # BlueJ files
 *.ctxt
