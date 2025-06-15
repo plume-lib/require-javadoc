@@ -168,9 +168,8 @@ Therefore, you may want to use all three.
        [only](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javadoc.html#additional-options-provided-by-the-standard-doclet)
        the key `-missing`, which is very coarse.
 
-   The [`ci-lint-diff`](https://github.com/plume-lib/plume-scripts/blob/master/ci-lint-diff)
-   program is still useful for everyone.
-   `require-javadoc` never requires comments on a default constructor, which does not appear in
+   A benefit of `require-javadoc` is that it never requires comments on a
+   default constructor, which does not appear in
    source code, but `javadoc -Xdoclint:all` does, reporting "warning: use of default constructor,
    which does not provide a comment".  To avoid such warnings, you can run javadoc with
    `-Xdoclint:all,-missing` and rely on `require-javadoc` to warn about missing comments
