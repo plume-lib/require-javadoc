@@ -2,7 +2,7 @@
 
 ## 1.1.0 (2025-06-14)
 
-require-javadoc supports all Java versions, including Java 24 and Java 25.
+require-javadoc supports all Java versions, including Java 24.
 
 Java 11 or later is required to run require-javadoc.
 
