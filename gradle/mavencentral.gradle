@@ -3,12 +3,13 @@
 //     SONATYPE_NEXUS_USERNAME=...
 //     SONATYPE_NEXUS_PASSWORD=...
 
-// To make a release (run on any filesystem, except the `javadocWeb` step):
+// To make a release:
+// (run from main branch; run on any filesystem, except the `javadocWeb` step)
 //  * git pull
 //  * In ../build.gradle, ensure that "To use a snapshot version" is not enabled.
 //  * Update the version number in ../README.md and in this file (multiple times in each).
 //    Ensure the version number in this file does not contain "-SNAPSHOT".
-//  * Update the version number in ../src/test/README .
+//  * Update the version number in ../src/test/run-tests.sh .
 //  * Update ../CHANGELOG.md .
 //  * Save files and stage changes.
 //  * Run in the top-level directory:  ./gradlew clean publish
