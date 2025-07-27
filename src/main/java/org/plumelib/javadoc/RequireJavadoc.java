@@ -319,7 +319,7 @@ public class RequireJavadoc {
   }
 
   /**
-   * Return true if the given Java element should not be checked, based on the {@code
+   * Returns true if the given Java element should not be checked, based on the {@code
    * --dont-require} command-line argument.
    *
    * @param name the name of a Java element. It is a simple name, except for packages.
@@ -337,7 +337,7 @@ public class RequireJavadoc {
   }
 
   /**
-   * Return true if the given file or directory should be skipped, based on the {@code --exclude}
+   * Returns true if the given file or directory should be skipped, based on the {@code --exclude}
    * command-line argument.
    *
    * @param fileName the name of a Java file or directory
@@ -355,7 +355,7 @@ public class RequireJavadoc {
   }
 
   /**
-   * Return true if the given file or directory should be skipped, based on the {@code --exclude}
+   * Returns true if the given file or directory should be skipped, based on the {@code --exclude}
    * command-line argument.
    *
    * @param path a Java file or directory
@@ -424,7 +424,8 @@ public class RequireJavadoc {
     }
 
     /**
-     * Return the PropertyKind for the given method, or null if it isn't a property accessor method.
+     * Returns the PropertyKind for the given method, or null if it isn't a property accessor
+     * method.
      *
      * @param md the method to check
      * @return the PropertyKind for the given method, or null
@@ -448,7 +449,7 @@ public class RequireJavadoc {
   }
 
   /**
-   * Return true if this method declaration is a trivial getter or setter.
+   * Returns true if this method declaration is a trivial getter or setter.
    *
    * <ul>
    *   <li>A trivial getter is named {@code getFoo}, {@code foo}, {@code hasFoo}, {@code isFoo}, or
@@ -473,7 +474,7 @@ public class RequireJavadoc {
   }
 
   /**
-   * Return true if this method declaration is a trivial getter or setter of the given kind.
+   * Returns true if this method declaration is a trivial getter or setter of the given kind.
    *
    * @see #isTrivialGetterOrSetter(JCTree.JCMethodDecl)
    * @param md the method to check
@@ -700,7 +701,7 @@ public class RequireJavadoc {
     }
 
     /**
-     * Return a string stating that documentation is missing on the given construct.
+     * Returns a string stating that documentation is missing on the given construct.
      *
      * @param tree a Java language construct (class, constructor, method, field, etc.)
      * @param simpleName the construct's simple name, used in diagnostic messages
@@ -838,7 +839,7 @@ public class RequireJavadoc {
     }
 
     /**
-     * Return true if this method is annotated with {@code @Override}.
+     * Returns true if this method is annotated with {@code @Override}.
      *
      * @param md the method to check for an {@code @Override} annotation
      * @return true if this method is annotated with {@code @Override}
@@ -855,7 +856,7 @@ public class RequireJavadoc {
   }
 
   /**
-   * Return true if this tree has a Javadoc comment.
+   * Returns true if this tree has a Javadoc comment.
    *
    * @param t the tree to check for a Javadoc comment
    * @return true if this tree has a Javadoc comment
