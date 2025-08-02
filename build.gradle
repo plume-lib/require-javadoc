@@ -6,8 +6,8 @@ plugins {
   id 'com.gradleup.shadow' version '8.3.8'
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
-  // Version 6.14.0 and later requires JRE 11+, but version 6.13.0 doesn't work on JRE 21.
-  id 'com.diffplug.spotless' version '6.13.0'
+  // Requires JDK 11 or higher; the plugin crashes under JDK 8.
+  id 'com.diffplug.spotless' version '7.2.1'
 
   // Error Prone linter
   id('net.ltgt.errorprone') version '4.3.0'
@@ -47,29 +47,27 @@ java {
 }
 
 
-if (! isJava21orHigher) {
-  spotless {
-    format 'misc', {
-      // define the files to apply `misc` to
-      target '*.md', '.gitignore'
+spotless {
+  format 'misc', {
+    // define the files to apply `misc` to
+    target '*.md', '.gitignore'
 
-      // define the steps to apply to those files
-      trimTrailingWhitespace()
-      indentWithSpaces(2) // in Spotless version 7, change to: leadingTabsToSpaces(2)
-      endWithNewline()
-    }
-    java {
-      targetExclude('**/WeakIdentityHashMap.java')
-      googleJavaFormat()
-      formatAnnotations()
-    }
-    groovyGradle {
-      target '**/*.gradle'
-      greclipse()  // which formatter Spotless should use to format .gradle files.
-      indentWithSpaces(2) // in Spotless version 7, change to: leadingTabsToSpaces(2)
-      trimTrailingWhitespace()
-      // endWithNewline() // Don't want to end empty files with a newline
-    }
+    // define the steps to apply to those files
+    trimTrailingWhitespace()
+    leadingTabsToSpaces(2)
+    endWithNewline()
+  }
+  java {
+    targetExclude('**/WeakIdentityHashMap.java')
+    googleJavaFormat()
+    formatAnnotations()
+  }
+  groovyGradle {
+    target '**/*.gradle'
+    greclipse()  // which formatter Spotless should use to format .gradle files.
+    leadingTabsToSpaces(2)
+    trimTrailingWhitespace()
+    // endWithNewline() // Don't want to end empty files with a newline
   }
 }
 
@@ -89,8 +87,7 @@ tasks.withType(JavaCompile).configureEach {
   // "-Xlint:-options" is because of JDK 21 warning "source value 8 is obsolete..."
   options.compilerArgs << '-Xlint:all,-processing,-options' << '-Werror'
   options.errorprone {
-    // ExtendsObject does not yet exist in Error Prone 2.10.0.
-    // disable('ExtendsObject')  // Incorrect when using the Checker Framework.
+    disable('ExtendsObject')  // Incorrect when using the Checker Framework.
     disable('ReferenceEquality') // Use Interning Checker instead.
     disable('AnnotateFormatMethod') // Error Prone doesn't know about Checker Framework @FormatMethod.
     disable('EffectivelyPrivate') // Loses information about the abstraction.
@@ -148,12 +145,6 @@ if (project.hasProperty('cfLocal')) {
     checkerFramework files(cfHome + '/checker/dist/checker.jar')
   }
 }
-// TODO: Java 23: remove this block.
-if (JavaVersion.current() > JavaVersion.VERSION_22) {
-  checkerFramework {
-    skipCheckerFramework = true
-  }
-}
 
 // Javadoc
 
@@ -178,7 +169,7 @@ task javadocWeb(type: Javadoc) {
   source = sourceSets.main.allJava
   destinationDir = file("/cse/web/research/plumelib/${project.name}/api")
   classpath = project.sourceSets.main.compileClasspath
-  options.addStringOption('source', '8')
+  options.addStringOption('source', '11')
   doLast {
     ant.replaceregexp(match:"@import url\\('resources/fonts/dejavu.css'\\);\\s*", replace:'',
     flags:'g', byline:true) {
