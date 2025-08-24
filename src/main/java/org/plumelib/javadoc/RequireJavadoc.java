@@ -730,25 +730,21 @@ public class RequireJavadoc {
     @Override
     public void visitTopLevel(JCTree.JCCompilationUnit cu) {
       this.cu = cu;
-      JCTree.JCPackageDecl pd = cu.getPackage();
-      String packageName = null;
-      if (pd != null) {
-        packageName = pd.getPackageName().toString();
-        if (shouldNotRequire(packageName)) {
-          return;
-        }
-      }
+
       String fileName = cu.getSourceFile().getName();
-      if (fileName.endsWith("package-info.java") || fileName.endsWith("module-info.java")) {
-        if (!hasJavadocComment(pd)) {
-          if (packageName == null) {
-            throw new Error("null package for " + fileName);
+      if (fileName.endsWith("package-info.java")) {
+        // Check for comment at top of file, which is on the `package` declaration in the Javadoc.
+        // A "module-info.java" file has no package declaration
+        JCTree.JCPackageDecl pd = cu.getPackage();
+        if (pd != null) {
+          String packageName = pd.getPackageName().toString();
+          if (shouldNotRequire(packageName)) {
+            return;
           }
-          errors.add(errorString(pd, packageName));
+          if (!hasJavadocComment(pd)) {
+            errors.add(errorString(pd, packageName));
+          }
         }
-      }
-      if (verbose) {
-        System.out.printf("Visiting compilation unit%n");
       }
 
       for (JCTree def : cu.defs) {
