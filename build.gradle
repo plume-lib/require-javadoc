@@ -72,7 +72,7 @@ spotless {
   }
 }
 
-task runShellTests(type: Exec) {
+tasks.register('runShellTests', Exec) {
   commandLine "./src/test/run-tests.sh"
 }
 test.dependsOn runShellTests
