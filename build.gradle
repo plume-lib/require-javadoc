@@ -1,19 +1,19 @@
 plugins {
-  id "java"
-  id "application"
+  id("java")
+  id("application")
 
   // To create a fat jar build/libs/...-all.jar, run: ./gradlew shadowJar
-  id "com.gradleup.shadow" version "9.2.2"
+  id("com.gradleup.shadow").version("9.2.2")
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
   // Requires JDK 11 or higher; the plugin crashes under JDK 8.
-  id "com.diffplug.spotless" version "8.0.0"
+  id("com.diffplug.spotless").version("8.0.0")
 
   // Error Prone linter
-  id("net.ltgt.errorprone") version "4.3.0"
+  id("net.ltgt.errorprone").version("4.3.0")
 
   // Checker Framework pluggable type-checking
-  id "org.checkerframework" version "0.6.60"
+  id("org.checkerframework").version("0.6.60")
 }
 
 repositories {
@@ -30,9 +30,9 @@ ext {
 }
 
 dependencies {
-  implementation "com.github.javaparser:javaparser-core:3.27.1"
-  implementation "org.plumelib:javac-parse:0.2.0"
-  implementation "org.plumelib:options:2.0.3"
+  implementation("com.github.javaparser:javaparser-core:3.27.1")
+  implementation("org.plumelib:javac-parse:0.2.0")
+  implementation("org.plumelib:options:2.0.3")
 }
 
 // To upload to Maven Central, see instructions in the file.
@@ -51,7 +51,7 @@ java {
 spotless {
   format "misc", {
     // define the files to apply `misc` to
-    target "*.md", ".gitignore"
+    target("*.md", ".gitignore")
 
     // define the steps to apply to those files
     trimTrailingWhitespace()
@@ -66,7 +66,7 @@ spotless {
     formatAnnotations()
   }
   groovyGradle {
-    target "**/*.gradle"
+    target("**/*.gradle")
     greclipse()  // which formatter Spotless should use to format .gradle files.
     leadingTabsToSpaces(2)
     trimTrailingWhitespace()
@@ -75,9 +75,9 @@ spotless {
 }
 
 tasks.register("runShellTests", Exec) {
-  commandLine "./src/test/run-tests.sh"
+  commandLine("./src/test/run-tests.sh")
 }
-test.dependsOn runShellTests
+test.dependsOn(runShellTests)
 
 
 // Error Prone linter
@@ -118,7 +118,7 @@ checkerFramework {
     "org.checkerframework.common.initializedfields.InitializedFieldsChecker",
   ]
   extraJavacArgs = [
-    // No "'-Werror'" because of JDK 21 warning "source value 8 is obsolete..."
+    // No "-Werror" because of JDK 21 warning "source value 8 is obsolete..."
     // "-Werror",
     "-AcheckPurityAnnotations",
     "-ArequirePrefixInWarningSuppressions",
@@ -131,9 +131,9 @@ if (false) {
   // TODO: Change the above test to false when CF is released.
   ext.checkerFrameworkVersion = "3.51.1"
   dependencies {
-    compileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
-    testCompileOnly "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
-    checkerFramework "org.checkerframework:checker:${checkerFrameworkVersion}"
+    compileOnly("org.checkerframework:checker-qual:${checkerFrameworkVersion}")
+    testCompileOnly("org.checkerframework:checker-qual:${checkerFrameworkVersion}")
+    checkerFramework("org.checkerframework:checker:${checkerFrameworkVersion}")
   }
   configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, "minutes"
@@ -143,9 +143,9 @@ if (false) {
 if (project.hasProperty("cfLocal")) {
   def cfHome = String.valueOf(System.getenv("CHECKERFRAMEWORK"))
   dependencies {
-    compileOnly files(cfHome + "/checker/dist/checker-qual.jar")
-    testCompileOnly files(cfHome + "/checker/dist/checker-qual.jar")
-    checkerFramework files(cfHome + "/checker/dist/checker.jar")
+    compileOnly(files(cfHome + "/checker/dist/checker-qual.jar"))
+    testCompileOnly(files(cfHome + "/checker/dist/checker-qual.jar"))
+    checkerFramework(files(cfHome + "/checker/dist/checker.jar"))
   }
 }
 
@@ -153,7 +153,7 @@ if (project.hasProperty("cfLocal")) {
 
 // Turn Javadoc warnings into errors.
 javadoc {
-  // No "'-Werror'" because of JDK 21 warning "source value 8 is obsolete..."
+  // No "-Werror" because of JDK 21 warning "source value 8 is obsolete..."
   // options.addStringOption("Xwerror", "-Xdoclint:all")
   options.addStringOption("Xdoclint:all", "-quiet")
   options.addStringOption("private", "-quiet")
@@ -165,7 +165,7 @@ javadoc {
     }
   }
 }
-check.dependsOn javadoc
+check.dependsOn(javadoc)
 
 tasks.register("javadocWeb", Javadoc) {
   description = "Upload API documentation to website."
@@ -193,18 +193,18 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc "org.plumelib:require-javadoc:2.0.0"
+  requireJavadoc("org.plumelib:require-javadoc:2.0.0")
 }
 tasks.register("requireJavadoc", JavaExec) {
-  // "dependsOn jar" because this is the requireJavadoc project itself,
+  // "dependsOn(jar" because this is the requireJavadoc project itself,)
   // and Gradle uses the built-from-source version of
   // "org.plumelib:require-javadoc'.  So declare a dependency on it.
-  dependsOn jar
+  dependsOn(jar)
   group = "Documentation"
   description = "Ensures that Javadoc documentation exists."
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
-  args "src/main/java"
+  args("src/main/java")
   jvmArgs += [
     "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
     "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
@@ -216,7 +216,7 @@ tasks.register("requireJavadoc", JavaExec) {
     "--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
   ]
 }
-check.dependsOn requireJavadoc
+check.dependsOn(requireJavadoc)
 
 compileJava {
   options.compilerArgs += "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"
@@ -252,5 +252,5 @@ javadoc {
 /* Make Emacs TAGS table */
 tasks.register("tags", Exec) {
   description = "Run etags to create an Emacs TAGS table"
-  commandLine "bash", "-c", "find src/ -name '*.java' | sort | xargs etags"
+  commandLine("bash", "-c", "find src/ -name '*.java' | sort | xargs etags")
 }
