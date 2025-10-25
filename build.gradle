@@ -10,7 +10,7 @@ plugins {
   id("com.diffplug.spotless").version("8.0.0")
 
   // Error Prone linter
-  id("net.ltgt.errorprone").version("4.3.0")
+  id("net.ltgt.errorprone").version("4.3.0") apply false
 
   // Checker Framework pluggable type-checking
   id("org.checkerframework").version("0.6.60")
@@ -24,7 +24,7 @@ repositories {
 }
 
 ext {
-  errorproneVersion = "2.42.0"
+  errorproneVersion = "2.43.0"
   isJava17orHigher = JavaVersion.current() >= JavaVersion.VERSION_17
   isJava21orHigher = JavaVersion.current() >= JavaVersion.VERSION_21
 }
@@ -80,20 +80,22 @@ test.dependsOn(runShellTests)
 
 // Error Prone linter
 
-dependencies {
-  errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
-}
-tasks.withType(JavaCompile).configureEach {
-  // "-processing" avoids javac warning "No processor claimed any of these annotations".
-  // "-Xlint:-options" is because of JDK 21 warning "source value 8 is obsolete..."
-  options.compilerArgs << "-Xlint:all,-processing,-options" << "-Werror"
-  options.errorprone {
-    disable("ExtendsObject")  // Incorrect when using the Checker Framework.
-    disable("ReferenceEquality") // Use Interning Checker instead.
-    disable("AnnotateFormatMethod") // Error Prone doesn't know about Checker Framework @FormatMethod.
-    disable("EffectivelyPrivate") // Loses information about the abstraction.
+if (isJava21orHigher) {
+  apply plugin: "net.ltgt.errorprone"
+  dependencies {
+    errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
   }
-  options.errorprone.enabled = isJava17orHigher
+  tasks.withType(JavaCompile).configureEach {
+    // "-processing" avoids javac warning "No processor claimed any of these annotations".
+    // "-Xlint:-options" is because of JDK 21 warning "source value 8 is obsolete..."
+    options.compilerArgs << "-Xlint:all,-processing,-options" << "-Werror"
+    options.errorprone {
+      disable("ExtendsObject")  // Incorrect when using the Checker Framework.
+      disable("ReferenceEquality") // Use Interning Checker instead.
+      disable("AnnotateFormatMethod") // Error Prone doesn't know about Checker Framework @FormatMethod.
+      disable("EffectivelyPrivate") // Loses information about the abstraction.
+    }
+  }
 }
 
 // Checker Framework pluggable type-checking
