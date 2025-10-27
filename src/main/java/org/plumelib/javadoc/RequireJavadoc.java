@@ -39,7 +39,8 @@ import org.plumelib.options.Options;
  * at <a
  * href="https://github.com/plume-lib/require-javadoc">https://github.com/plume-lib/require-javadoc</a>.
  */
-public class RequireJavadoc {
+@SuppressWarnings("PMD.TooManyFields")
+public final class RequireJavadoc {
 
   /** Matches name of file or directory where no problems should be reported. */
   @Option("Don't check files or directories whose pathname matches the regex")
@@ -152,7 +153,7 @@ public class RequireJavadoc {
   private List<String> errors = new ArrayList<>();
 
   /** The Java files to be checked. */
-  private List<Path> javaFiles = new ArrayList<Path>();
+  private List<Path> javaFiles = new ArrayList<>();
 
   /** The current working directory, for making relative pathnames. */
   private Path workingDirRelative = Paths.get("");
@@ -512,8 +513,7 @@ public class RequireJavadoc {
     } else if (!Character.isUpperCase(upperCamelCaseProperty.charAt(0))) {
       return null;
     } else {
-      return ""
-          + Character.toLowerCase(upperCamelCaseProperty.charAt(0))
+      return Character.toLowerCase(upperCamelCaseProperty.charAt(0))
           + upperCamelCaseProperty.substring(1);
     }
   }
@@ -725,7 +725,9 @@ public class RequireJavadoc {
 
     // Default behavior; in superclass, is `Assert.error()`.
     @Override
-    public void visitTree(JCTree that) {}
+    public void visitTree(JCTree that) {
+      // Don't require anything on an arbitrary JCTree.
+    }
 
     @Override
     public void visitTopLevel(JCTree.JCCompilationUnit cu) {
