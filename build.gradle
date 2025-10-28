@@ -146,7 +146,7 @@ checkerFramework {
   extraJavacArgs = [
     // No "-Werror" because of JDK 21 warning "source value 8 is obsolete..."
     // "-Werror",
-    "-Aversion",
+    // "-Aversion",
     // "-verbose",
     "-AcheckPurityAnnotations",
     "-ArequirePrefixInWarningSuppressions",
