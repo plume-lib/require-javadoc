@@ -286,18 +286,10 @@ javadoc {
 }
 
 
-// Publishing
-
-// To upload to Maven Central:
-// * ./gradlew publishToMavenCentral
-// * browse to https://central.sonatype.com/publishing/deployments
-
-ext {
-  packageName = "require-javadoc"
-}
+// Publishing, see README-developers.md
 
 mavenPublishing {
-  coordinates("org.plumelib", "${packageName}", "2.0.0")
+  coordinates("org.plumelib", "${project.packageName}", "${project.version}")
 
   pom {
     name = "Require-Javadoc"
