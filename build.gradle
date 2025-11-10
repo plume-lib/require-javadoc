@@ -297,12 +297,12 @@ mavenPublishing {
   pom {
     name = "Require-Javadoc"
     description = "Require Javadoc comments to be present."
-    url = "https://github.com/plume-lib/${packageName}"
+    url = "https://github.com/plume-lib/${project.packageName}"
 
     scm {
-      url = "https://github.com/plume-lib/${packageName}/"
-      connection = "scm:git:git://github.com/plume-lib/${packageName}.git"
-      developerConnection = "scm:git:ssh://git@github.com/plume-lib/${packageName}.git"
+      url = "https://github.com/plume-lib/${project.packageName}/"
+      connection = "scm:git:git://github.com/plume-lib/${project.packageName}.git"
+      developerConnection = "scm:git:ssh://git@github.com/plume-lib/${project.packageName}.git"
     }
 
     licenses {
