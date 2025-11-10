@@ -126,33 +126,33 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc "org.plumelib:require-javadoc:2.0.0"
+  requireJavadoc("org.plumelib:require-javadoc:2.0.0")
 }
 task requireJavadoc(type: JavaExec) {
-  group = 'Documentation'
-  description = 'Ensures that Javadoc documentation exists.'
+  group = "Documentation"
+  description = "Ensures that Javadoc documentation exists."
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
-  args "src/main/java"
+  args("src/main/java")
   jvmArgs += [
-    '--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
-    '--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
-    '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
-    '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
-    '--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
-    '--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
-    '--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
-    '--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+    "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+    "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
+    "--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+    "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+    "--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+    "--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
+    "--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+    "--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
   ]
 }
-check.dependsOn requireJavadoc
+check.dependsOn(requireJavadoc)
 ```
 
 You can supply other command-line arguments as well; for example:
 
 ```gradle
   ...
-  args "src/main/java", "--dont-require=WeakHasherMap|WeakIdentityHashMap"
+  args("src/main/java", "--dont-require=WeakHasherMap|WeakIdentityHashMap")
 ```
 
 ## Comparison to `javadoc -Xwerror -Xdoclint:all`
@@ -211,10 +211,10 @@ only public members):
 ```gradle
 // Turn Javadoc warnings into errors, use strict checking, and process private members.
 javadoc {
-  options.addStringOption('Xwerror', '-Xdoclint:all')
-  options.addStringOption('private', '-quiet')
+  options.addStringOption("Xwerror", "-Xdoclint:all")
+  options.addStringOption("private", "-quiet")
 }
-check.dependsOn javadoc
+check.dependsOn(javadoc)
 ```
 
 or
@@ -222,14 +222,14 @@ or
 <!-- markdownlint-disable MD013 --><!-- long lines -->
 ```gradle
 task javadocStrict(type: Javadoc) {
-  group = 'Documentation'
-  description = 'Run Javadoc in strict mode: with -Xdoclint:all and -Xwerror, on all members.'
+  group = "Documentation"
+  description = "Run Javadoc in strict mode: with -Xdoclint:all and -Xwerror, on all members."
   source = sourceSets.main.allJava
   classpath = sourceSets.main.runtimeClasspath
-  options.addStringOption('Xwerror', '-Xdoclint:all')
+  options.addStringOption("Xwerror", "-Xdoclint:all")
   options.memberLevel = JavadocMemberLevel.PRIVATE
 }
-check.dependsOn javadocStrict
+check.dependsOn(javadocStrict)
 ```
 <!-- markdownlint-enable MD013 --><!-- long lines -->
 
