@@ -824,8 +824,7 @@ public final class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting field %s%n", name);
       }
-      // TODO: Also check the type of the serialVersionUID variable.
-      if (name.equals("serialVersionUID")) {
+      if (name.equals("serialVersionUID") && isTypeWithKind(fd.getType(), TypeKind.LONG)) {
         return;
       }
       if (shouldNotRequire(name)) {
