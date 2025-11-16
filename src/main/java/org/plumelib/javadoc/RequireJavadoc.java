@@ -588,7 +588,7 @@ public final class RequireJavadoc {
         return false;
       }
 
-      // TODO: remove enclosing parentheses.
+      returnExpr = removeParentheses(returnExpr);
       if (propertyKind == PropertyKind.GETTER_NOT) {
         if (!(returnExpr instanceof JCTree.JCUnary)) {
           return false;
@@ -597,8 +597,7 @@ public final class RequireJavadoc {
         if (unary.getTag() != JCTree.Tag.NOT) {
           return false;
         }
-        // TODO: remove enclosing parentheses.
-        returnExpr = unary.getExpression();
+        returnExpr = removeParentheses(unary.getExpression());
       }
       String returnName = asFieldName(returnExpr);
       return returnName != null && returnName.equals(propertyName);
@@ -616,8 +615,7 @@ public final class RequireJavadoc {
       if (lhsName == null || !lhsName.equals(propertyName)) {
         return false;
       }
-      // TODO: remove enclosing parentheses.
-      JCTree.JCExpression assignRhs = assignExpr.getExpression();
+      JCTree.JCExpression assignRhs = removeParentheses(assignExpr.getExpression());
       if (!(assignRhs instanceof JCTree.JCIdent
           && ((JCTree.JCIdent) assignRhs).getName().toString().equals(propertyName))) {
         return false;
@@ -629,13 +627,26 @@ public final class RequireJavadoc {
   }
 
   /**
+   * Removes enclosing parentheses from an expression.
+   *
+   * @param expr an expression, possibly wrapped in parentheses
+   * @return the expression with all enclosing parentheses removed
+   */
+  private JCTree.JCExpression removeParentheses(JCTree.JCExpression expr) {
+    while (expr instanceof JCTree.JCParens) {
+      expr = ((JCTree.JCParens) expr).getExpression();
+    }
+    return expr;
+  }
+
+  /**
    * If the expression is an identifier or "this.identifier", return the name of the identifier.
    *
    * @param expr an expression
    * @return the name of the identifier, if it is one; null otherwise
    */
   private @Nullable String asFieldName(JCTree.JCExpression expr) {
-    // TODO: handle parentheses.
+    expr = removeParentheses(expr);
     if (expr instanceof JCTree.JCIdent) {
       return ((JCTree.JCIdent) expr).getName().toString();
     } else if (expr instanceof JCTree.JCFieldAccess) {
