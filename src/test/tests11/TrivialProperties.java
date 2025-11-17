@@ -67,6 +67,18 @@ class TrivialProperties {
   /** dummy comment */
   boolean quux3;
 
+  /** dummy comment */
+  boolean baz4;
+
+  /** dummy comment */
+  boolean baz5;
+
+  /** dummy comment */
+  boolean quux4;
+
+  /** dummy comment */
+  boolean quux5;
+
   // OK
 
   public Foo getFooOK() {
@@ -360,11 +372,11 @@ class TrivialProperties {
   }
 
   public boolean notBaz4() {
-    return (!baz3);
+    return (!baz4);
   }
 
   public boolean notBaz5() {
-    return (!(baz3));
+    return (!(baz5));
   }
 
   public boolean isQuux3() {
@@ -376,7 +388,11 @@ class TrivialProperties {
   }
 
   public boolean notQuux4() {
-    return (!((this).quux3));
+    return !(this).quux4;
+  }
+
+  public boolean notQuux5() {
+    return (!((this).quux5));
   }
 
   // Short method name

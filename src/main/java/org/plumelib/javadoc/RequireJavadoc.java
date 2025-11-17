@@ -606,6 +606,7 @@ public final class RequireJavadoc {
         return false;
       }
       JCTree.JCExpression expr = ((JCTree.JCExpressionStatement) statement).getExpression();
+      expr = removeParentheses(expr);
       if (!(expr instanceof JCTree.JCAssign)) {
         return false;
       }
@@ -653,7 +654,7 @@ public final class RequireJavadoc {
       JCTree.JCFieldAccess fa = (JCTree.JCFieldAccess) expr;
       // Can expr be a field access with null expression and identifier "this"?
       // Or can this case just be omitted?
-      JCTree.JCExpression receiver = fa.getExpression();
+      JCTree.JCExpression receiver = removeParentheses(fa.getExpression());
       if (!(receiver == null
           || (receiver instanceof JCTree.JCIdent
               && ((JCTree.JCIdent) receiver).getName().toString().equals("this")))) {
