@@ -6,47 +6,64 @@ class TrivialProperties {
 
   /** dummy comment */
   Foo fooOK;
+
   /** dummy comment */
   int barOK;
+
   /** dummy comment */
   int issueNumberOK;
+
   /** dummy comment */
   boolean bazOK;
+
   /** dummy comment */
   boolean quuxOK;
+
   /** dummy comment */
   boolean isEnabled;
+
   /** dummy comment */
   boolean enabled;
 
   /** dummy comment */
   Foo foo1;
+
   /** dummy comment */
   int bar1;
+
   /** dummy comment */
   boolean baz1;
+
   /** dummy comment */
   boolean quux1;
+
   /** dummy comment */
   boolean isEnabled1;
+
   /** dummy comment */
   boolean enabled1;
 
   /** dummy comment */
   Foo foo2;
+
   /** dummy comment */
   int bar2;
+
   /** dummy comment */
   boolean baz2;
+
   /** dummy comment */
   boolean quux2;
 
   /** dummy comment */
   Foo foo3;
+
   /** dummy comment */
   int bar3;
+
   /** dummy comment */
   boolean baz3;
+
   /** dummy comment */
   boolean quux3;
 
@@ -342,12 +359,24 @@ class TrivialProperties {
     return !(baz3);
   }
 
+  public boolean notBaz4() {
+    return (!baz3);
+  }
+
+  public boolean notBaz5() {
+    return (!(baz3));
+  }
+
   public boolean isQuux3() {
     return !this.quux3;
   }
 
   public boolean notQuux3() {
     return (!this.quux3);
+  }
+
+  public boolean notQuux4() {
+    return (!((this).quux3));
   }
 
   // Short method name

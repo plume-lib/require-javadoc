@@ -43,9 +43,7 @@ TrivialProperties.java:322:3: missing documentation for getBar3
 TrivialProperties.java:327:3: missing documentation for bar3
 TrivialProperties.java:332:3: missing documentation for setBar3
 TrivialProperties.java:337:3: missing documentation for isBaz3
-TrivialProperties.java:341:3: missing documentation for notBaz3
 TrivialProperties.java:345:3: missing documentation for isQuux3
-TrivialProperties.java:349:3: missing documentation for notQuux3
 TrivialProperties.java:355:3: missing documentation for get
 TrivialProperties.java:359:3: missing documentation for set
 TrivialProperties.java:363:3: missing documentation for has
