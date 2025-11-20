@@ -301,7 +301,7 @@ public final class RequireJavadoc {
     }
 
     @Override
-    public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
+    public FileVisitResult postVisitDirectory(Path dir, @Nullable IOException exc) {
       if (exc != null) {
         System.out.println("Problem visiting " + dir + ": " + exc.getMessage());
         System.exit(2);
