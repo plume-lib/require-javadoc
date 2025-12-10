@@ -1,5 +1,6 @@
 package org.plumelib.javadoc;
 
+import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.LineMap;
 import com.sun.source.tree.Tree;
 import com.sun.tools.javac.tree.DocCommentTable;
@@ -196,8 +197,8 @@ public final class RequireJavadoc {
         System.out.println("Checking " + javaFile);
       }
       try {
-        JavacParseResult jpr = JavacParse.parseJavaFile(javaFile.toString());
-        JCTree.JCCompilationUnit cu = jpr.getCompilationUnit();
+        JavacParseResult<CompilationUnitTree> jpr = JavacParse.parseFile(javaFile.toString());
+        JCTree.JCCompilationUnit cu = (JCTree.JCCompilationUnit) jpr.getTree();
         rj.currentCompilationUnit = cu;
         rj.visitor = rj.new RequireJavadocVisitor(javaFile);
         rj.visitor.visitTopLevel(cu);
