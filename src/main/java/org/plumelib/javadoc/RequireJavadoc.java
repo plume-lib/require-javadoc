@@ -40,7 +40,8 @@ import org.plumelib.options.Options;
  * at <a
  * href="https://github.com/plume-lib/require-javadoc">https://github.com/plume-lib/require-javadoc</a>.
  */
-public class RequireJavadoc {
+@SuppressWarnings("PMD.TooManyFields")
+public final class RequireJavadoc {
 
   /** Matches name of file or directory where no problems should be reported. */
   @Option("Don't check files or directories whose pathname matches the regex")
@@ -153,7 +154,7 @@ public class RequireJavadoc {
   private List<String> errors = new ArrayList<>();
 
   /** The Java files to be checked. */
-  private List<Path> javaFiles = new ArrayList<Path>();
+  private List<Path> javaFiles = new ArrayList<>();
 
   /** The current working directory, for making relative pathnames. */
   private Path workingDirRelative = Paths.get("");
@@ -301,7 +302,7 @@ public class RequireJavadoc {
     }
 
     @Override
-    public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
+    public FileVisitResult postVisitDirectory(Path dir, @Nullable IOException exc) {
       if (exc != null) {
         System.out.println("Problem visiting " + dir + ": " + exc.getMessage());
         System.exit(2);
@@ -513,8 +514,7 @@ public class RequireJavadoc {
     } else if (!Character.isUpperCase(upperCamelCaseProperty.charAt(0))) {
       return null;
     } else {
-      return ""
-          + Character.toLowerCase(upperCamelCaseProperty.charAt(0))
+      return Character.toLowerCase(upperCamelCaseProperty.charAt(0))
           + upperCamelCaseProperty.substring(1);
     }
   }
@@ -589,7 +589,7 @@ public class RequireJavadoc {
         return false;
       }
 
-      // TODO: remove enclosing parentheses.
+      returnExpr = removeParentheses(returnExpr);
       if (propertyKind == PropertyKind.GETTER_NOT) {
         if (!(returnExpr instanceof JCTree.JCUnary)) {
           return false;
@@ -598,8 +598,7 @@ public class RequireJavadoc {
         if (unary.getTag() != JCTree.Tag.NOT) {
           return false;
         }
-        // TODO: remove enclosing parentheses.
-        returnExpr = unary.getExpression();
+        returnExpr = removeParentheses(unary.getExpression());
       }
       String returnName = asFieldName(returnExpr);
       return returnName != null && returnName.equals(propertyName);
@@ -608,6 +607,7 @@ public class RequireJavadoc {
         return false;
       }
       JCTree.JCExpression expr = ((JCTree.JCExpressionStatement) statement).getExpression();
+      expr = removeParentheses(expr);
       if (!(expr instanceof JCTree.JCAssign)) {
         return false;
       }
@@ -617,8 +617,7 @@ public class RequireJavadoc {
       if (lhsName == null || !lhsName.equals(propertyName)) {
         return false;
       }
-      // TODO: remove enclosing parentheses.
-      JCTree.JCExpression assignRhs = assignExpr.getExpression();
+      JCTree.JCExpression assignRhs = removeParentheses(assignExpr.getExpression());
       if (!(assignRhs instanceof JCTree.JCIdent
           && ((JCTree.JCIdent) assignRhs).getName().toString().equals(propertyName))) {
         return false;
@@ -630,20 +629,33 @@ public class RequireJavadoc {
   }
 
   /**
+   * Removes enclosing parentheses from an expression.
+   *
+   * @param expr an expression, possibly wrapped in parentheses
+   * @return the expression with all enclosing parentheses removed
+   */
+  private JCTree.JCExpression removeParentheses(JCTree.JCExpression expr) {
+    while (expr instanceof JCTree.JCParens) {
+      expr = ((JCTree.JCParens) expr).getExpression();
+    }
+    return expr;
+  }
+
+  /**
    * If the expression is an identifier or "this.identifier", return the name of the identifier.
    *
    * @param expr an expression
    * @return the name of the identifier, if it is one; null otherwise
    */
   private @Nullable String asFieldName(JCTree.JCExpression expr) {
-    // TODO: handle parentheses.
+    expr = removeParentheses(expr);
     if (expr instanceof JCTree.JCIdent) {
       return ((JCTree.JCIdent) expr).getName().toString();
     } else if (expr instanceof JCTree.JCFieldAccess) {
       JCTree.JCFieldAccess fa = (JCTree.JCFieldAccess) expr;
       // Can expr be a field access with null expression and identifier "this"?
       // Or can this case just be omitted?
-      JCTree.JCExpression receiver = fa.getExpression();
+      JCTree.JCExpression receiver = removeParentheses(fa.getExpression());
       if (!(receiver == null
           || (receiver instanceof JCTree.JCIdent
               && ((JCTree.JCIdent) receiver).getName().toString().equals("this")))) {
@@ -726,30 +738,28 @@ public class RequireJavadoc {
 
     // Default behavior; in superclass, is `Assert.error()`.
     @Override
-    public void visitTree(JCTree that) {}
+    public void visitTree(JCTree that) {
+      // Don't require anything on an arbitrary JCTree.
+    }
 
     @Override
     public void visitTopLevel(JCTree.JCCompilationUnit cu) {
       this.cu = cu;
-      JCTree.JCPackageDecl pd = cu.getPackage();
-      String packageName = null;
-      if (pd != null) {
-        packageName = pd.getPackageName().toString();
-        if (shouldNotRequire(packageName)) {
-          return;
-        }
-      }
+
       String fileName = cu.getSourceFile().getName();
-      if (fileName.endsWith("package-info.java") || fileName.endsWith("module-info.java")) {
-        if (!hasJavadocComment(pd)) {
-          if (packageName == null) {
-            throw new Error("null package for " + fileName);
+      if (fileName.endsWith("package-info.java")) {
+        // Check for comment at top of file, which is on the `package` declaration in the Javadoc.
+        // A "module-info.java" file has no package declaration
+        JCTree.JCPackageDecl pd = cu.getPackage();
+        if (pd != null) {
+          String packageName = pd.getPackageName().toString();
+          if (shouldNotRequire(packageName)) {
+            return;
           }
-          errors.add(errorString(pd, packageName));
+          if (!hasJavadocComment(pd)) {
+            errors.add(errorString(pd, packageName));
+          }
         }
-      }
-      if (verbose) {
-        System.out.printf("Visiting compilation unit%n");
       }
 
       for (JCTree def : cu.defs) {
@@ -827,8 +837,7 @@ public class RequireJavadoc {
       if (verbose) {
         System.out.printf("Visiting field %s%n", name);
       }
-      // TODO: Also check the type of the serialVersionUID variable.
-      if (name.equals("serialVersionUID")) {
+      if (name.equals("serialVersionUID") && isTypeWithKind(fd.getType(), TypeKind.LONG)) {
         return;
       }
       if (shouldNotRequire(name)) {

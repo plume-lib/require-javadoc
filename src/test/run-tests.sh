@@ -19,7 +19,7 @@ cmd="java \
   --add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
   --add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
   --add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
-  -cp ../../../build/libs/require-javadoc-2.0.0-all.jar \
+  -cp ${SCRIPT_DIR}/../../build/libs/require-javadoc-all.jar:${SCRIPT_DIR}/../../build/libs/require-javadoc-2.0.0-all.jar \
   org.plumelib.javadoc.RequireJavadoc \
   --relative --dont-require-trivial-properties --dont-require-noarg-constructor"
 
