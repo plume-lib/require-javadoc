@@ -259,7 +259,7 @@ tasks.register("requireJavadoc", JavaExec) {
   dependsOn(jar)
   group = "Documentation"
   description = "Ensures that Javadoc documentation exists."
-    inputs.files(sourceSets.main.allJava)
+  inputs.files(sourceSets.main.allJava)
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
   args(sourceSets.main.allJava.srcDirs.collect{it.getAbsolutePath()})
