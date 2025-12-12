@@ -153,7 +153,8 @@ You can supply other command-line arguments as well; for example:
 
 ```gradle
   ...
-  args("src/main/java", "--dont-require=WeakHasherMap|WeakIdentityHashMap")
+  args(sourceSets.main.allJava.srcDirs.collect{it.getAbsolutePath()},
+       "--dont-require=WeakHasherMap|WeakIdentityHashMap")
 ```
 
 ## Comparison to `javadoc -Xwerror -Xdoclint:all`
