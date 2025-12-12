@@ -128,13 +128,13 @@ configurations {
 dependencies {
   requireJavadoc("org.plumelib:require-javadoc:2.0.0")
 }
-tasks.register("requireJavadoc", JavaExec) {
+def requireJavadoc = tasks.register("requireJavadoc", JavaExec) {
   group = "Documentation"
   description = "Ensures that Javadoc documentation exists."
-  inputs.files(sourceSets.main.java)
+  inputs.files(sourceSets.main.allJava)
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
-  args(sourceSets.main.java.srcDirs.collect{it.getAbsolutePath()})
+  args(sourceSets.main.allJava.srcDirs.collect{it.getAbsolutePath()})
   jvmArgs += [
     "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
     "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
