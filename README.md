@@ -38,7 +38,6 @@ java \
 
 Details about invoking the program:
 
-<!-- markdownlint-disable MD013 --><!-- long lines -->
 ```output
 Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...]
   --exclude=<regex>                - Don't check files or directories whose pathname matches the regex
@@ -53,7 +52,6 @@ Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...
   --relative=<boolean>             - Report relative rather than absolute filenames [default: false]
   --verbose=<boolean>              - Print diagnostic information [default: false]
 ```
-<!-- markdownlint-enable MD013 --><!-- long lines -->
 
 If an argument is a directory, each `.java` file in it or its subdirectories
 will be processed.
@@ -220,7 +218,6 @@ check.dependsOn(javadoc)
 
 or
 
-<!-- markdownlint-disable MD013 --><!-- long lines -->
 ```gradle
 task javadocStrict(type: Javadoc) {
   group = "Documentation"
@@ -232,7 +229,6 @@ task javadocStrict(type: Javadoc) {
 }
 check.dependsOn(javadocStrict)
 ```
-<!-- markdownlint-enable MD013 --><!-- long lines -->
 
 ## Comparison to Checkstyle
 

@@ -28,10 +28,10 @@ ${cmd} > out.txt || true
 cd -
 diff -u tests11/expected.txt tests11/out.txt
 
-JAVA_VER=$(java -version 2>&1 | head -1 | cut -d'"' -f2 | sed '/^1\./s///' | cut -d'.' -f1 | sed 's/-ea//') && \
-if [ "$JAVA_VER" -ge 16 ] ; then
-  cd tests17
-  ${cmd} > out.txt || true
-  cd -
-  diff -u tests17/expected.txt tests17/out.txt
-fi
+JAVA_VER=$(java -version 2>&1 | head -1 | cut -d'"' -f2 | sed '/^1\./s///' | cut -d'.' -f1 | sed 's/-ea//') \
+  && if [ "$JAVA_VER" -ge 16 ]; then
+    cd tests17
+    ${cmd} > out.txt || true
+    cd -
+    diff -u tests17/expected.txt tests17/out.txt
+  fi
