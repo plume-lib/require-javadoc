@@ -262,7 +262,7 @@ def requireJavadoc = tasks.register("requireJavadoc", JavaExec) {
   inputs.files(sourceSets.main.allJava)
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
-  args(sourceSets.main.allJava.srcDirs.collect{it.getAbsolutePath()})
+  args(*sourceSets.main.allJava.srcDirs.collect{it.getAbsolutePath()})
   jvmArgs += [
     "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
     "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
