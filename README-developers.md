@@ -4,7 +4,7 @@
 
 ### Requirements
 
-Your ~/.gradle/gradle.properties file must contain:
+Your `~/.gradle/gradle.properties` file must contain:
 
 ```properties
 signing.keyId=...
@@ -56,7 +56,6 @@ Run these steps on any filesystem, except the `javadocWeb` step.
     * ./gradlew publishToMavenCentral
     * In the clients' build.gradle: set version number and use:
 
-      <!-- markdownlint-disable line-length -->
         ```gradle
           repositories {
             maven { url = uri("https://central.sonatype.com/repository/maven-snapshots/") }
@@ -65,7 +64,6 @@ Run these steps on any filesystem, except the `javadocWeb` step.
             resolutionStrategy.cacheChangingModulesFor(0, "minutes")
           }
         ```
-      <!-- markdownlint-enable line-length -->
 
   * Approach 2:  to Maven Local
     * ./gradlew publishToMavenLocal
@@ -80,7 +78,6 @@ Run these steps on any filesystem, except the `javadocWeb` step.
 * Test the test snapshot release on some clients:
   * For the Checker Framework (don't skip running the tests):
 
-    <!-- markdownlint-disable line-length -->
     ```sh
     # This ensures that the correct JDK is being used
     usecf THE-BRANCH-THAT-USES-THE-SNAPSHOT
@@ -88,6 +85,5 @@ Run these steps on any filesystem, except the `javadocWeb` step.
     checker/bin-devel/test-cftests-all.sh && checker/bin-devel/test-typecheck.sh && \
     checker/bin-devel/test-plume-lib.sh
     ```
-    <!-- markdownlint-enable line-length -->
 
   * For Daikon: make compile junit test
