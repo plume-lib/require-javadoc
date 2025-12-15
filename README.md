@@ -151,7 +151,7 @@ You can supply other command-line arguments as well; for example:
 
 ```gradle
   ...
-  args(sourceSets.main.allJava.srcDirs.collect{it.getAbsolutePath()},
+  args(*sourceSets.main.allJava.srcDirs.collect{it.getAbsolutePath()},
        "--dont-require=WeakHasherMap|WeakIdentityHashMap")
 ```
 
