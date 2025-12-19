@@ -147,7 +147,8 @@ def requireJavadoc = tasks.register("requireJavadoc", JavaExec) {
 check.dependsOn(requireJavadoc)
 ```
 
-You can supply other command-line arguments as well; for example:
+You can supply other command-line arguments as well; if you do so, you must add
+`*` before `sourceSets...`.  For example:
 
 ```gradle
   ...
