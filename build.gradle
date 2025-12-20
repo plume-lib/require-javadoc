@@ -103,14 +103,11 @@ tasks.withType(JavaCompile).configureEach {
   options.forkOptions.jvmArgs += "-Xmx6g"
   options.compilerArgs << "-Werror"
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
-  // "-options" is because of JDK 21 warning "source value 8 is obsolete..."
   if (isJava21orHigher) {
-    options.compilerArgs << "-Xlint:all,-processing,-options,-this-escape"
+    options.compilerArgs << "-Xlint:all,-processing,-this-escape"
   } else {
-    options.compilerArgs << "-Xlint:all,-processing,-options"
+    options.compilerArgs << "-Xlint:all,-processing"
   }
-  // // Only needed when debugging.
-  // options.compilerArgs << "-g"
 }
 if (isJava21orHigher) {
   apply plugin: "net.ltgt.errorprone"
@@ -165,8 +162,7 @@ checkerFramework {
     "org.checkerframework.common.initializedfields.InitializedFieldsChecker",
   ]
   extraJavacArgs = [
-    // No "-Werror" because of JDK 21 warning "source value 8 is obsolete..."
-    // "-Werror",
+    "-Werror",
     // "-Aversion",
     // "-verbose",
     "-AcheckPurityAnnotations",
@@ -202,9 +198,7 @@ if (project.hasProperty("cfLocal")) {
 
 // Turn Javadoc warnings into errors.
 javadoc {
-  // No "-Werror" because of JDK 21 warning "source value 8 is obsolete..."
-  // options.addStringOption("Xwerror", "-Xdoclint:all")
-  options.addStringOption("Xdoclint:all", "-quiet")
+  options.addStringOption("Xwerror", "-Xdoclint:all")
   options.addStringOption("private", "-quiet")
   options.addStringOption("source", "11")
   doLast {
@@ -252,16 +246,17 @@ configurations {
 dependencies {
   requireJavadoc("org.plumelib:require-javadoc:2.0.0")
 }
-tasks.register("requireJavadoc", JavaExec) {
+def requireJavadoc = tasks.register("requireJavadoc", JavaExec) {
   // "dependsOn(jar)" because this is the requireJavadoc project itself,
   // and Gradle uses the built-from-source version of
   // "org.plumelib:require-javadoc".  So declare a dependency on it.
   dependsOn(jar)
   group = "Documentation"
   description = "Ensures that Javadoc documentation exists."
+  inputs.files(sourceSets.main.allJava)
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
   classpath = configurations.requireJavadoc
-  args("src/main/java")
+  args(sourceSets.main.allJava.srcDirs.collect{it.getAbsolutePath()})
   jvmArgs += [
     "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
     "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
