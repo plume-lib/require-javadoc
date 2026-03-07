@@ -6,7 +6,6 @@ plugins {
   alias(libs.plugins.com.gradleup.shadow)
 
   // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
-  // Version 8.0.0 and later requires Java 17+.
   alias(libs.plugins.com.diffplug.spotless)
 
   // Error Prone linter
@@ -32,12 +31,6 @@ repositories {
   gradlePluginPortal()
 }
 
-ext {
-  errorproneVersion = "2.48.0"
-  isJava17orHigher = JavaVersion.current() >= JavaVersion.VERSION_17
-  isJava21orHigher = JavaVersion.current() >= JavaVersion.VERSION_21
-}
-
 dependencies {
   implementation(libs.javaparser.core)
   implementation(libs.javac.parse)
@@ -49,8 +42,14 @@ application {
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_11
-  targetCompatibility = JavaVersion.VERSION_11
+  toolchain {
+    // Always compile using Java 21, but test using various Java versions.
+    languageVersion = JavaLanguageVersion.of(21)
+  }
+}
+tasks.withType(JavaCompile).configureEach {
+  // Set the language level and byte code to 21.
+  options.release = 21
 }
 
 
@@ -103,29 +102,20 @@ tasks.withType(JavaCompile).configureEach {
   options.forkOptions.jvmArgs += "-Xmx6g"
   options.compilerArgs << "-Werror"
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
-  if (isJava21orHigher) {
-    options.compilerArgs << "-Xlint:all,-processing,-this-escape"
-  } else {
-    options.compilerArgs << "-Xlint:all,-processing"
-  }
+  options.compilerArgs << "-Xlint:all,-processing,-this-escape"
 }
-if (isJava21orHigher) {
-  apply plugin: "net.ltgt.errorprone"
-  dependencies {
-    errorprone(libs.error.prone.core)
-  }
-  tasks.withType(JavaCompile).configureEach {
-    options.errorprone {
-      disable("AnnotateFormatMethod") // Error Prone doesn't know about Checker Framework @FormatMethod.
-      disable("DoNotCallSuggester") // Suggests use of an Error Prone annotation.
-      disable("EffectivelyPrivate") // Loses information about the abstraction.
-      disable("ExtendsObject")  // Incorrect when using the Checker Framework.
-      disable("InlineMeSuggester") // Using `@InlineMe` requires clients to declare a dependency on error_prone_annotations.
-      disable("PatternMatchingInstanceof") // requires Java 16 or later
-      disable("ReferenceEquality") // Use Interning Checker instead.
-      disable("StatementSwitchToExpressionSwitch") // requires Java 12 or later
-      disable("StringConcatToTextBlock") // requires Java 15 or later
-    }
+apply plugin: "net.ltgt.errorprone"
+dependencies {
+  errorprone(libs.error.prone.core)
+}
+tasks.withType(JavaCompile).configureEach {
+  options.errorprone {
+    disable("AnnotateFormatMethod") // Error Prone doesn't know about Checker Framework @FormatMethod.
+    disable("DoNotCallSuggester") // Suggests use of an Error Prone annotation.
+    disable("EffectivelyPrivate") // Loses information about the abstraction.
+    disable("ExtendsObject")  // Incorrect when using the Checker Framework.
+    disable("InlineMeSuggester") // Using `@InlineMe` requires clients to declare a dependency on error_prone_annotations.
+    disable("ReferenceEquality") // Use Interning Checker instead.
   }
 }
 
@@ -183,7 +173,6 @@ javadoc {
   // Turn Javadoc warnings into errors.
   options.addStringOption("Xwerror", "-Xdoclint:all")
   options.addStringOption("private", "-quiet")
-  options.addStringOption("source", "11")
   doLast {
     ant.replaceregexp(match:"@import url\\('resources/fonts/dejavu.css'\\);\\s*", replace:"",
     flags:"g", byline:true) {
@@ -201,7 +190,6 @@ tasks.register("javadocWebUpload", Javadoc) {
   source = sourceSets.main.allJava
   destinationDir = file("/cse/web/research/plumelib/${project.name}/api")
   classpath = project.sourceSets.main.compileClasspath
-  options.addStringOption("source", "11")
   doLast {
     ant.replaceregexp(match:"@import url\\('resources/fonts/dejavu.css'\\);\\s*", replace:"",
     flags:"g", byline:true) {
