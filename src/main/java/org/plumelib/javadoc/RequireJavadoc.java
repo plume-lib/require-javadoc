@@ -545,9 +545,6 @@ public final class RequireJavadoc {
       case VOID -> isTypeWithKind(returnType, TypeKind.VOID);
       case BOOLEAN -> isTypeWithKind(returnType, TypeKind.BOOLEAN);
       case NON_VOID -> !isTypeWithKind(returnType, TypeKind.VOID);
-      default -> {
-        throw new Error("Unexpected enum value " + propertyKind.returnType);
-      }
     };
   }
 
