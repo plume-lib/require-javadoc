@@ -265,8 +265,7 @@ public final class RequireJavadoc {
       for (Path javaFile : javaFiles) {
         @SuppressWarnings("nullness:assignment") // the file is not "/", so getParent() is non-null
         @NonNull Path javaFileParent = javaFile.getParent();
-        // Java 11 has Path.of() instead of creating a new File.
-        Path packageInfo = javaFileParent.resolve(new File("package-info.java").toPath());
+        Path packageInfo = javaFileParent.resolve(Path.of("package-info.java"));
         if (!javaFiles.contains(packageInfo)) {
           missingPackageInfoFiles.add(packageInfo);
         }
@@ -542,16 +541,11 @@ public final class RequireJavadoc {
     // Check presence/absence of return type. (The Java compiler will verify
     // that the type is consistent with the method body.)
     JCTree returnType = md.getReturnType();
-    switch (propertyKind.returnType) {
-      case VOID:
-        return isTypeWithKind(returnType, TypeKind.VOID);
-      case BOOLEAN:
-        return isTypeWithKind(returnType, TypeKind.BOOLEAN);
-      case NON_VOID:
-        return !isTypeWithKind(returnType, TypeKind.VOID);
-      default:
-        throw new Error("Unexpected enum value " + propertyKind.returnType);
-    }
+    return switch (propertyKind.returnType) {
+      case VOID -> isTypeWithKind(returnType, TypeKind.VOID);
+      case BOOLEAN -> isTypeWithKind(returnType, TypeKind.BOOLEAN);
+      case NON_VOID -> !isTypeWithKind(returnType, TypeKind.VOID);
+    };
   }
 
   /**
@@ -562,8 +556,8 @@ public final class RequireJavadoc {
    * @return true if the tree is a type of the given kind
    */
   private boolean isTypeWithKind(JCTree tree, TypeKind typeKind) {
-    return tree instanceof JCTree.JCPrimitiveTypeTree
-        && typeKind == ((JCTree.JCPrimitiveTypeTree) tree).getPrimitiveTypeKind();
+    return tree instanceof JCTree.JCPrimitiveTypeTree jcptt
+        && typeKind == jcptt.getPrimitiveTypeKind();
   }
 
   /**
@@ -581,10 +575,10 @@ public final class RequireJavadoc {
       return false;
     }
     if (propertyKind.isGetter()) {
-      if (!(statement instanceof JCTree.JCReturn)) {
+      if (!(statement instanceof JCTree.JCReturn jcr)) {
         return false;
       }
-      JCTree.JCExpression returnExpr = ((JCTree.JCReturn) statement).getExpression();
+      JCTree.JCExpression returnExpr = jcr.getExpression();
       if (returnExpr == null) {
         return false;
       }
@@ -603,10 +597,10 @@ public final class RequireJavadoc {
       String returnName = asFieldName(returnExpr);
       return returnName != null && returnName.equals(propertyName);
     } else if (propertyKind == PropertyKind.SETTER) {
-      if (!(statement instanceof JCTree.JCExpressionStatement)) {
+      if (!(statement instanceof JCTree.JCExpressionStatement jces)) {
         return false;
       }
-      JCTree.JCExpression expr = ((JCTree.JCExpressionStatement) statement).getExpression();
+      JCTree.JCExpression expr = jces.getExpression();
       expr = removeParentheses(expr);
       if (!(expr instanceof JCTree.JCAssign)) {
         return false;
@@ -618,8 +612,8 @@ public final class RequireJavadoc {
         return false;
       }
       JCTree.JCExpression assignRhs = removeParentheses(assignExpr.getExpression());
-      if (!(assignRhs instanceof JCTree.JCIdent
-          && ((JCTree.JCIdent) assignRhs).getName().toString().equals(propertyName))) {
+      if (!(assignRhs instanceof JCTree.JCIdent jci
+          && jci.getName().toString().equals(propertyName))) {
         return false;
       }
       return true;
@@ -657,8 +651,7 @@ public final class RequireJavadoc {
       // Or can this case just be omitted?
       JCTree.JCExpression receiver = removeParentheses(fa.getExpression());
       if (!(receiver == null
-          || (receiver instanceof JCTree.JCIdent
-              && ((JCTree.JCIdent) receiver).getName().toString().equals("this")))) {
+          || (receiver instanceof JCTree.JCIdent jci && jci.getName().toString().equals("this")))) {
         return null;
       }
       return fa.getIdentifier().toString();
