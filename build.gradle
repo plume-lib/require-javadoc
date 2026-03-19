@@ -43,15 +43,15 @@ application {
 
 java {
   toolchain {
-    // Always compile using Java 21, but test using various Java versions.
-    languageVersion = JavaLanguageVersion.of(21)
+    // Always compile using Java 17, but test using various Java versions.
+    languageVersion = JavaLanguageVersion.of(17)
   }
 }
 // Don't use --release because it is incompatible with --add-exports.
 // When making a release, it is essential to use the lowest possible Java version.
 // tasks.withType(JavaCompile).configureEach {
-//   // Set the language level and byte code to 21.
-//   options.release = 21
+//   // Set the language level and byte code to 17.
+//   options.release = 17
 // }
 
 
@@ -104,7 +104,11 @@ tasks.withType(JavaCompile).configureEach {
   options.forkOptions.jvmArgs += "-Xmx6g"
   options.compilerArgs << "-Werror"
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
-  options.compilerArgs << "-Xlint:all,-processing,-this-escape"
+  if (JavaVersion.current() < JavaVersion.VERSION_21) {
+    options.compilerArgs << "-Xlint:all,-processing,-this-escape"
+  } else {
+    options.compilerArgs << "-Xlint:all,-processing"
+  }
 }
 apply plugin: "net.ltgt.errorprone"
 dependencies {
