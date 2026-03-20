@@ -43,14 +43,16 @@ application {
 
 java {
   toolchain {
-    // Always compile using Java 17, but test using various Java versions.
-    // The point of this is to produce Java 17 bytecodes (cannot use --release
-    // because it is incompatible with --add-exports).
-    languageVersion = JavaLanguageVersion.of(17)
+    // Always compile using Java 21, but test using various Java versions.
+    languageVersion = JavaLanguageVersion.of(21)
   }
 }
+tasks.withType(JavaCompile).configureEach {
+  // Set the language level and byte code to 17.
+  sourceCompatibility = 17
+  targetCompatibility = 17
+}
 // Don't use --release because it is incompatible with --add-exports.
-// When making a release, it is essential to use the lowest possible Java version.
 // tasks.withType(JavaCompile).configureEach {
 //   // Set the language level and byte code to 17.
 //   options.release = 17
