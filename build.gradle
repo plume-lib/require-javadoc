@@ -43,8 +43,10 @@ application {
 
 java {
   toolchain {
-    // Always compile using Java 21, but test using various Java versions.
-    languageVersion = JavaLanguageVersion.of(21)
+    // Always compile using Java 17, but test using various Java versions.
+    // The point of this is to produce Java 17 bytecodes (cannot use --release
+    // because it is incompatible with --add-exports).
+    languageVersion = JavaLanguageVersion.of(17)
   }
 }
 // Don't use --release because it is incompatible with --add-exports.
