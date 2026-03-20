@@ -43,8 +43,8 @@ application {
 
 java {
   toolchain {
-    // Always compile using Java 17, but test using various Java versions.
-    languageVersion = JavaLanguageVersion.of(17)
+    // Always compile using Java 21, but test using various Java versions.
+    languageVersion = JavaLanguageVersion.of(21)
   }
 }
 // Don't use --release because it is incompatible with --add-exports.
