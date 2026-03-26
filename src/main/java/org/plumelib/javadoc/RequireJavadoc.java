@@ -7,7 +7,6 @@ import com.sun.tools.javac.tree.DocCommentTable;
 import com.sun.tools.javac.tree.JCTree;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -128,27 +127,6 @@ public final class RequireJavadoc {
   /** If true, output debug information. */
   @Option("Print diagnostic information")
   public boolean verbose = false;
-
-  /** Tree.Kind.RECORD, or OTHER if running under Java 15 or earlier. */
-  private static final Tree.Kind RECORD;
-
-  static {
-    if (Runtime.version().feature() >= 16) {
-      try {
-        Field recordField = Tree.Kind.class.getDeclaredField("RECORD");
-        @SuppressWarnings("nullness:argument") // pass null because it's a static field
-        Tree.Kind recordFieldValue = (Tree.Kind) recordField.get(null);
-        if (recordFieldValue == null) {
-          throw new Error("Field RECORD is nill Tree.Kind");
-        }
-        RECORD = recordFieldValue;
-      } catch (NoSuchFieldException | IllegalAccessException e) {
-        throw new Error("Cannot find field RECORD in Tree.Kind", e);
-      }
-    } else {
-      RECORD = Tree.Kind.OTHER;
-    }
-  }
 
   /** All the errors this program will report. */
   private List<String> errors = new ArrayList<>();
@@ -585,10 +563,9 @@ public final class RequireJavadoc {
 
       returnExpr = removeParentheses(returnExpr);
       if (propertyKind == PropertyKind.GETTER_NOT) {
-        if (!(returnExpr instanceof JCTree.JCUnary)) {
+        if (!(returnExpr instanceof JCTree.JCUnary unary)) {
           return false;
         }
-        JCTree.JCUnary unary = (JCTree.JCUnary) returnExpr;
         if (unary.getTag() != JCTree.Tag.NOT) {
           return false;
         }
@@ -602,10 +579,9 @@ public final class RequireJavadoc {
       }
       JCTree.JCExpression expr = jces.getExpression();
       expr = removeParentheses(expr);
-      if (!(expr instanceof JCTree.JCAssign)) {
+      if (!(expr instanceof JCTree.JCAssign assignExpr)) {
         return false;
       }
-      JCTree.JCAssign assignExpr = (JCTree.JCAssign) expr;
       JCTree.JCExpression assignLhs = assignExpr.getVariable();
       String lhsName = asFieldName(assignLhs);
       if (lhsName == null || !lhsName.equals(propertyName)) {
@@ -629,8 +605,8 @@ public final class RequireJavadoc {
    * @return the expression with all enclosing parentheses removed
    */
   private JCTree.JCExpression removeParentheses(JCTree.JCExpression expr) {
-    while (expr instanceof JCTree.JCParens) {
-      expr = ((JCTree.JCParens) expr).getExpression();
+    while (expr instanceof JCTree.JCParens parens) {
+      expr = parens.getExpression();
     }
     return expr;
   }
@@ -643,10 +619,9 @@ public final class RequireJavadoc {
    */
   private @Nullable String asFieldName(JCTree.JCExpression expr) {
     expr = removeParentheses(expr);
-    if (expr instanceof JCTree.JCIdent) {
-      return ((JCTree.JCIdent) expr).getName().toString();
-    } else if (expr instanceof JCTree.JCFieldAccess) {
-      JCTree.JCFieldAccess fa = (JCTree.JCFieldAccess) expr;
+    if (expr instanceof JCTree.JCIdent ident) {
+      return ident.getName().toString();
+    } else if (expr instanceof JCTree.JCFieldAccess fa) {
       // Can expr be a field access with null expression and identifier "this"?
       // Or can this case just be omitted?
       JCTree.JCExpression receiver = removeParentheses(fa.getExpression());
@@ -778,7 +753,7 @@ public final class RequireJavadoc {
         errors.add(errorString(cd, name));
       }
 
-      if (cd.getKind() == RECORD) {
+      if (cd.getKind() == Tree.Kind.RECORD) {
         // Don't warn about record parameters, because Javadoc requires @param for them in the
         // record declaration itself.
       } else {
