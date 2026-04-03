@@ -12,7 +12,7 @@ org-checkerframework = { id = "org.checkerframework", version = "1.0.2" }
 
 [versions]
 
-checker-framework = "3.54.0"
+checker-framework = "3.54.1"
 
 [libraries]
 
