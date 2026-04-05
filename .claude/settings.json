@@ -16,7 +16,6 @@
       "Bash(javap:*)",
       "Bash(ls:*)",
       "Bash(mkdir:*)",
-      "Bash(mkdir:*)",
       "Bash(python3 -m json.tool)",
       "Bash(timeout 300 ./gradlew:*)",
       "Bash(wc:*)",
@@ -28,5 +27,6 @@
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "skipDangerousModePermissionPrompt": false
 }
