@@ -1,4 +1,3 @@
-NoArgConstructor.java:3:3: missing documentation for NoArgConstructor
 NoArgConstructor.java:8:3: missing documentation for HasArgConstructor
 TrivialProperties.java:194:3: missing documentation for getFoo1
 TrivialProperties.java:198:3: missing documentation for foo1
