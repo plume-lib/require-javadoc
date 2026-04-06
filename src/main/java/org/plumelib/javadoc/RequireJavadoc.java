@@ -61,8 +61,8 @@ public final class RequireJavadoc {
 
   /**
    * If true, don't check constructors with zero formal parameters. These are sometimes called
-   * "default constructors", though that term means a no-argument constructor that the compiler
-   * synthesized when the programmer didn't write any constructor.
+   * "default constructors", though that term actually means a no-argument constructor that the
+   * compiler synthesized when the programmer didn't write any constructor.
    */
   @Option("Don't report problems in constructors with zero formal parameters")
   public boolean dont_require_noarg_constructor;
@@ -444,12 +444,8 @@ public final class RequireJavadoc {
    */
   private boolean isTrivialGetterOrSetter(JCTree.JCMethodDecl md) {
     PropertyKind kind = PropertyKind.fromMethodDeclaration(md);
-    if (kind != PropertyKind.GETTER_NO_PREFIX) {
-      if (isTrivialGetterOrSetter(md, kind)) {
-        return true;
-      }
-    }
-    return isTrivialGetterOrSetter(md, PropertyKind.GETTER_NO_PREFIX);
+    return (kind != PropertyKind.GETTER_NO_PREFIX && isTrivialGetterOrSetter(md, kind))
+        || isTrivialGetterOrSetter(md, PropertyKind.GETTER_NO_PREFIX);
   }
 
   /**
@@ -483,7 +479,7 @@ public final class RequireJavadoc {
     assert methodName.startsWith(propertyKind.prefix);
     @SuppressWarnings("index") // https://github.com/typetools/checker-framework/issues/5201
     String upperCamelCaseProperty = methodName.substring(propertyKind.prefix.length());
-    if (upperCamelCaseProperty.length() == 0) {
+    if (upperCamelCaseProperty.isEmpty()) {
       return null;
     }
     if (propertyKind == PropertyKind.GETTER_NO_PREFIX) {
@@ -588,11 +584,8 @@ public final class RequireJavadoc {
         return false;
       }
       JCTree.JCExpression assignRhs = removeParentheses(assignExpr.getExpression());
-      if (!(assignRhs instanceof JCTree.JCIdent jci
-          && jci.getName().toString().equals(propertyName))) {
-        return false;
-      }
-      return true;
+      return assignRhs instanceof JCTree.JCIdent jci
+          && jci.getName().toString().equals(propertyName);
     } else {
       throw new Error("unexpected PropertyKind " + propertyKind);
     }
@@ -779,6 +772,9 @@ public final class RequireJavadoc {
 
       @NonNull String name = md.getName().toString();
       if (name.equals("<init>")) {
+        if (dont_require_noarg_constructor && md.getParameters().isEmpty()) {
+          return;
+        }
         @SuppressWarnings("nullness:assignment") // the stack is not empty
         @NonNull String tmpName = classNames.peekFirst();
         name = tmpName;
