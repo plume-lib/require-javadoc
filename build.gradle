@@ -33,7 +33,6 @@ repositories {
 }
 
 dependencies {
-  implementation(libs.javaparser.core)
   implementation(libs.javac.parse)
   implementation(libs.options)
 }
