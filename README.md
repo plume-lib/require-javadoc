@@ -96,7 +96,7 @@ public boolean hasBaz() {
 
 ## Incremental use
 
-In continuous integration job (Azure Pipelines, CircleCI, GitHub Actions, or
+In a continuous integration job (Azure Pipelines, CircleCI, GitHub Actions, or
 Travis CI), you can require Javadoc on all *changed* lines and lines adjacent to
 changed lines.  This is a way to incrementally get your code documented, without
 having to document it all at once.  Here are example commands.  (They obtain and
