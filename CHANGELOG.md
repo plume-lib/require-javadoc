@@ -65,7 +65,7 @@ Support new command-line options:
 * `--dont-require-method`
 * `--require-package-info`
 
-Fix bug related to `//` comments before `@Override` annotation
+Fix bug related to `//` comments before `@Override` annotation.
 
 ## 1.0.0 (2020-09-01)
 

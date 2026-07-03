@@ -5,8 +5,8 @@ plugins {
   // To create a fat jar build/libs/...-all.jar, run: ./gradlew shadowJar
   alias(libs.plugins.com.gradleup.shadow)
 
-  // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
-  // which is run by "check" (which is itself run by "build").
+  // Code formatting; defines targets "spotlessApply" and "spotlessCheck",
+  // the latter of which is run by "check" (which is itself run by "build").
   alias(libs.plugins.com.diffplug.spotless)
 
   // Error Prone linter
