@@ -367,9 +367,7 @@ public final class RequireJavadoc {
     /** A method of the form {@code boolean notFoo()}. */
     GETTER_NOT("not", 0, ReturnType.BOOLEAN),
     /** A method of the form {@code void setFoo(SomeType arg)}. */
-    SETTER("set", 1, ReturnType.VOID),
-    /** Not a getter or setter. */
-    NOT_PROPERTY("", -1, ReturnType.VOID);
+    SETTER("set", 1, ReturnType.VOID);
 
     /** The prefix for the method name: "get", "", "has", "is", "not", or "set". */
     final String prefix;
@@ -796,7 +794,6 @@ public final class RequireJavadoc {
       if (dont_require_private && fd.getModifiers().getFlags().contains(Modifier.PRIVATE)) {
         return;
       }
-      // True if shouldNotRequire is false for at least one of the fields
       String name = fd.getName().toString();
       if (verbose) {
         System.out.printf("Visiting field %s%n", name);
