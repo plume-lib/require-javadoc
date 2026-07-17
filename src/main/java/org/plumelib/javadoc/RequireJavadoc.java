@@ -176,7 +176,7 @@ public final class RequireJavadoc {
       }
       try {
         JavacParseResult<CompilationUnitTree> jpr = JavacParse.parseFile(javaFile.toString());
-        JCTree.JCCompilationUnit cu = (JCTree.JCCompilationUnit) jpr.getTree();
+        JCTree.JCCompilationUnit cu = (JCTree.JCCompilationUnit) jpr.tree();
         rj.currentCompilationUnit = cu;
         rj.visitor = rj.new RequireJavadocVisitor(javaFile);
         rj.visitor.visitTopLevel(cu);
