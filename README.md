@@ -38,6 +38,7 @@ java \
 
 Details about invoking the program:
 
+<!-- markdownlint-disable line-length -->
 ```output
 Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...]
   --exclude=<regex>                - Don't check files or directories whose pathname matches the regex
@@ -52,6 +53,7 @@ Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...
   --relative=<boolean>             - Report relative rather than absolute filenames [default: false]
   --verbose=<boolean>              - Print diagnostic information [default: false]
 ```
+<!-- markdownlint-enable line-length -->
 
 If an argument is a directory, each `.java` file in it or its subdirectories
 will be processed.
