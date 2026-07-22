@@ -222,6 +222,7 @@ check.dependsOn(javadoc)
 
 or
 
+<!-- markdownlint-disable line-length -->
 ```gradle
 task javadocStrict(type: Javadoc) {
   group = "Documentation"
@@ -233,6 +234,7 @@ task javadocStrict(type: Javadoc) {
 }
 check.dependsOn(javadocStrict)
 ```
+<!-- markdownlint-enable line-length -->
 
 ## Comparison to Checkstyle
 
