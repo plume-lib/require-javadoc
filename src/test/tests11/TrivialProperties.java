@@ -1,4 +1,4 @@
-/** Tests the {@code --dont-require-properties} command-line argument. */
+/** Tests the {@code --dont-require-trivial-properties} command-line argument. */
 class TrivialProperties {
 
   /** Represents a foo. */
