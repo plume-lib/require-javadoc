@@ -381,7 +381,7 @@ public final class RequireJavadoc {
     /**
      * Create a new PropertyKind.
      *
-     * @param prefix the prefix for the method name: "get", "has", "is", "not", or "set"
+     * @param prefix the prefix for the method name: "get", "", "has", "is", "not", or "set"
      * @param requiredParams the number of required formal parameters: 0 or 1
      * @param returnType the return type
      */
@@ -496,7 +496,7 @@ public final class RequireJavadoc {
    * @param md the method
    * @param propertyKind the kind of property
    * @param propertyName the name of the property
-   * @return true if the body of the given method is a property accessor
+   * @return true if the signature of the given method is a property accessor
    */
   private boolean hasCorrectSignature(
       JCTree.JCMethodDecl md, PropertyKind propertyKind, String propertyName) {
