@@ -166,7 +166,7 @@ public final class RequireJavadoc {
       try {
         JavacParseResult<CompilationUnitTree> jpr = JavacParse.parseFile(javaFile.toString());
         JCTree.JCCompilationUnit cu = (JCTree.JCCompilationUnit) jpr.tree();
-        RequireJavadocVisitor visitor = rj.new RequireJavadocVisitor(javaFile);
+        RequireJavadocVisitor visitor = rj.new RequireJavadocVisitor(javaFile, cu);
         visitor.visitTopLevel(cu);
       } catch (IOException e) {
         exceptionsThrown.add("Problem while reading " + javaFile + ": " + e.getMessage());
@@ -639,8 +639,8 @@ public final class RequireJavadoc {
     private Path filename;
 
     /**
-     * The compilation unit being visited. Used for constructing error messages. Set by {@link
-     * #visitTopLevel}.
+     * The compilation unit being visited. Used for constructing error messages and for looking up
+     * Javadoc comments.
      */
     private JCTree.JCCompilationUnit cu;
 
@@ -651,13 +651,11 @@ public final class RequireJavadoc {
      * Create a new RequireJavadocVisitor.
      *
      * @param filename the file being visited; used for diagnostic messages
+     * @param cu the compilation unit being visited
      */
-    @SuppressWarnings({
-      "nullness:initialization.fields.uninitialized",
-      "initializedfields:contracts.postcondition"
-    }) // `visitTopLevel()` sets `cu`
-    public RequireJavadocVisitor(Path filename) {
+    public RequireJavadocVisitor(Path filename, JCTree.JCCompilationUnit cu) {
       this.filename = filename;
+      this.cu = cu;
     }
 
     /**
