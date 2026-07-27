@@ -231,7 +231,7 @@ def requireJavadoc = tasks.register("requireJavadoc", JavaExec) {
   // and Gradle uses the built-from-source version of
   // libs.require.javadoc.  So declare a dependency on it.
   dependsOn(jar)
-  group = "Documentation"
+  group = "documentation"
   description = "Ensures that Javadoc documentation exists."
   inputs.files(sourceSets.main.allJava)
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
@@ -319,5 +319,6 @@ mavenPublishing {
 /* Make Emacs TAGS table */
 tasks.register("tags", Exec) {
   description = "Run etags to create an Emacs TAGS table"
+  group = "IDE"
   commandLine("bash", "-c", "find src/ -name '*.java' | sort | xargs etags")
 }

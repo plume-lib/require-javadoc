@@ -129,7 +129,7 @@ dependencies {
   requireJavadoc("org.plumelib:require-javadoc:2.0.0")
 }
 def requireJavadoc = tasks.register("requireJavadoc", JavaExec) {
-  group = "Documentation"
+  group = "documentation"
   description = "Ensures that Javadoc documentation exists."
   inputs.files(sourceSets.main.allJava)
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
@@ -225,7 +225,7 @@ or
 <!-- markdownlint-disable line-length -->
 ```gradle
 task javadocStrict(type: Javadoc) {
-  group = "Documentation"
+  group = "documentation"
   description = "Run Javadoc in strict mode: with -Xdoclint:all and -Xwerror, on all members."
   source = sourceSets.main.allJava
   classpath = sourceSets.main.runtimeClasspath
