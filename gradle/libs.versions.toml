@@ -10,11 +10,11 @@ checker-qual = { module = "org.checkerframework:checker-qual", version.ref = "ch
 
 error-prone-core = "com.google.errorprone:error_prone_core:2.50.0"
 
-javac-parse = "org.plumelib:javac-parse:1.0.0-SNAPSHOT"
+javac-parse = "org.plumelib:javac-parse:1.0.0"
 
-options = "org.plumelib:options:3.0.0-SNAPSHOT"
+options = "org.plumelib:options:3.0.0"
 
-require-javadoc = "org.plumelib:require-javadoc:3.0.0-SNAPSHOT"
+require-javadoc = "org.plumelib:require-javadoc:3.0.0"
 
 [plugins]
 

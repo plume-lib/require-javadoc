@@ -126,7 +126,7 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc("org.plumelib:require-javadoc:2.0.0")
+  requireJavadoc("org.plumelib:require-javadoc:3.0.0")
 }
 def requireJavadoc = tasks.register("requireJavadoc", JavaExec) {
   group = "documentation"

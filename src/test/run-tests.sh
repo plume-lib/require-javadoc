@@ -18,7 +18,7 @@ cmd_base="java \
   --add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
   --add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
   --add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
-  -cp ${SCRIPT_DIR}/../../build/libs/require-javadoc-all.jar:${SCRIPT_DIR}/../../build/libs/require-javadoc-3.0.0-SNAPSHOT-all.jar \
+  -cp ${SCRIPT_DIR}/../../build/libs/require-javadoc-all.jar:${SCRIPT_DIR}/../../build/libs/require-javadoc-3.0.0-all.jar \
   org.plumelib.javadoc.RequireJavadoc"
 
 # This may have non-zero status, so add `|| true` at the end when using it.
