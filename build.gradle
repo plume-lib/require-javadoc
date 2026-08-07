@@ -123,13 +123,17 @@ tasks.withType(JavaCompile).configureEach {
 // Compilation always uses Java 17, but the tests run under various Java versions.  The
 // `java.toolchain` setting above applies to Test tasks as well as to compilation, so without this
 // the tests would always run under Java 17.  By default the tests run under the JVM that Gradle
-// itself is running under, which is what the job matrix in .github/workflows/gradle.yml varies.
+// itself is running under.  The job matrix in .github/workflows/gradle.yml does not rely on that
+// default:  it runs Gradle under Java 21 in every job and selects the test JVM by passing
+// `-PtestJavaVersion`.
 // Override with, for example:
 //   ./gradlew test -PtestJavaVersion=17
 def testJavaVersionProperty = project.findProperty("testJavaVersion")
 // Compare to null rather than writing `?:`, which would also treat the empty string as absent.
-// `./gradlew test -PtestJavaVersion` (no "=" and no value) supplies the empty string, and silently
-// testing under the default version is not what someone who wrote that on the command line meant.
+if (testJavaVersionProperty != null && testJavaVersionProperty.toString().isEmpty()) {
+  throw new GradleException("-PtestJavaVersion needs a value, as in `-PtestJavaVersion=25`."
+  + "  Omit the property entirely to test under the JVM that Gradle is running under.")
+}
 def testJavaVersion = JavaLanguageVersion.of(
     (testJavaVersionProperty != null
     ? testJavaVersionProperty
@@ -154,9 +158,11 @@ tasks.withType(Test).configureEach {
   outputs.cacheIf { false }
 
   testLogging {
+    // "passed" is what makes the forced re-run above worth its cost:  without it, a run in which
+    // every test passes prints nothing at all.
     // `showStandardStreams = true` would be a redundant way to say the same
     // thing as including the "standardOut" and "standardError" events here.
-    events("skipped", "failed", "standardOut", "standardError")
+    events("passed", "skipped", "failed", "standardOut", "standardError")
     exceptionFormat = "full"
   }
 
@@ -192,16 +198,14 @@ tasks.named("check") {
 
 // Code formatting
 
-spotless {
-  format("misc") {
-    // Define the files to apply `misc` to.  prek handles `.gitignore`.
-    target("**/*.md")
+// Solstice, which provisions the Groovy-Eclipse formatter for Spotless, guards its cache with a
+// lock file and never checks whether the process that holds the lock still exists.  A build that is
+// killed while provisioning therefore leaves "metadata/.lock" behind in the cache directory, and
+// every later build then waits for a timeout and fails with "Failed to provision P2 dependencies".
+// Deleting that file is the recovery; the cache directory is "caches/p2-data" within the Gradle
+// user home directory.
 
-    // Define the steps to apply to those files.
-    trimTrailingWhitespace()
-    leadingTabsToSpaces(2)
-    endWithNewline()
-  }
+spotless {
   java {
     googleJavaFormat(libs.versions.google.java.format.get())
     formatAnnotations()
@@ -210,11 +214,9 @@ spotless {
     target("**/*.gradle")
 
     def greclipseConfig = greclipse(libs.versions.greclipse.get())
-    // Name the cache directory rather than accepting Spotless's default, which
-    // has moved between Spotless versions and which is not documented as being stable.
-    greclipseConfig.cacheDirectory(new File(gradle.gradleUserHomeDir, "spotless-p2"))
     greclipseConfig.withP2Mirrors([
       "https://download.eclipse.org/": "https://mirror.umd.edu/eclipse/",
+      // Not a no-op:  Spotless rewrites every P2 repository through the map if it exists.
       "https://groovy.jfrog.io/": "https://groovy.jfrog.io/",
     ])
 
@@ -337,6 +339,7 @@ tasks.named("javadoc", Javadoc) {
 // The `javadoc` task documents only the public API.
 // `javadocPrivate` applies the same doclint checks to private members.
 def javadocPrivate = tasks.register("javadocPrivate", Javadoc) {
+  group = "documentation"
   description = "Generate Javadoc for all members, including private ones."
   source = sourceSets.main.allJava
   classpath = sourceSets.main.output + sourceSets.main.compileClasspath
@@ -506,8 +509,9 @@ tasks.register("tags", Exec) {
 tasks.register("printCompileClasspaths") {
   group = "help"
   description = "Print the compile-time classpaths"
-  // Resolve the classpaths when the task is configured, not when it runs.  Reading `sourceSets`
-  // from a task action would capture the `Project` object, which the configuration cache forbids.
+  // Look up the classpaths when the task is configured, and resolve them (`asPath`) when it runs.
+  // Reading `sourceSets` from a task action would capture the `Project` object, which the
+  // configuration cache forbids.
   def mainClasspath = sourceSets.main.compileClasspath
   def testClasspath = sourceSets.test.compileClasspath
   doFirst {
