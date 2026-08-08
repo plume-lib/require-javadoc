@@ -304,12 +304,14 @@ val javadocPrivate =
 
 tasks.named("check") { dependsOn("javadoc", javadocPrivate) }
 
+val javadocWebDir = "/cse/web/research/plumelib/${project.name}/api"
+
 val javadocWebUpload =
   tasks.register<Javadoc>("javadocWebUpload") {
     description = "Write API documentation to the website directory."
     source = sourceSets["main"].allJava
     classpath = sourceSets["main"].output + sourceSets["main"].compileClasspath
-    destinationDir = file("/cse/web/research/plumelib/${project.name}/api")
+    destinationDir = file(javadocWebDir)
     strictJavadoc(this)
   }
 
@@ -318,7 +320,7 @@ val javadocWebChgrp =
   tasks.register<Exec>("javadocWebChgrp") {
     description = "Set the Unix group of the website's API documentation."
     mustRunAfter(javadocWebUpload)
-    commandLine("chgrp", "-R", "plse_www", "/cse/web/research/plumelib/${project.name}/api")
+    commandLine("chgrp", "-R", "plse_www", javadocWebDir)
     // A file that another user owns cannot be chgrped, which is not worth failing the build over.
     isIgnoreExitValue = true
     val chgrpResult = executionResult
@@ -334,7 +336,7 @@ val javadocWebChmod =
   tasks.register<Exec>("javadocWebChmod") {
     description = "Set the Unix permissions of the website's API documentation."
     mustRunAfter(javadocWebUpload)
-    commandLine("chmod", "-R", "g+w", "/cse/web/research/plumelib/${project.name}/api")
+    commandLine("chmod", "-R", "g+w", javadocWebDir)
     // A file that another user owns cannot be chmoded, which is not worth failing the build over.
     isIgnoreExitValue = true
     val chmodResult = executionResult
