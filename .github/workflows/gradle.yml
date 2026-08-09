@@ -4,27 +4,6 @@ name: Java CI with Gradle
 
 jobs:
 
-  # Formatting does not depend on the Java version, so Spotless runs in this single job rather than
-  # in every job of the "build" matrix below.
-  spotless:
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
-          show-progress: false
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-          check-latest: true
-          cache: 'gradle'
-      - name: ./gradlew spotlessCheck
-        run: ./gradlew spotlessCheck --stacktrace
-
   build:
 
     runs-on: ubuntu-latest
@@ -43,9 +22,10 @@ jobs:
         with:
           distribution: 'temurin'
           # "setup-java" makes the last version listed the default JAVA_HOME, so Gradle itself runs
-          # under Java 21 no matter which version this job tests.  Java 17 is the toolchain that
-          # build.gradle.kts compiles with; listing it saves Gradle from downloading a JDK.  A version
-          # that the list names twice is tolerated by "setup-java".
+          # under Java 21 no matter which version this job tests.  Spotless runs within the Gradle
+          # JVM, and google-java-format is compiled for Java 21, so Java 21 is the minimum.  Java 17
+          # is the toolchain that build.gradle.kts compiles with; listing it saves Gradle from
+          # downloading a JDK.  A version that the list names twice is tolerated by "setup-java".
           java-version: |
             ${{ matrix.java }}
             17
@@ -60,8 +40,7 @@ jobs:
           "$JAVA_HOME_${{ matrix.java }}_${{ runner.arch }}/bin/java" -version
       # Gradle does not auto-detect the JDKs that "setup-java" installs, because
       # they are in the tool cache rather than in a standard location.
-      # The "spotless" job above performs the formatting checks.
-      # "build" runs "check", which runs both the JUnit tests and the "runShellTests" task,
-      # so src/test/run-tests.sh needs no step of its own.
+      # "build" runs "check", which runs the JUnit tests, the "runShellTests" task, and
+      # "spotlessCheck", so neither src/test/run-tests.sh nor Spotless needs a step of its own.
       - name: ./gradlew build
-        run: ./gradlew build -x spotlessCheck -PtestJavaVersion=${{ matrix.java }} -Dorg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.java }}_${{ runner.arch }},JAVA_HOME_17_${{ runner.arch }},JAVA_HOME_21_${{ runner.arch }}
+        run: ./gradlew build -PtestJavaVersion=${{ matrix.java }} -Dorg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.java }}_${{ runner.arch }},JAVA_HOME_17_${{ runner.arch }},JAVA_HOME_21_${{ runner.arch }}
