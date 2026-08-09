@@ -9,7 +9,16 @@ cd "${SCRIPT_DIR}" || exit 1
 (cd ../.. && ./gradlew -q assemble)
 sleep .1
 
-cmd_base="java \
+# The Gradle task "runShellTests" sets REQUIRE_JAVADOC_JAVA_HOME to the JVM that
+# `-PtestJavaVersion` names, so that these tests run under the same JVM as the JUnit tests.
+# When the variable is unset, as when a developer runs this script directly, use the PATH's `java`.
+if [ -n "${REQUIRE_JAVADOC_JAVA_HOME}" ]; then
+  java_cmd="${REQUIRE_JAVADOC_JAVA_HOME}/bin/java"
+else
+  java_cmd="java"
+fi
+
+cmd_base="${java_cmd} \
   --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
   --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
   --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
@@ -29,7 +38,7 @@ ${cmd} > out.txt || true
 cd -
 diff -u tests11/expected.txt tests11/out.txt
 
-JAVA_VER=$(java -version 2>&1 | head -1 | cut -d'"' -f2 | sed '/^1\./s///' | cut -d'.' -f1 | sed 's/-ea//') \
+JAVA_VER=$(${java_cmd} -version 2>&1 | head -1 | cut -d'"' -f2 | sed '/^1\./s///' | cut -d'.' -f1 | sed 's/-ea//') \
   && if [ "$JAVA_VER" -ge 16 ]; then
     cd tests17
     ${cmd} > out.txt || true

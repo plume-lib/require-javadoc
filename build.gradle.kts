@@ -162,6 +162,17 @@ tasks.register<Exec>("runShellTests") {
   description = "Run the tests in src/test/run-tests.sh."
   // The script runs the fat jar, which "shadowJar" builds.
   dependsOn("shadowJar")
+  // Name the JVM that the script runs the fat jar under, so that `-PtestJavaVersion` selects the
+  // JVM for these tests as it does for the JUnit tests.  Naming the JVM rather than putting it on
+  // the script's PATH leaves the script's nested `./gradlew` invocation running under the JVM that
+  // Gradle itself runs under; that JVM is the one known to support this build's Gradle version.
+  val shellTestJavaHome: Provider<String> =
+    javaToolchains
+      .launcherFor { languageVersion = testJavaVersion }
+      .map { it.metadata.installationPath.asFile.absolutePath }
+  // Set the environment in `doFirst`, so that merely configuring this task does not provision a
+  // JDK.
+  doFirst { environment("REQUIRE_JAVADOC_JAVA_HOME", shellTestJavaHome.get()) }
   commandLine("./src/test/run-tests.sh")
   // The JUnit tests' failures are more informative than the shell tests' failures.
   mustRunAfter(tasks.named("test"))
