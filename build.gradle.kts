@@ -105,7 +105,7 @@ tasks.withType<JavaCompile>().configureEach {
 // default:  it runs Gradle under Java 21 in every job and selects the test JVM by passing
 // `-PtestJavaVersion`.
 // Override with, for example:
-//   ./gradlew test -PtestJavaVersion=17
+//   ./gradlew test -PtestJavaVersion=21
 val testJavaVersionProperty = project.findProperty("testJavaVersion")
 
 if (testJavaVersionProperty != null && testJavaVersionProperty.toString().isEmpty()) {
