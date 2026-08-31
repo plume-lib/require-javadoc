@@ -39,6 +39,7 @@ import org.plumelib.options.Options;
  * at <a
  * href="https://github.com/plume-lib/require-javadoc">https://github.com/plume-lib/require-javadoc</a>.
  */
+@SuppressWarnings("PMD.FieldNamingConventions") // For `@Option` fields.
 public final class RequireJavadoc {
 
   /** Matches name of file or directory where no problems should be reported. */
@@ -128,16 +129,16 @@ public final class RequireJavadoc {
   public boolean verbose = false;
 
   /** All the errors this program will report. */
-  private List<String> errors = new ArrayList<>();
+  private final List<String> errors = new ArrayList<>();
 
   /** The Java files to be checked. */
-  private List<Path> javaFiles = new ArrayList<>();
+  private final List<Path> javaFiles = new ArrayList<>();
 
   /** The current working directory as a relative path, for relativizing relative filenames. */
-  private Path workingDirRelative = Paths.get("");
+  private final Path workingDirRelative = Paths.get("");
 
   /** The current working directory as an absolute path, for relativizing absolute filenames. */
-  private Path workingDirAbsolute = Paths.get("").toAbsolutePath();
+  private final Path workingDirAbsolute = Paths.get("").toAbsolutePath();
 
   /** Creates a new RequireJavadoc instance. */
   private RequireJavadoc() {}
@@ -166,6 +167,7 @@ public final class RequireJavadoc {
       try {
         JavacParseResult<CompilationUnitTree> jpr = JavacParse.parseFile(javaFile.toString());
         JCTree.JCCompilationUnit cu = (JCTree.JCCompilationUnit) jpr.tree();
+        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
         RequireJavadocVisitor visitor = rj.new RequireJavadocVisitor(javaFile, cu);
         visitor.visitTopLevel(cu);
       } catch (IOException e) {
@@ -193,7 +195,8 @@ public final class RequireJavadoc {
    */
   @SuppressWarnings({
     "lock:methodref.receiver", // Comparator.comparing
-    "lock:type.arguments.not.inferred" // Comparator.comparing
+    "lock:type.arguments.not.inferred", // Comparator.comparing
+    "PMD.AvoidReassigningParameters"
   })
   private void setJavaFiles(String[] args) {
     if (args.length == 0) {
@@ -243,10 +246,12 @@ public final class RequireJavadoc {
   }
 
   /** Collects files into the {@link #javaFiles} variable. */
-  private class JavaFilesVisitor extends SimpleFileVisitor<Path> {
+  private final class JavaFilesVisitor extends SimpleFileVisitor<Path> {
 
     /** Create a new JavaFilesVisitor. */
-    public JavaFilesVisitor() {}
+    private JavaFilesVisitor() {
+      super();
+    }
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
@@ -292,7 +297,7 @@ public final class RequireJavadoc {
    * @param name the name of a Java element. It is a simple name, except for packages.
    * @return true if no warnings should be issued about the element
    */
-  private boolean shouldNotRequire(String name) {
+  public boolean shouldNotRequire(String name) {
     if (dont_require == null) {
       return false;
     }
@@ -310,7 +315,7 @@ public final class RequireJavadoc {
    * @param fileName the name of a Java file or directory
    * @return true if the file or directory should be skipped
    */
-  private boolean shouldExclude(String fileName) {
+  public boolean shouldExclude(String fileName) {
     if (exclude == null) {
       return false;
     }
@@ -358,13 +363,13 @@ public final class RequireJavadoc {
     SETTER("set", 1, ReturnType.VOID);
 
     /** The prefix for the method name: "get", "", "has", "is", "not", or "set". */
-    final String prefix;
+    private final String prefix;
 
     /** The number of required formal parameters: 0 or 1. */
-    final int requiredParams;
+    private final int requiredParams;
 
     /** The return type. */
-    final ReturnType returnType;
+    private final ReturnType returnType;
 
     /**
      * Create a new PropertyKind.
@@ -384,7 +389,7 @@ public final class RequireJavadoc {
      *
      * @return true if this is a getter
      */
-    boolean isGetter() {
+    private boolean isGetter() {
       return this != SETTER;
     }
 
@@ -395,7 +400,7 @@ public final class RequireJavadoc {
      * @param md the method to check
      * @return the PropertyKind for the given method, or null
      */
-    static PropertyKind fromMethodDeclaration(JCTree.JCMethodDecl md) {
+    private static PropertyKind fromMethodDeclaration(JCTree.JCMethodDecl md) {
       String methodName = md.getName().toString();
       if (methodName.startsWith("get")) {
         return GETTER;
@@ -583,6 +588,7 @@ public final class RequireJavadoc {
    * @param expr an expression, possibly wrapped in parentheses
    * @return the expression with all enclosing parentheses removed
    */
+  @SuppressWarnings("PMD.AvoidReassigningParameters")
   private JCTree.JCExpression removeParentheses(JCTree.JCExpression expr) {
     while (expr instanceof JCTree.JCParens parens) {
       expr = parens.getExpression();
@@ -596,6 +602,7 @@ public final class RequireJavadoc {
    * @param expr an expression
    * @return the name of the identifier, if it is one; null otherwise
    */
+  @SuppressWarnings("PMD.AvoidReassigningParameters")
   private @Nullable String asFieldName(JCTree.JCExpression expr) {
     expr = removeParentheses(expr);
     if (expr instanceof JCTree.JCIdent ident) {
@@ -633,10 +640,10 @@ public final class RequireJavadoc {
   }
 
   /** Visits an AST and collects warnings about missing Javadoc. */
-  private class RequireJavadocVisitor extends JCTree.Visitor {
+  private final class RequireJavadocVisitor extends JCTree.Visitor {
 
     /** The file being visited. Used for constructing error messages. */
-    private Path filename;
+    private final Path filename;
 
     /**
      * The compilation unit being visited. Used for constructing error messages and for looking up
@@ -645,7 +652,7 @@ public final class RequireJavadoc {
     private JCTree.JCCompilationUnit cu;
 
     /** The name of the class being visited (and others that contain it). */
-    private Deque<String> classNames = new ArrayDeque<>();
+    private final Deque<String> classNames = new ArrayDeque<>();
 
     /**
      * Create a new RequireJavadocVisitor.
@@ -653,7 +660,8 @@ public final class RequireJavadoc {
      * @param filename the file being visited; used for diagnostic messages
      * @param cu the compilation unit being visited
      */
-    public RequireJavadocVisitor(Path filename, JCTree.JCCompilationUnit cu) {
+    private RequireJavadocVisitor(Path filename, JCTree.JCCompilationUnit cu) {
+      super();
       this.filename = filename;
       this.cu = cu;
     }
