@@ -3,13 +3,12 @@ name: Java CI with Gradle
 "on": [push, pull_request]
 
 jobs:
-  build:
+
+  # Formatting does not depend on the Java version, so Spotless runs in this single job rather than
+  # in every job of the "build" matrix below.
+  spotless:
 
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        java: ['21', '25', '27-ea']
 
     steps:
       - uses: actions/checkout@v7
@@ -21,14 +20,64 @@ jobs:
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: ${{ matrix.java }}
+          java-version: '25.0.4+101.0.LTS'
           check-latest: true
           cache: 'gradle'
-      - name: java -version
-        run: java -version
-      - name: Warm up Gradle cache
-        run: ./gradlew spotlessCheck > /dev/null 2>&1 || (sleep 60 && true)
+      - name: ./gradlew spotlessCheck
+        run: ./gradlew spotlessCheck
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        java: ['21', '25', '27-ea']
+        # "setup-java" names its "JAVA_HOME_<version>_<arch>" environment variable after the major
+        # version alone, so an early-access version such as "27-ea" yields "JAVA_HOME_27_X64".
+        # GitHub Actions expressions cannot strip the "-ea" suffix, so the matrix supplies the bare
+        # major version separately.  These "include" entries match existing "java" values, so they
+        # add "javaMajor" to those jobs rather than creating new ones, and the job names are
+        # unchanged.  "javaMajor" is also what Gradle's "-PtestJavaVersion" requires, since
+        # "JavaLanguageVersion.of" rejects a non-numeric string.
+        include:
+          - java: '21'
+            javaMajor: '21'
+          - java: '25'
+            javaMajor: '25'
+          - java: '27-ea'
+            javaMajor: '27'
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          show-progress: false
+          persist-credentials: false
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          # "setup-java" makes the last version listed the default JAVA_HOME, so Gradle itself runs
+          # under Java 21 no matter which version this job tests.  Java 17 is the toolchain that
+          # build.gradle.kts compiles with; listing it saves Gradle from downloading a JDK.  A version
+          # that the list names twice is tolerated by "setup-java".
+          java-version: |
+            ${{ matrix.java }}
+            17
+            21
+          check-latest: true
+          cache: 'gradle'
+      - name: Show the Java versions
+        run: |
+          echo 'JVM that runs Gradle:'
+          java -version
+          echo 'JVM that runs the tests:'
+          "$JAVA_HOME_${{ matrix.javaMajor }}_${{ runner.arch }}/bin/java" -version
+      # Gradle does not auto-detect the JDKs that "setup-java" installs, because
+      # they are in the tool cache rather than in a standard location.
+      # The "spotless" job above performs the formatting checks.
       - name: ./gradlew build
-        run: ./gradlew build
+        run: ./gradlew build -x spotlessCheck -PtestJavaVersion=${{ matrix.javaMajor }} -Dorg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.javaMajor }}_${{ runner.arch }},JAVA_HOME_17_${{ runner.arch }},JAVA_HOME_21_${{ runner.arch }}
       - name: run-tests.sh
         run: src/test/run-tests.sh
