@@ -41,7 +41,6 @@ import org.plumelib.options.Options;
  * at <a
  * href="https://github.com/plume-lib/require-javadoc">https://github.com/plume-lib/require-javadoc</a>.
  */
-@SuppressWarnings("PMD.TooManyFields")
 public final class RequireJavadoc {
 
   /** Matches name of file or directory where no problems should be reported. */
@@ -136,23 +135,13 @@ public final class RequireJavadoc {
   /** The Java files to be checked. */
   private @Modifiable @IteratorPolyMod List<Path> javaFiles = new ArrayList<>();
 
-  /** The current working directory, for making relative pathnames. */
+  /** The current working directory as a relative path, for relativizing relative filenames. */
   private Path workingDirRelative = Paths.get("");
 
-  /** The current working directory, for making relative pathnames. */
+  /** The current working directory as an absolute path, for relativizing absolute filenames. */
   private Path workingDirAbsolute = Paths.get("").toAbsolutePath();
 
-  /** The current compilation unit. Set in {@link #main}. */
-  private JCTree.JCCompilationUnit currentCompilationUnit;
-
-  /** The visitor. Set in {@link #main}. */
-  private RequireJavadocVisitor visitor;
-
   /** Creates a new RequireJavadoc instance. */
-  @SuppressWarnings({
-    "nullness:initialization.fields.uninitialized",
-    "initializedfields:contracts.postcondition"
-  }) // `currentCompilationUnit` and `visitor` are set in main(); TODO: refactor.
   private RequireJavadoc() {}
 
   /**
@@ -178,10 +167,9 @@ public final class RequireJavadoc {
       }
       try {
         JavacParseResult<CompilationUnitTree> jpr = JavacParse.parseFile(javaFile.toString());
-        JCTree.JCCompilationUnit cu = (JCTree.JCCompilationUnit) jpr.getTree();
-        rj.currentCompilationUnit = cu;
-        rj.visitor = rj.new RequireJavadocVisitor(javaFile);
-        rj.visitor.visitTopLevel(cu);
+        JCTree.JCCompilationUnit cu = (JCTree.JCCompilationUnit) jpr.tree();
+        RequireJavadocVisitor visitor = rj.new RequireJavadocVisitor(javaFile, cu);
+        visitor.visitTopLevel(cu);
       } catch (IOException e) {
         exceptionsThrown.add("Problem while reading " + javaFile + ": " + e.getMessage());
       }
@@ -369,9 +357,7 @@ public final class RequireJavadoc {
     /** A method of the form {@code boolean notFoo()}. */
     GETTER_NOT("not", 0, ReturnType.BOOLEAN),
     /** A method of the form {@code void setFoo(SomeType arg)}. */
-    SETTER("set", 1, ReturnType.VOID),
-    /** Not a getter or setter. */
-    NOT_PROPERTY("", -1, ReturnType.VOID);
+    SETTER("set", 1, ReturnType.VOID);
 
     /** The prefix for the method name: "get", "", "has", "is", "not", or "set". */
     final String prefix;
@@ -385,7 +371,7 @@ public final class RequireJavadoc {
     /**
      * Create a new PropertyKind.
      *
-     * @param prefix the prefix for the method name: "get", "has", "is", "not", or "set"
+     * @param prefix the prefix for the method name: "get", "", "has", "is", "not", or "set"
      * @param requiredParams the number of required formal parameters: 0 or 1
      * @param returnType the return type
      */
@@ -500,7 +486,7 @@ public final class RequireJavadoc {
    * @param md the method
    * @param propertyKind the kind of property
    * @param propertyName the name of the property
-   * @return true if the body of the given method is a property accessor
+   * @return true if the signature of the given method is a property accessor
    */
   private boolean hasCorrectSignature(
       JCTree.JCMethodDecl md, PropertyKind propertyKind, String propertyName) {
@@ -655,8 +641,8 @@ public final class RequireJavadoc {
     private Path filename;
 
     /**
-     * The compilation unit being visited. Used for constructing error messages. Set by {@link
-     * #visitTopLevel}.
+     * The compilation unit being visited. Used for constructing error messages and for looking up
+     * Javadoc comments.
      */
     private JCTree.JCCompilationUnit cu;
 
@@ -667,13 +653,11 @@ public final class RequireJavadoc {
      * Create a new RequireJavadocVisitor.
      *
      * @param filename the file being visited; used for diagnostic messages
+     * @param cu the compilation unit being visited
      */
-    @SuppressWarnings({
-      "nullness:initialization.fields.uninitialized",
-      "initializedfields:contracts.postcondition"
-    }) // `visitTopLevel()` sets `cu`
-    public RequireJavadocVisitor(Path filename) {
+    public RequireJavadocVisitor(Path filename, JCTree.JCCompilationUnit cu) {
       this.filename = filename;
+      this.cu = cu;
     }
 
     /**
@@ -798,7 +782,6 @@ public final class RequireJavadoc {
       if (dont_require_private && fd.getModifiers().getFlags().contains(Modifier.PRIVATE)) {
         return;
       }
-      // True if shouldNotRequire is false for at least one of the fields
       String name = fd.getName().toString();
       if (verbose) {
         System.out.printf("Visiting field %s%n", name);
@@ -829,16 +812,16 @@ public final class RequireJavadoc {
       }
       return false;
     }
-  }
 
-  /**
-   * Returns true if this tree has a Javadoc comment.
-   *
-   * @param t the tree to check for a Javadoc comment
-   * @return true if this tree has a Javadoc comment
-   */
-  private boolean hasJavadocComment(JCTree t) {
-    DocCommentTable docComments = currentCompilationUnit.docComments;
-    return docComments != null && docComments.hasComment(t);
+    /**
+     * Returns true if this tree has a Javadoc comment.
+     *
+     * @param t the tree to check for a Javadoc comment
+     * @return true if this tree has a Javadoc comment
+     */
+    private boolean hasJavadocComment(JCTree t) {
+      DocCommentTable docComments = cu.docComments;
+      return docComments != null && docComments.hasComment(t);
+    }
   }
 }

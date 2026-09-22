@@ -1,29 +1,56 @@
-[plugins]
-
-com-diffplug-spotless = { id = "com.diffplug.spotless", version = "8.7.0" }
-
-com-gradleup-shadow = { id = "com.gradleup.shadow", version = "9.4.3" }
-
-com-vanniktech-maven-publish = { id = "com.vanniktech.maven.publish", version = "0.37.0" }
-
-net-ltgt-errorprone = { id = "net.ltgt.errorprone", version = "5.1.0" }
-
-org-checkerframework = { id = "org.checkerframework", version = "1.0.2" }
-
 [versions]
 
-checker-framework = "4.2.0"
+checker-framework = "4.2.3"
+
+google-java-format = "1.36.1"
+
+jacoco = "0.8.15"
+
+ktfmt = "0.64"
+
+pmd = "7.27.0"
 
 [libraries]
 
+# Some entries below are not dependencies.  Each such entry exists so that a dependency-update tool
+# such as Renovate proposes new versions of a tool whose version build.gradle.kts reads, by itself,
+# via "libs.versions.*".  Each such entry is marked "Version only".
+
+# Version only:  the org.checkerframework Gradle plugin adds the dependency, from
+# `checkerFramework.version`.
 checker-framework = { module = "org.checkerframework:checker", version.ref = "checker-framework" }
 
-checker-qual = { module = "org.checkerframework:checker-qual", version.ref = "checker-framework" }
+# Error Prone's recent releases are compiled for Java 21, so they cannot run under the Java 17
+# toolchain that this project uses (see build.gradle.kts).  Do not upgrade past 2.42.0 unless the
+# toolchain version also changes.
+error-prone-core = { module = "com.google.errorprone:error_prone_core", version = "2.42.0" }
 
-error-prone-core = "com.google.errorprone:error_prone_core:2.50.0"
+# Version only:  Spotless resolves google-java-format itself.
+google-java-format = { module = "com.google.googlejavaformat:google-java-format", version.ref = "google-java-format" }
 
-javac-parse = "org.plumelib:javac-parse:0.9.0"
+# Version only:  for the JaCoCo plugin's `toolVersion`.
+jacoco = { module = "org.jacoco:org.jacoco.core", version.ref = "jacoco" }
 
-options = "org.plumelib:options:2.0.3"
+javac-parse = { module = "org.plumelib:javac-parse", version = "1.0.0" }
 
-require-javadoc = "org.plumelib:require-javadoc:2.0.0"
+# Version only:  Spotless resolves ktfmt itself.
+ktfmt = { module = "com.facebook:ktfmt", version.ref = "ktfmt" }
+
+options = { module = "org.plumelib:options", version = "3.0.0" }
+
+# Version only:  for the PMD plugin's `toolVersion`.
+pmd-java = { module = "net.sourceforge.pmd:pmd-java", version.ref = "pmd" }
+
+require-javadoc = { module = "org.plumelib:require-javadoc", version = "3.0.0" }
+
+[plugins]
+
+com-diffplug-spotless = { id = "com.diffplug.spotless", version = "8.10.2" }
+
+com-gradleup-shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
+
+com-vanniktech-maven-publish = { id = "com.vanniktech.maven.publish", version = "0.37.0" }
+
+net-ltgt-errorprone = { id = "net.ltgt.errorprone", version = "5.1.1" }
+
+org-checkerframework = { id = "org.checkerframework", version = "1.0.2" }

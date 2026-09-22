@@ -38,20 +38,22 @@ java \
 
 Details about invoking the program:
 
+<!-- markdownlint-disable line-length -->
 ```output
 Usage: java org.plumelib.javadoc.RequireJavadoc [options] [directory-or-file ...]
-  --exclude=<regex>                - Don't check files or directories whose pathname matches the regex
-  --dont-require=<regex>           - Don't report problems in Java elements whose name matches the regex
-  --dont-require-private=<boolean> - Don't report problems in elements with private access [default: false]
-  --dont-require-noarg-constructor=<boolean> - Don't report problems in constructors with zero formal params [default: false]
-  --dont-require-trivial-properties=<boolean> - Don't report problems about trivial getters and setters [default: false]
-  --dont-require-type=<boolean>    - Don't report problems in type declarations [default: false]
-  --dont-require-field=<boolean>   - Don't report problems in fields [default: false]
-  --dont-require-method=<boolean>  - Don't report problems in methods and constructors [default: false]
-  --require-package-info=<boolean> - Require package-info.java file to exist [default: false]
-  --relative=<boolean>             - Report relative rather than absolute filenames [default: false]
-  --verbose=<boolean>              - Print diagnostic information [default: false]
+  --exclude=<regex>                           - Don't check files or directories whose pathname matches the regex
+  --dont-require=<regex>                      - Don't report problems in Java elements whose name matches the regex
+  --dont-require-private=<boolean>            - Don't report problems in elements with private access [default false]
+  --dont-require-noarg-constructor=<boolean>  - Don't report problems in constructors with zero formal parameters [default false]
+  --dont-require-trivial-properties=<boolean> - Don't report problems in trivial getters and setters [default false]
+  --dont-require-type=<boolean>               - Don't report problems in type declarations [default false]
+  --dont-require-field=<boolean>              - Don't report problems in fields [default false]
+  --dont-require-method=<boolean>             - Don't report problems in methods and constructors [default false]
+  --require-package-info=<boolean>            - Require package-info.java file to exist [default false]
+  --relative=<boolean>                        - Report relative rather than absolute filenames [default false]
+  --verbose=<boolean>                         - Print diagnostic information [default false]
 ```
+<!-- markdownlint-enable line-length -->
 
 If an argument is a directory, each `.java` file in it or its subdirectories
 will be processed.
@@ -96,7 +98,7 @@ public boolean hasBaz() {
 
 ## Incremental use
 
-In continuous integration job (Azure Pipelines, CircleCI, GitHub Actions, or
+In a continuous integration job (Azure Pipelines, CircleCI, GitHub Actions, or
 Travis CI), you can require Javadoc on all *changed* lines and lines adjacent to
 changed lines.  This is a way to incrementally get your code documented, without
 having to document it all at once.  Here are example commands.  (They obtain and
@@ -124,10 +126,10 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc("org.plumelib:require-javadoc:2.0.0")
+  requireJavadoc("org.plumelib:require-javadoc:3.0.0")
 }
 def requireJavadoc = tasks.register("requireJavadoc", JavaExec) {
-  group = "Documentation"
+  group = "documentation"
   description = "Ensures that Javadoc documentation exists."
   inputs.files(sourceSets.main.allJava)
   mainClass = "org.plumelib.javadoc.RequireJavadoc"
@@ -220,9 +222,10 @@ check.dependsOn(javadoc)
 
 or
 
+<!-- markdownlint-disable line-length -->
 ```gradle
 task javadocStrict(type: Javadoc) {
-  group = "Documentation"
+  group = "documentation"
   description = "Run Javadoc in strict mode: with -Xdoclint:all and -Xwerror, on all members."
   source = sourceSets.main.allJava
   classpath = sourceSets.main.runtimeClasspath
@@ -231,6 +234,7 @@ task javadocStrict(type: Javadoc) {
 }
 check.dependsOn(javadocStrict)
 ```
+<!-- markdownlint-enable line-length -->
 
 ## Comparison to Checkstyle
 

@@ -25,62 +25,61 @@ Run these steps on any filesystem, except the `javadocWeb` step.
   this file (possibly multiple times in each).
 * Save files and stage changes.
 * `./gradlew publishToMavenCentral`
-* Browse to <https://central.sonatype.com/publishing/deployments>, click "publish".
+* Browse to <https://central.sonatype.com/publishing/deployments>, click “publish”.
 * Add a git tag and commit:
 
   ```sh
-  VER=2.0.0 && \
+  VER=3.0.0 && \
   git commit -m "Version $VER" && git push && \
   git tag -a v$VER -m "Version $VER" && git push && git push --tags
   ```
 
 * Make a GitHub release.
-  * Browse to <https://github.com/plume-lib/require-javadoc/releases>
-  * Click "draft a new release"
-  * Call it "require-javadoc 2.0.0"
+  * Browse to <https://github.com/plume-lib/require-javadoc/releases/new>
+  * Call it "require-javadoc 3.0.0"
   * Use the text from `CHANGELOG.md` as the description
   * Attach the .jar and -all.jar files from `build/libs/`
-  * Click "publish release"
+  * Click “publish release”
 * Finally, run on the CSE filesystem:  `git pull && ./gradlew javadocWeb`
 * Update clients and test, so that if it's broken we can re-release.
 
 ### Making a snapshot release
 
 * `git pull`
-* Set version number in `gradle.properties` to end in "-SNAPSHOT".
+* Set version number in `gradle.properties` to end in “-SNAPSHOT”.
 * Make the snapshot release.
   * Approach 1:  to Maven Central
     * `./gradlew publishToMavenCentral`
     * In the clients' build.gradle: set version number and use:
 
-        ```gradle
-          repositories {
-            maven { url = uri("https://central.sonatype.com/repository/maven-snapshots/") }
-          }
-          configurations.all {
-            resolutionStrategy.cacheChangingModulesFor(0, "minutes")
-          }
-        ```
+       ```gradle
+       repositories {
+         maven {
+           url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+         }
+       }
+       ```
 
   * Approach 2:  to Maven Local
     * `./gradlew publishToMavenLocal`
     * In the clients' build.gradle: set version number and use:
 
-        ```gradle
-          repositories {
-            mavenLocal()
-          }
-        ```
+       ```gradle
+       repositories {
+         mavenLocal()
+       }
+       ```
 
-* Test the test snapshot release on some clients:
+* Test the snapshot release on some clients:
   * For the Checker Framework (don't skip running the tests):
 
     ```sh
     # This ensures that the correct JDK is being used
     usecf THE-BRANCH-THAT-USES-THE-SNAPSHOT
     cd $cf
-    checker/bin-devel/test-cftests-all.sh && checker/bin-devel/test-typecheck.sh && \
+    checker/bin-devel/test-cftests-all.sh && \
+    checker/bin-devel/test-typecheck.sh && \
     checker/bin-devel/test-plume-lib.sh
     ```
 
-* For Daikon: `make compile junit test`
+  * For Daikon: `make compile junit test`
