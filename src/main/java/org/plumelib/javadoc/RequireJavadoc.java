@@ -39,7 +39,7 @@ import org.plumelib.options.Options;
  * at <a
  * href="https://github.com/plume-lib/require-javadoc">https://github.com/plume-lib/require-javadoc</a>.
  */
-@SuppressWarnings("PMD.FieldNamingConventions") // For `@Option` fields.
+// @SuppressWarnings("PMD.FieldNamingConventions") // For `@Option` fields.
 public final class RequireJavadoc {
 
   /** Matches name of file or directory where no problems should be reported. */
@@ -167,7 +167,7 @@ public final class RequireJavadoc {
       try {
         JavacParseResult<CompilationUnitTree> jpr = JavacParse.parseFile(javaFile.toString());
         JCTree.JCCompilationUnit cu = (JCTree.JCCompilationUnit) jpr.tree();
-        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+        // @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
         RequireJavadocVisitor visitor = rj.new RequireJavadocVisitor(javaFile, cu);
         visitor.visitTopLevel(cu);
       } catch (IOException e) {
@@ -196,7 +196,7 @@ public final class RequireJavadoc {
   @SuppressWarnings({
     "lock:methodref.receiver", // Comparator.comparing
     "lock:type.arguments.not.inferred", // Comparator.comparing
-    "PMD.AvoidReassigningParameters"
+    // "PMD.AvoidReassigningParameters"
   })
   private void setJavaFiles(String[] args) {
     if (args.length == 0) {
@@ -588,7 +588,7 @@ public final class RequireJavadoc {
    * @param expr an expression, possibly wrapped in parentheses
    * @return the expression with all enclosing parentheses removed
    */
-  @SuppressWarnings("PMD.AvoidReassigningParameters")
+  // @SuppressWarnings("PMD.AvoidReassigningParameters")
   private JCTree.JCExpression removeParentheses(JCTree.JCExpression expr) {
     while (expr instanceof JCTree.JCParens parens) {
       expr = parens.getExpression();
@@ -602,7 +602,7 @@ public final class RequireJavadoc {
    * @param expr an expression
    * @return the name of the identifier, if it is one; null otherwise
    */
-  @SuppressWarnings("PMD.AvoidReassigningParameters")
+  // @SuppressWarnings("PMD.AvoidReassigningParameters")
   private @Nullable String asFieldName(JCTree.JCExpression expr) {
     expr = removeParentheses(expr);
     if (expr instanceof JCTree.JCIdent ident) {
