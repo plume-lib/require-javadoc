@@ -25,6 +25,8 @@ import java.util.regex.Pattern;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.type.TypeKind;
 import javax.tools.Diagnostic;
+import org.checkerframework.checker.modifiability.qual.IteratorPolyMod;
+import org.checkerframework.checker.modifiability.qual.Modifiable;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -129,10 +131,10 @@ public final class RequireJavadoc {
   public boolean verbose = false;
 
   /** All the errors this program will report. */
-  private final List<String> errors = new ArrayList<>();
+  private final @Modifiable @IteratorPolyMod List<String> errors = new ArrayList<>();
 
   /** The Java files to be checked. */
-  private final List<Path> javaFiles = new ArrayList<>();
+  private final @Modifiable @IteratorPolyMod List<Path> javaFiles = new ArrayList<>();
 
   /** The current working directory as a relative path, for relativizing relative filenames. */
   private final Path workingDirRelative = Paths.get("");
@@ -652,7 +654,7 @@ public final class RequireJavadoc {
     private JCTree.JCCompilationUnit cu;
 
     /** The name of the class being visited (and others that contain it). */
-    private final Deque<String> classNames = new ArrayDeque<>();
+    private final @Modifiable Deque<String> classNames = new ArrayDeque<>();
 
     /**
      * Create a new RequireJavadocVisitor.
