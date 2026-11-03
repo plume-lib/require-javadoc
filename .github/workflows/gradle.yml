@@ -52,12 +52,11 @@ jobs:
         with:
           distribution: 'temurin'
           # "setup-java" makes the last version listed the default JAVA_HOME, so Gradle itself runs
-          # under Java 21 no matter which version this job tests.  Java 17 is the toolchain that
-          # build.gradle.kts compiles with; listing it saves Gradle from downloading a JDK.  A version
-          # that the list names twice is tolerated by "setup-java".
+          # under Java 21 no matter which version this job tests.  Java 21 is also the toolchain
+          # that build.gradle.kts compiles with.  A version that the list names twice is tolerated
+          # by "setup-java".
           java-version: |
             ${{ matrix.java }}
-            17
             21
           check-latest: true
           cache: 'gradle'
@@ -71,6 +70,6 @@ jobs:
       # they are in the tool cache rather than in a standard location.
       # The "spotless" job above performs the formatting checks.
       - name: ./gradlew build
-        run: ./gradlew build -x spotlessCheck -PtestJavaVersion=${{ matrix.javaMajor }} -Dorg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.javaMajor }}_${{ runner.arch }},JAVA_HOME_17_${{ runner.arch }},JAVA_HOME_21_${{ runner.arch }}
+        run: ./gradlew build -x spotlessCheck -PtestJavaVersion=${{ matrix.javaMajor }} -Dorg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.javaMajor }}_${{ runner.arch }},JAVA_HOME_21_${{ runner.arch }}
       - name: run-tests.sh
         run: src/test/run-tests.sh
