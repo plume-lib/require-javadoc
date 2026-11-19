@@ -213,6 +213,13 @@ pmd {
   isConsoleOutput = true
 }
 
+tasks.withType<Pmd>().configureEach {
+  // Resolve JDK types against the compilation toolchain.  Otherwise, PMD uses the JDK that runs
+  // Gradle and warns that it "could be the wrong java version".
+  val jdkHome = javaToolchains.compilerFor(java.toolchain).map { it.metadata.installationPath }
+  classpath = (classpath ?: files()) + files(jdkHome.map { it.file("lib/jrt-fs.jar") })
+}
+
 // Checker Framework pluggable type-checking
 
 checkerFramework {
